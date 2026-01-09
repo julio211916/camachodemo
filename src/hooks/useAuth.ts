@@ -3,12 +3,53 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 
+export type UserRole = 'admin' | 'staff' | 'doctor' | 'patient' | null;
+
+interface Profile {
+  id: string;
+  user_id: string;
+  email: string;
+  full_name: string;
+  phone: string | null;
+  avatar_url: string | null;
+  date_of_birth: string | null;
+  address: string | null;
+}
+
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const { toast } = useToast();
+
+  const fetchUserRole = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
+    
+    if (data && data.length > 0) {
+      // Priority: admin > doctor > staff > patient
+      const roles = data.map(r => r.role);
+      if (roles.includes('admin')) return 'admin' as UserRole;
+      if (roles.includes('doctor')) return 'doctor' as UserRole;
+      if (roles.includes('staff')) return 'staff' as UserRole;
+      if (roles.includes('patient')) return 'patient' as UserRole;
+    }
+    return null;
+  };
+
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    return data as Profile | null;
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -18,18 +59,17 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user has admin or staff role
+          // Defer database calls to avoid deadlock
           setTimeout(async () => {
-            const { data } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id);
+            const role = await fetchUserRole(session.user.id);
+            setUserRole(role);
             
-            const hasAdminAccess = data?.some(r => r.role === 'admin' || r.role === 'staff') ?? false;
-            setIsAdmin(hasAdminAccess);
+            const profileData = await fetchProfile(session.user.id);
+            setProfile(profileData);
           }, 0);
         } else {
-          setIsAdmin(false);
+          setUserRole(null);
+          setProfile(null);
         }
         
         setLoading(false);
@@ -37,19 +77,16 @@ export const useAuth = () => {
     );
 
     // Then get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', session.user.id)
-          .then(({ data }) => {
-            const hasAdminAccess = data?.some(r => r.role === 'admin' || r.role === 'staff') ?? false;
-            setIsAdmin(hasAdminAccess);
-          });
+        const role = await fetchUserRole(session.user.id);
+        setUserRole(role);
+        
+        const profileData = await fetchProfile(session.user.id);
+        setProfile(profileData);
       }
       
       setLoading(false);
@@ -78,12 +115,15 @@ export const useAuth = () => {
     return { error: null };
   };
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, fullName: string, role: 'patient' | 'doctor' = 'patient') => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
+        data: {
+          full_name: fullName,
+        },
       },
     });
     
@@ -93,7 +133,18 @@ export const useAuth = () => {
         description: error.message,
         variant: "destructive",
       });
-      return { error };
+      return { error, data: null };
+    }
+
+    // Assign role to the new user
+    if (data.user) {
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: data.user.id, role });
+      
+      if (roleError) {
+        console.error('Error assigning role:', roleError);
+      }
     }
     
     toast({
@@ -101,7 +152,7 @@ export const useAuth = () => {
       description: "Tu cuenta ha sido creada.",
     });
     
-    return { error: null };
+    return { error: null, data };
   };
 
   const signOut = async () => {
@@ -116,19 +167,57 @@ export const useAuth = () => {
       return;
     }
     
+    setUserRole(null);
+    setProfile(null);
+    
     toast({
       title: "Sesión cerrada",
       description: "Has cerrado sesión correctamente.",
     });
   };
 
+  const updateProfile = async (updates: Partial<Profile>) => {
+    if (!user) return { error: new Error('No user logged in') };
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el perfil.",
+        variant: "destructive",
+      });
+      return { error };
+    }
+
+    // Refresh profile
+    const profileData = await fetchProfile(user.id);
+    setProfile(profileData);
+
+    toast({
+      title: "Perfil actualizado",
+      description: "Tus datos han sido actualizados.",
+    });
+
+    return { error: null };
+  };
+
+  // Legacy compatibility
+  const isAdmin = userRole === 'admin' || userRole === 'staff';
+
   return {
     user,
     session,
     loading,
+    userRole,
     isAdmin,
+    profile,
     signIn,
     signUp,
     signOut,
+    updateProfile,
   };
 };

@@ -21,6 +21,7 @@ export type Database = {
           confirmation_token: string | null
           confirmed_at: string | null
           created_at: string
+          doctor_id: string | null
           id: string
           location_id: string
           location_name: string
@@ -42,6 +43,7 @@ export type Database = {
           confirmation_token?: string | null
           confirmed_at?: string | null
           created_at?: string
+          doctor_id?: string | null
           id?: string
           location_id: string
           location_name: string
@@ -63,6 +65,7 @@ export type Database = {
           confirmation_token?: string | null
           confirmed_at?: string | null
           created_at?: string
+          doctor_id?: string | null
           id?: string
           location_id?: string
           location_name?: string
@@ -77,6 +80,140 @@ export type Database = {
           service_name?: string
           status?: Database["public"]["Enums"]["appointment_status"]
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctors: {
+        Row: {
+          available_days: string[] | null
+          bio: string | null
+          consultation_fee: number | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          license_number: string
+          specialty: string
+          updated_at: string
+          user_id: string
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          available_days?: string[] | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          license_number: string
+          specialty: string
+          updated_at?: string
+          user_id: string
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          available_days?: string[] | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          license_number?: string
+          specialty?: string
+          updated_at?: string
+          user_id?: string
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      medical_history: {
+        Row: {
+          allergies: string[] | null
+          blood_type: string | null
+          conditions: string[] | null
+          created_at: string
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          id: string
+          medications: string[] | null
+          notes: string | null
+          patient_id: string
+          updated_at: string
+        }
+        Insert: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          conditions?: string[] | null
+          created_at?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          medications?: string[] | null
+          notes?: string | null
+          patient_id: string
+          updated_at?: string
+        }
+        Update: {
+          allergies?: string[] | null
+          blood_type?: string | null
+          conditions?: string[] | null
+          created_at?: string
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          id?: string
+          medications?: string[] | null
+          notes?: string | null
+          patient_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          full_name: string
+          id: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          full_name: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -163,6 +300,75 @@ export type Database = {
           },
         ]
       }
+      treatments: {
+        Row: {
+          appointment_id: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          diagnosis: string | null
+          doctor_id: string | null
+          end_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          patient_id: string
+          start_date: string
+          status: string | null
+          treatment_plan: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          diagnosis?: string | null
+          doctor_id?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          patient_id: string
+          start_date?: string
+          status?: string | null
+          treatment_plan?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_id?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          diagnosis?: string | null
+          doctor_id?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          patient_id?: string
+          start_date?: string
+          status?: string | null
+          treatment_plan?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treatments_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treatments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -189,6 +395,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -198,7 +408,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "staff" | "user"
+      app_role: "admin" | "staff" | "user" | "patient" | "doctor"
       appointment_status: "pending" | "confirmed" | "cancelled" | "completed"
     }
     CompositeTypes: {
@@ -327,7 +537,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "staff", "user"],
+      app_role: ["admin", "staff", "user", "patient", "doctor"],
       appointment_status: ["pending", "confirmed", "cancelled", "completed"],
     },
   },
