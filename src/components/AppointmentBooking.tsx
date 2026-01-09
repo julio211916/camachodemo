@@ -50,11 +50,10 @@ const services = [
   { id: "infantil", name: "Odontopediatría" },
 ];
 
-const allTimeSlots = [
-  "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
-  "12:00", "12:30", "13:00", "14:00", "14:30", "15:00",
-  "15:30", "16:00", "16:30", "17:00", "17:30", "18:00",
-];
+// Horarios de mañana y tarde con mejor distribución
+const morningSlots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00"];
+const afternoonSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+const allTimeSlots = [...morningSlots, ...afternoonSlots];
 
 export const AppointmentBooking = () => {
   const ref = useRef(null);
@@ -383,45 +382,100 @@ export const AppointmentBooking = () => {
                       </div>
                     ) : availableTimeSlots.length === 0 ? (
                       <div className="text-center py-12">
+                        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                          <Clock className="w-8 h-8 text-muted-foreground" />
+                        </div>
                         <p className="text-muted-foreground mb-4">
                           No hay horarios disponibles para esta fecha y sucursal.
                         </p>
-                        <Button variant="outline" onClick={handleBack}>
+                        <Button variant="outline" onClick={handleBack} className="rounded-full">
                           Seleccionar otra fecha
                         </Button>
                       </div>
                     ) : (
                       <>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                          {allTimeSlots.map((time) => {
-                            const isBooked = bookedSlots.includes(time);
-                            return (
-                              <motion.button
-                                key={time}
-                                whileHover={!isBooked ? { scale: 1.05 } : {}}
-                                whileTap={!isBooked ? { scale: 0.95 } : {}}
-                                onClick={() => !isBooked && setSelectedTime(time)}
-                                disabled={isBooked}
-                                className={cn(
-                                  "py-3 px-4 rounded-xl font-medium transition-all duration-300 relative",
-                                  isBooked
-                                    ? "bg-muted/50 text-muted-foreground cursor-not-allowed line-through"
-                                    : selectedTime === time
-                                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                                      : "bg-secondary/50 text-foreground hover:bg-secondary"
-                                )}
-                              >
-                                {time}
-                                {isBooked && (
-                                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full" />
-                                )}
-                              </motion.button>
-                            );
-                          })}
+                        {/* Turno Mañana */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <span className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                              ☀️
+                            </span>
+                            <span>Mañana</span>
+                          </div>
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {morningSlots.map((time) => {
+                              const isBooked = bookedSlots.includes(time);
+                              return (
+                                <motion.button
+                                  key={time}
+                                  whileHover={!isBooked ? { scale: 1.03 } : {}}
+                                  whileTap={!isBooked ? { scale: 0.97 } : {}}
+                                  onClick={() => !isBooked && setSelectedTime(time)}
+                                  disabled={isBooked}
+                                  className={cn(
+                                    "py-2.5 px-3 rounded-lg font-medium text-sm transition-all duration-200 relative",
+                                    isBooked
+                                      ? "bg-muted/50 text-muted-foreground cursor-not-allowed line-through opacity-60"
+                                      : selectedTime === time
+                                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                                        : "bg-secondary/50 text-foreground hover:bg-secondary border border-transparent hover:border-primary/20"
+                                  )}
+                                >
+                                  {time}
+                                </motion.button>
+                              );
+                            })}
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground text-center">
-                          Los horarios tachados ya están reservados
-                        </p>
+
+                        {/* Turno Tarde */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                            <span className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                              🌅
+                            </span>
+                            <span>Tarde</span>
+                          </div>
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {afternoonSlots.map((time) => {
+                              const isBooked = bookedSlots.includes(time);
+                              return (
+                                <motion.button
+                                  key={time}
+                                  whileHover={!isBooked ? { scale: 1.03 } : {}}
+                                  whileTap={!isBooked ? { scale: 0.97 } : {}}
+                                  onClick={() => !isBooked && setSelectedTime(time)}
+                                  disabled={isBooked}
+                                  className={cn(
+                                    "py-2.5 px-3 rounded-lg font-medium text-sm transition-all duration-200 relative",
+                                    isBooked
+                                      ? "bg-muted/50 text-muted-foreground cursor-not-allowed line-through opacity-60"
+                                      : selectedTime === time
+                                        ? "bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                                        : "bg-secondary/50 text-foreground hover:bg-secondary border border-transparent hover:border-primary/20"
+                                  )}
+                                >
+                                  {time}
+                                </motion.button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-center gap-4 pt-2 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-secondary/50 border border-border" />
+                            <span>Disponible</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-primary" />
+                            <span>Seleccionado</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 rounded bg-muted/50 line-through" />
+                            <span>Ocupado</span>
+                          </div>
+                        </div>
                       </>
                     )}
                   </motion.div>
