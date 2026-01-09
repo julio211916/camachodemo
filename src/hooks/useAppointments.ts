@@ -19,6 +19,11 @@ export interface Appointment {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  confirmed_at: string | null;
+  reminder_sent: string | null;
+  confirmation_token: string | null;
+  review_token: string | null;
+  review_sent_at: string | null;
 }
 
 export interface CreateAppointmentData {

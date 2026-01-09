@@ -50,6 +50,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAppointments, useUpdateAppointmentStatus, useDeleteAppointment, Appointment } from "@/hooks/useAppointments";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { ReviewsManager } from "./ReviewsManager";
+import { AppointmentCalendar } from "./AppointmentCalendar";
+import { ExportData } from "./ExportData";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo-novelldent.png";
 
@@ -146,10 +148,14 @@ export const AdminDashboard = () => {
       <main className="container-wide py-8">
         {/* Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-lg">
+          <TabsList className="grid w-full grid-cols-4 max-w-xl">
             <TabsTrigger value="appointments" className="flex items-center gap-2">
               <CalendarDays className="w-4 h-4" />
               <span className="hidden sm:inline">Citas</span>
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">Calendario</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -198,14 +204,14 @@ export const AdminDashboard = () => {
                     className="pl-12 h-12 rounded-xl"
                   />
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-4 flex-wrap">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px] h-12 rounded-xl">
+                    <SelectTrigger className="w-[160px] h-12 rounded-xl">
                       <Filter className="w-4 h-4 mr-2" />
                       <SelectValue placeholder="Estado" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos los estados</SelectItem>
+                      <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="pending">Pendientes</SelectItem>
                       <SelectItem value="confirmed">Confirmadas</SelectItem>
                       <SelectItem value="completed">Completadas</SelectItem>
@@ -213,12 +219,12 @@ export const AdminDashboard = () => {
                     </SelectContent>
                   </Select>
                   <Select value={locationFilter} onValueChange={setLocationFilter}>
-                    <SelectTrigger className="w-[200px] h-12 rounded-xl">
+                    <SelectTrigger className="w-[160px] h-12 rounded-xl">
                       <MapPin className="w-4 h-4 mr-2" />
                       <SelectValue placeholder="Sucursal" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas las sucursales</SelectItem>
+                      <SelectItem value="all">Todas</SelectItem>
                       {locations.map((loc) => (
                         <SelectItem key={loc} value={loc}>
                           {loc.charAt(0).toUpperCase() + loc.slice(1).replace(/-/g, " ")}
@@ -226,6 +232,7 @@ export const AdminDashboard = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  <ExportData appointments={appointments} filteredAppointments={filteredAppointments} />
                 </div>
               </div>
             </div>
@@ -416,6 +423,11 @@ export const AdminDashboard = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* Calendar Tab */}
+          <TabsContent value="calendar">
+            <AppointmentCalendar appointments={appointments} />
           </TabsContent>
 
           {/* Analytics Tab */}

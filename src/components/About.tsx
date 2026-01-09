@@ -8,22 +8,22 @@ const features = [
   {
     icon: Cpu,
     title: "Tecnología Digital",
-    description: "Equipos de última generación para diagnósticos precisos y tratamientos efectivos.",
+    description: "Equipos de última generación para diagnósticos precisos.",
   },
   {
     icon: Shield,
     title: "Seguridad Total",
-    description: "Protocolos rigurosos de higiene y bioseguridad para tu tranquilidad.",
+    description: "Protocolos rigurosos de higiene y bioseguridad.",
   },
   {
     icon: Award,
-    title: "Especialistas Certificados",
-    description: "Equipo de profesionales con amplia experiencia y constante actualización.",
+    title: "Certificados",
+    description: "Especialistas con amplia experiencia y constante actualización.",
   },
   {
     icon: Users,
-    title: "Atención Personalizada",
-    description: "Tratamientos diseñados específicamente para cada paciente.",
+    title: "Personalizado",
+    description: "Tratamientos diseñados específicamente para ti.",
   },
 ];
 
@@ -32,29 +32,28 @@ export const About = () => {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <section id="quienes-somos" className="section-padding bg-secondary/30" ref={ref}>
+    <section id="quienes-somos" className="section-padding bg-background" ref={ref}>
       <div className="container-wide">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           {/* Image */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="relative"
           >
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+            <div className="relative rounded-3xl overflow-hidden">
               <img
                 src={heroDental}
                 alt="NovellDent Clínica Dental"
                 className="w-full h-auto object-cover aspect-[4/3]"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
             </div>
             <motion.div
-              initial={{ scale: 0 }}
-              animate={isInView ? { scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="absolute -bottom-6 -right-6 bg-card rounded-2xl p-6 shadow-xl"
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="absolute -bottom-8 -right-8 bg-card rounded-2xl p-6 border border-border shadow-lg"
             >
               <div className="text-4xl font-serif font-bold gradient-text">15+</div>
               <div className="text-sm text-muted-foreground">Años de experiencia</div>
@@ -63,21 +62,22 @@ export const About = () => {
 
           {/* Content */}
           <motion.div
-            initial={{ opacity: 0, x: 50 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           >
-            <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              ¿Quiénes Somos?
+            <span className="text-primary text-sm font-medium uppercase tracking-wider mb-4 block">
+              Quiénes Somos
             </span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground mb-6 leading-tight">
-              Vanguardia en{" "}
+            <h2 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6 leading-tight">
+              Vanguardia en
+              <br />
               <span className="gradient-text">Odontología Digital</span>
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              En <strong className="text-foreground">NovellDent</strong> estamos enfocados en los servicios de salud dental. 
-              Nos caracterizamos por la vanguardia de la tecnología con avances tecnológicos para obtener 
-              un diagnóstico eficaz y fiable, principalmente en el tratamiento con resultados óptimos.
+            <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
+              En <strong className="text-foreground">NovellDent</strong> nos enfocamos en brindarte 
+              la mejor experiencia en salud dental, con tecnología de punta y un equipo de especialistas 
+              comprometidos con tu bienestar.
             </p>
 
             <div className="grid sm:grid-cols-2 gap-6">
@@ -87,7 +87,7 @@ export const About = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-                  className="flex gap-4"
+                  className="flex gap-4 p-4 rounded-2xl hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                     <feature.icon className="w-6 h-6 text-primary" />
