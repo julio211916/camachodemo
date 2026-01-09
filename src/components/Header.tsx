@@ -1,0 +1,153 @@
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, Phone, MapPin } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
+import logo from "@/assets/logo-novelldent.png";
+
+const navItems = [
+  { label: "Inicio", href: "#inicio" },
+  { label: "Quiénes Somos", href: "#quienes-somos" },
+  { label: "Especialidades", href: "#especialidades" },
+  { label: "Servicios", href: "#servicios" },
+  { label: "Sucursales", href: "#sucursales" },
+  { label: "Contacto", href: "#contacto" },
+];
+
+export const Header = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? "bg-background/95 backdrop-blur-md shadow-lg"
+            : "bg-transparent"
+        }`}
+      >
+        {/* Top bar */}
+        <div className={`border-b transition-all duration-300 ${isScrolled ? "border-border/50 py-2" : "border-white/10 py-3"}`}>
+          <div className="container-wide flex items-center justify-between text-sm">
+            <div className={`hidden md:flex items-center gap-6 transition-colors ${isScrolled ? "text-muted-foreground" : "text-white/70"}`}>
+              <a href="tel:+523221837666" className="flex items-center gap-2 hover:text-primary transition-colors">
+                <Phone className="w-4 h-4" />
+                <span>+52 322 183 7666</span>
+              </a>
+              <span className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                <span>Nayarit & Jalisco, México</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-4 ml-auto">
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+
+        {/* Main nav */}
+        <div className={`transition-all duration-300 ${isScrolled ? "py-3" : "py-4"}`}>
+          <div className="container-wide flex items-center justify-between">
+            <motion.a
+              href="#inicio"
+              whileHover={{ scale: 1.02 }}
+              className="flex items-center gap-3"
+            >
+              <img
+                src={logo}
+                alt="NovellDent"
+                className={`transition-all duration-300 ${isScrolled ? "h-10" : "h-14"}`}
+              />
+              <span className={`font-serif font-bold hidden sm:block transition-all duration-300 ${isScrolled ? "text-foreground text-xl" : "text-white text-2xl"}`}>
+                NovellDent
+              </span>
+            </motion.a>
+
+            {/* Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-8">
+              {navItems.map((item) => (
+                <motion.a
+                  key={item.label}
+                  href={item.href}
+                  className={`font-medium transition-colors relative group ${isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/80 hover:text-white"}`}
+                  whileHover={{ y: -2 }}
+                >
+                  {item.label}
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+                </motion.a>
+              ))}
+              <motion.a
+                href="#cita"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="btn-primary text-sm"
+              >
+                Agendar Cita
+              </motion.a>
+            </nav>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 text-foreground"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-40 lg:hidden"
+          >
+            <div className="absolute inset-0 bg-background/95 backdrop-blur-lg pt-32 px-6">
+              <nav className="flex flex-col gap-6">
+                {navItems.map((item, index) => (
+                  <motion.a
+                    key={item.label}
+                    href={item.href}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="text-2xl font-serif text-foreground hover:text-primary transition-colors"
+                  >
+                    {item.label}
+                  </motion.a>
+                ))}
+                <motion.a
+                  href="#cita"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="btn-primary mt-4 text-center"
+                >
+                  Agendar Cita
+                </motion.a>
+              </nav>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
