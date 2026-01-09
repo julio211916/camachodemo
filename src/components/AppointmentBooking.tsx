@@ -1,16 +1,16 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar, Clock, MapPin, User, Phone, Mail, CheckCircle2, ChevronRight, Stethoscope } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Phone, Mail, CheckCircle2, ChevronRight, Stethoscope, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useBookedSlots, useCreateAppointment } from "@/hooks/useAppointments";
 
 const locations = [
   {
@@ -50,7 +50,7 @@ const services = [
   { id: "infantil", name: "Odontopediatría" },
 ];
 
-const timeSlots = [
+const allTimeSlots = [
   "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
   "12:00", "12:30", "13:00", "14:00", "14:30", "15:00",
   "15:30", "16:00", "16:30", "17:00", "17:30", "18:00",
@@ -60,6 +60,7 @@ export const AppointmentBooking = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { toast } = useToast();
+  const createAppointment = useCreateAppointment();
 
   const [step, setStep] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -71,8 +72,18 @@ export const AppointmentBooking = () => {
     phone: "",
     email: "",
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+
+  // Fetch booked slots for selected location and date
+  const { data: bookedSlots = [], isLoading: loadingSlots } = useBookedSlots(selectedLocation, selectedDate);
+
+  // Reset time when date or location changes
+  useEffect(() => {
+    setSelectedTime("");
+  }, [selectedDate, selectedLocation]);
+
+  // Get available time slots (filter out booked ones)
+  const availableTimeSlots = allTimeSlots.filter(time => !bookedSlots.includes(time));
 
   const handleNext = () => {
     if (step < 4) setStep(step + 1);
@@ -98,14 +109,29 @@ export const AppointmentBooking = () => {
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsComplete(true);
-    toast({
-      title: "¡Cita agendada!",
-      description: "Te hemos enviado un correo de confirmación.",
-    });
+    if (!selectedDate) return;
+
+    try {
+      await createAppointment.mutateAsync({
+        location_id: selectedLocation,
+        location_name: getLocationName(),
+        service_id: selectedService,
+        service_name: getServiceName(),
+        appointment_date: format(selectedDate, 'yyyy-MM-dd'),
+        appointment_time: selectedTime,
+        patient_name: formData.name,
+        patient_phone: formData.phone,
+        patient_email: formData.email,
+      });
+
+      setIsComplete(true);
+      toast({
+        title: "¡Cita agendada!",
+        description: "Te hemos enviado un correo de confirmación.",
+      });
+    } catch (error) {
+      // Error handled by the mutation
+    }
   };
 
   const resetForm = () => {
@@ -317,7 +343,7 @@ export const AppointmentBooking = () => {
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             const dayOfWeek = date.getDay();
-                            return date < today || dayOfWeek === 0; // Disable past dates and Sundays
+                            return date < today || dayOfWeek === 0;
                           }}
                           className="rounded-xl pointer-events-auto"
                         />
@@ -347,26 +373,57 @@ export const AppointmentBooking = () => {
                   >
                     <h3 className="text-xl font-serif font-bold text-foreground mb-4 flex items-center gap-2">
                       <Clock className="w-5 h-5 text-primary" />
-                      Selecciona una Hora
+                      Selecciona una Hora Disponible
                     </h3>
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                      {timeSlots.map((time) => (
-                        <motion.button
-                          key={time}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => setSelectedTime(time)}
-                          className={cn(
-                            "py-3 px-4 rounded-xl font-medium transition-all duration-300",
-                            selectedTime === time
-                              ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                              : "bg-secondary/50 text-foreground hover:bg-secondary"
-                          )}
-                        >
-                          {time}
-                        </motion.button>
-                      ))}
-                    </div>
+                    
+                    {loadingSlots ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        <span className="ml-3 text-muted-foreground">Cargando horarios...</span>
+                      </div>
+                    ) : availableTimeSlots.length === 0 ? (
+                      <div className="text-center py-12">
+                        <p className="text-muted-foreground mb-4">
+                          No hay horarios disponibles para esta fecha y sucursal.
+                        </p>
+                        <Button variant="outline" onClick={handleBack}>
+                          Seleccionar otra fecha
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                          {allTimeSlots.map((time) => {
+                            const isBooked = bookedSlots.includes(time);
+                            return (
+                              <motion.button
+                                key={time}
+                                whileHover={!isBooked ? { scale: 1.05 } : {}}
+                                whileTap={!isBooked ? { scale: 0.95 } : {}}
+                                onClick={() => !isBooked && setSelectedTime(time)}
+                                disabled={isBooked}
+                                className={cn(
+                                  "py-3 px-4 rounded-xl font-medium transition-all duration-300 relative",
+                                  isBooked
+                                    ? "bg-muted/50 text-muted-foreground cursor-not-allowed line-through"
+                                    : selectedTime === time
+                                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                                      : "bg-secondary/50 text-foreground hover:bg-secondary"
+                                )}
+                              >
+                                {time}
+                                {isBooked && (
+                                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full" />
+                                )}
+                              </motion.button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-sm text-muted-foreground text-center">
+                          Los horarios tachados ya están reservados
+                        </p>
+                      </>
+                    )}
                   </motion.div>
                 )}
 
@@ -480,15 +537,11 @@ export const AppointmentBooking = () => {
                   ) : (
                     <Button
                       onClick={handleSubmit}
-                      disabled={!canProceed() || isSubmitting}
+                      disabled={!canProceed() || createAppointment.isPending}
                       className="btn-primary rounded-full min-w-[180px]"
                     >
-                      {isSubmitting ? (
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                          className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
-                        />
+                      {createAppointment.isPending ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>
                           Confirmar Cita
