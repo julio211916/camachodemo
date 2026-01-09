@@ -1,0 +1,36 @@
+import { useAuth } from "@/hooks/useAuth";
+import { AuthPage } from "@/components/auth/AuthPage";
+import { PatientDashboard } from "@/components/dashboard/PatientDashboard";
+import { DoctorDashboard } from "@/components/dashboard/DoctorDashboard";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { Loader2 } from "lucide-react";
+
+const Portal = () => {
+  const { user, loading, userRole } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
+
+  // Redirect based on role
+  switch (userRole) {
+    case 'admin':
+    case 'staff':
+      return <AdminDashboard />;
+    case 'doctor':
+      return <DoctorDashboard />;
+    case 'patient':
+    default:
+      return <PatientDashboard />;
+  }
+};
+
+export default Portal;

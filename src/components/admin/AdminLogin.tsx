@@ -23,7 +23,7 @@ export const AdminLogin = () => {
     if (isLogin) {
       await signIn(formData.email, formData.password);
     } else {
-      await signUp(formData.email, formData.password);
+      await signUp(formData.email, formData.password, formData.email.split('@')[0]);
     }
 
     setIsLoading(false);
