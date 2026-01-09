@@ -126,6 +126,23 @@
     @apply border-border;
   }
 
+  /* Smooth theme transitions */
+  html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html.theme-transitioning,
+  html.theme-transitioning *,
+  html.theme-transitioning *::before,
+  html.theme-transitioning *::after {
+    transition: background-color 0.4s ease, 
+                color 0.4s ease, 
+                border-color 0.4s ease,
+                fill 0.4s ease,
+                stroke 0.4s ease,
+                box-shadow 0.4s ease !important;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
