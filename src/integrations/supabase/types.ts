@@ -26,6 +26,7 @@ export type Database = {
           patient_email: string
           patient_name: string
           patient_phone: string
+          reminder_sent: string | null
           service_id: string
           service_name: string
           status: Database["public"]["Enums"]["appointment_status"]
@@ -42,6 +43,7 @@ export type Database = {
           patient_email: string
           patient_name: string
           patient_phone: string
+          reminder_sent?: string | null
           service_id: string
           service_name: string
           status?: Database["public"]["Enums"]["appointment_status"]
@@ -58,6 +60,7 @@ export type Database = {
           patient_email?: string
           patient_name?: string
           patient_phone?: string
+          reminder_sent?: string | null
           service_id?: string
           service_name?: string
           status?: Database["public"]["Enums"]["appointment_status"]
