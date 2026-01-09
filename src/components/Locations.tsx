@@ -6,7 +6,7 @@ import { MapPin, Phone, Clock, ExternalLink } from "lucide-react";
 const locations = [
   {
     name: "Matriz Tepic",
-    address: "Tepic, Nayarit",
+    address: "Country Club 10, Caoba y Av. Insurgentes, Versalles, C.P. 63139, Tepic, Nayarit",
     phone: "+52 311 133 8000",
     hours: "Lun - Sáb: 9:00 - 19:00",
     mapUrl: "#",
