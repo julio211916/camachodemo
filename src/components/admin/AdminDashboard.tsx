@@ -23,6 +23,7 @@ import {
   BarChart3,
   MessageSquare,
   Bell,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAppointments, useUpdateAppointmentStatus, useDeleteAppointment, Appointment } from "@/hooks/useAppointments";
 import { useRealtimeAppointments, useRealtimeReviews } from "@/hooks/useRealtimeNotifications";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
+import { AdvancedAnalytics } from "./AdvancedAnalytics";
+import { DoctorsManager } from "./DoctorsManager";
 import { ReviewsManager } from "./ReviewsManager";
 import { AppointmentCalendar } from "./AppointmentCalendar";
 import { ExportData } from "./ExportData";
@@ -153,7 +156,7 @@ export const AdminDashboard = () => {
       <main className="container-wide py-8">
         {/* Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-xl">
+          <TabsList className="grid w-full grid-cols-6 max-w-2xl">
             <TabsTrigger value="appointments" className="flex items-center gap-2">
               <CalendarDays className="w-4 h-4" />
               <span className="hidden sm:inline">Citas</span>
@@ -162,9 +165,17 @@ export const AdminDashboard = () => {
               <Calendar className="w-4 h-4" />
               <span className="hidden sm:inline">Calendario</span>
             </TabsTrigger>
+            <TabsTrigger value="doctors" className="flex items-center gap-2">
+              <Stethoscope className="w-4 h-4" />
+              <span className="hidden sm:inline">Doctores</span>
+            </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="advanced" className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              <span className="hidden sm:inline">Métricas</span>
             </TabsTrigger>
             <TabsTrigger value="reviews" className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
@@ -435,9 +446,19 @@ export const AdminDashboard = () => {
             <AppointmentCalendar appointments={appointments} />
           </TabsContent>
 
+          {/* Doctors Tab */}
+          <TabsContent value="doctors">
+            <DoctorsManager />
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics">
             <AnalyticsDashboard />
+          </TabsContent>
+
+          {/* Advanced Analytics Tab */}
+          <TabsContent value="advanced">
+            <AdvancedAnalytics />
           </TabsContent>
 
           {/* Reviews Tab */}
