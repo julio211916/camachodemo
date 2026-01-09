@@ -48,6 +48,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppointments, useUpdateAppointmentStatus, useDeleteAppointment, Appointment } from "@/hooks/useAppointments";
+import { useRealtimeAppointments, useRealtimeReviews } from "@/hooks/useRealtimeNotifications";
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { ReviewsManager } from "./ReviewsManager";
 import { AppointmentCalendar } from "./AppointmentCalendar";
@@ -83,6 +84,10 @@ export const AdminDashboard = () => {
   const { data: appointments = [], isLoading } = useAppointments();
   const updateStatus = useUpdateAppointmentStatus();
   const deleteAppointment = useDeleteAppointment();
+
+  // Enable realtime notifications
+  useRealtimeAppointments(true);
+  useRealtimeReviews(true);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
