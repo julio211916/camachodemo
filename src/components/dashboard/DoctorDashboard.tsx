@@ -26,6 +26,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
+import { TreatmentForm } from "./TreatmentForm";
 import logo from "@/assets/logo-novelldent.png";
 
 export const DoctorDashboard = () => {
@@ -34,6 +35,7 @@ export const DoctorDashboard = () => {
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [isTreatmentFormOpen, setIsTreatmentFormOpen] = useState(false);
 
   // Fetch doctor info
   const { data: doctorInfo } = useQuery({
@@ -502,7 +504,7 @@ export const DoctorDashboard = () => {
                   <FileText className="w-5 h-5 text-primary" />
                   Mis Tratamientos
                 </CardTitle>
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={() => setIsTreatmentFormOpen(true)}>
                   <Plus className="w-4 h-4" />
                   Nuevo Tratamiento
                 </Button>
@@ -558,6 +560,15 @@ export const DoctorDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Treatment Form Modal */}
+      {doctorInfo?.id && (
+        <TreatmentForm
+          doctorId={doctorInfo.id}
+          isOpen={isTreatmentFormOpen}
+          onClose={() => setIsTreatmentFormOpen(false)}
+        />
+      )}
     </div>
   );
 };
