@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -15,6 +16,7 @@ interface AppointmentConfirmationRequest {
   serviceName: string;
   appointmentDate: string;
   appointmentTime: string;
+  appointmentId?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -29,8 +31,35 @@ const handler = async (req: Request): Promise<Response> => {
       locationName, 
       serviceName, 
       appointmentDate, 
-      appointmentTime 
+      appointmentTime,
+      appointmentId
     }: AppointmentConfirmationRequest = await req.json();
+
+    // Get confirmation token if appointmentId is provided
+    let confirmationToken = "";
+    if (appointmentId) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      
+      const { data: appointment } = await supabase
+        .from("appointments")
+        .select("confirmation_token")
+        .eq("id", appointmentId)
+        .single();
+      
+      if (appointment?.confirmation_token) {
+        confirmationToken = appointment.confirmation_token;
+      }
+    }
+
+    const baseUrl = Deno.env.get("SUPABASE_URL");
+    const confirmUrl = confirmationToken 
+      ? `${baseUrl}/functions/v1/appointment-action?token=${confirmationToken}&action=confirm`
+      : "";
+    const cancelUrl = confirmationToken
+      ? `${baseUrl}/functions/v1/appointment-action?token=${confirmationToken}&action=cancel`
+      : "";
 
     const emailResponse = await resend.emails.send({
       from: "NovellDent <onboarding@resend.dev>",
@@ -58,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
                 <div style="width: 80px; height: 80px; background: #dcfce7; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;">
                   <span style="font-size: 40px;">✅</span>
                 </div>
-                <h2 style="color: #1e293b; margin: 0 0 10px; font-size: 24px;">¡Cita Confirmada!</h2>
+                <h2 style="color: #1e293b; margin: 0 0 10px; font-size: 24px;">¡Cita Registrada!</h2>
                 <p style="color: #64748b; margin: 0;">Hola <strong>${patientName}</strong>, tu cita ha sido agendada exitosamente.</p>
               </div>
               
@@ -99,10 +128,25 @@ const handler = async (req: Request): Promise<Response> => {
                 </div>
               </div>
               
+              <!-- Action Buttons -->
+              ${confirmationToken ? `
+              <div style="text-align: center; margin-bottom: 30px;">
+                <p style="color: #64748b; margin: 0 0 20px; font-size: 14px;">Por favor confirma tu asistencia:</p>
+                <div style="display: inline-block;">
+                  <a href="${confirmUrl}" style="display: inline-block; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 14px; margin-right: 10px;">
+                    ✅ Confirmar Asistencia
+                  </a>
+                  <a href="${cancelUrl}" style="display: inline-block; background: #f1f5f9; color: #64748b; padding: 14px 32px; border-radius: 50px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                    ❌ Cancelar Cita
+                  </a>
+                </div>
+              </div>
+              ` : ''}
+              
               <!-- Reminder -->
               <div style="background: #fef3c7; border-radius: 12px; padding: 16px; margin-bottom: 30px; border-left: 4px solid #f59e0b;">
                 <p style="color: #92400e; margin: 0; font-size: 14px;">
-                  <strong>Recordatorio:</strong> Por favor, llega 10 minutos antes de tu cita. Si necesitas cancelar o reprogramar, contáctanos con al menos 24 horas de anticipación.
+                  <strong>Recordatorio:</strong> Por favor, llega 10 minutos antes de tu cita. Si necesitas cancelar o reprogramar, usa los botones de arriba o contáctanos con al menos 24 horas de anticipación.
                 </p>
               </div>
               

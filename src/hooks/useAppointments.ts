@@ -76,7 +76,7 @@ export const useCreateAppointment = () => {
       queryClient.invalidateQueries({ queryKey: ['booked-slots'] });
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       
-      // Send confirmation email
+      // Send confirmation email with appointment ID for confirmation links
       try {
         const formattedDate = format(new Date(variables.appointment_date), "EEEE, d 'de' MMMM 'de' yyyy", { locale: es });
         
@@ -88,6 +88,7 @@ export const useCreateAppointment = () => {
             serviceName: variables.service_name,
             appointmentDate: formattedDate,
             appointmentTime: variables.appointment_time,
+            appointmentId: appointment.id,
           },
         });
       } catch (emailError) {
