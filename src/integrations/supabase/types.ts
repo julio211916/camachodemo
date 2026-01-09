@@ -29,6 +29,8 @@ export type Database = {
           patient_name: string
           patient_phone: string
           reminder_sent: string | null
+          review_sent_at: string | null
+          review_token: string | null
           service_id: string
           service_name: string
           status: Database["public"]["Enums"]["appointment_status"]
@@ -48,6 +50,8 @@ export type Database = {
           patient_name: string
           patient_phone: string
           reminder_sent?: string | null
+          review_sent_at?: string | null
+          review_token?: string | null
           service_id: string
           service_name: string
           status?: Database["public"]["Enums"]["appointment_status"]
@@ -67,12 +71,97 @@ export type Database = {
           patient_name?: string
           patient_phone?: string
           reminder_sent?: string | null
+          review_sent_at?: string | null
+          review_token?: string | null
           service_id?: string
           service_name?: string
           status?: Database["public"]["Enums"]["appointment_status"]
           updated_at?: string
         }
         Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          patient_email: string | null
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          patient_email?: string | null
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          patient_email?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          appointment_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          is_published: boolean | null
+          location_id: string
+          location_name: string
+          patient_email: string
+          patient_name: string
+          rating: number
+          review_token: string | null
+          service_id: string
+          service_name: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          location_id: string
+          location_name: string
+          patient_email: string
+          patient_name: string
+          rating: number
+          review_token?: string | null
+          service_id: string
+          service_name: string
+        }
+        Update: {
+          appointment_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          location_id?: string
+          location_name?: string
+          patient_email?: string
+          patient_name?: string
+          rating?: number
+          review_token?: string | null
+          service_id?: string
+          service_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
