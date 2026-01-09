@@ -9,6 +9,7 @@ const navItems = [
   { label: "Quiénes Somos", href: "#quienes-somos" },
   { label: "Especialidades", href: "#especialidades" },
   { label: "Servicios", href: "#servicios" },
+  { label: "Reservar", href: "#reservar" },
   { label: "Sucursales", href: "#sucursales" },
   { label: "Contacto", href: "#contacto" },
 ];
@@ -88,7 +89,7 @@ export const Header = () => {
                 </motion.a>
               ))}
               <motion.a
-                href="#cita"
+                href="#reservar"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="btn-primary text-sm"
@@ -134,7 +135,7 @@ export const Header = () => {
                   </motion.a>
                 ))}
                 <motion.a
-                  href="#cita"
+                  href="#reservar"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
