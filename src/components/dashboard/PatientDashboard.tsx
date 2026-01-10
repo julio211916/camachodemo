@@ -17,6 +17,7 @@ import {
   Heart,
   Pill,
   AlertCircle,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ReferralSystem } from "@/components/ReferralSystem";
 import logo from "@/assets/logo-novelldent.png";
 
 export const PatientDashboard = () => {
@@ -218,6 +220,10 @@ export const PatientDashboard = () => {
             <TabsTrigger value="profile" className="gap-2">
               <User className="w-4 h-4" />
               Mi Perfil
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="gap-2">
+              <Gift className="w-4 h-4" />
+              Referidos
             </TabsTrigger>
           </TabsList>
 
@@ -546,6 +552,10 @@ export const PatientDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="referrals">
+            <ReferralSystem />
           </TabsContent>
         </Tabs>
       </main>
