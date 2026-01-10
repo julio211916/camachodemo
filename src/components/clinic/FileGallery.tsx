@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { 
   FolderOpen, 
@@ -15,7 +15,8 @@ import {
   Loader2,
   X,
   Grid,
-  List
+  List,
+  View
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+
+// Lazy load the STL viewer to avoid loading three.js unless needed
+const STLViewer = lazy(() => import("./STLViewer"));
 
 interface FileGalleryProps {
   patientId?: string;
@@ -373,16 +377,17 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
               />
             )}
             {selectedFile && isSTLFile(selectedFile.file_name) && (
-              <div className="aspect-video bg-secondary/30 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Box className="w-16 h-16 text-purple-500 mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">Visor 3D STL</p>
-                  <Button onClick={() => window.open(selectedFile.file_url, '_blank')}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Descargar para ver en 3D
-                  </Button>
+              <Suspense fallback={
+                <div className="aspect-video bg-secondary/30 rounded-lg flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">Cargando visor 3D...</span>
                 </div>
-              </div>
+              }>
+                <STLViewer 
+                  fileUrl={selectedFile.file_url} 
+                  fileName={selectedFile.file_name} 
+                />
+              </Suspense>
             )}
             {selectedFile && !isImageFile(selectedFile.mime_type) && !isSTLFile(selectedFile.file_name) && (
               <div className="aspect-video bg-secondary/30 rounded-lg flex items-center justify-center">

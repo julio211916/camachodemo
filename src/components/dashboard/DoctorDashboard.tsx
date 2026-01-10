@@ -16,6 +16,9 @@ import {
   ChevronRight,
   Activity,
   TrendingUp,
+  FolderOpen,
+  Pill,
+  FileStack,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +30,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { TreatmentForm } from "./TreatmentForm";
+import { FileGallery } from "@/components/clinic/FileGallery";
+import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
+import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
 import logo from "@/assets/logo-novelldent.png";
 
 export const DoctorDashboard = () => {
@@ -246,7 +252,7 @@ export const DoctorDashboard = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="calendar">
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 flex-wrap h-auto gap-1">
             <TabsTrigger value="calendar" className="gap-2">
               <Calendar className="w-4 h-4" />
               Calendario
@@ -262,6 +268,18 @@ export const DoctorDashboard = () => {
             <TabsTrigger value="treatments" className="gap-2">
               <FileText className="w-4 h-4" />
               Tratamientos
+            </TabsTrigger>
+            <TabsTrigger value="files" className="gap-2">
+              <FolderOpen className="w-4 h-4" />
+              Archivos
+            </TabsTrigger>
+            <TabsTrigger value="prescriptions" className="gap-2">
+              <Pill className="w-4 h-4" />
+              Recetas
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="gap-2">
+              <FileStack className="w-4 h-4" />
+              Documentos
             </TabsTrigger>
           </TabsList>
 
@@ -557,6 +575,21 @@ export const DoctorDashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Files Tab */}
+          <TabsContent value="files">
+            <FileGallery />
+          </TabsContent>
+
+          {/* Prescriptions Tab */}
+          <TabsContent value="prescriptions">
+            <PrescriptionManager />
+          </TabsContent>
+
+          {/* Documents Tab */}
+          <TabsContent value="templates">
+            <DocumentTemplates />
           </TabsContent>
         </Tabs>
       </main>

@@ -24,6 +24,9 @@ import {
   MessageSquare,
   Bell,
   TrendingUp,
+  FolderOpen,
+  Pill,
+  FileStack,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +59,9 @@ import { DoctorsManager } from "./DoctorsManager";
 import { ReviewsManager } from "./ReviewsManager";
 import { AppointmentCalendar } from "./AppointmentCalendar";
 import { ExportData } from "./ExportData";
+import { FileGallery } from "@/components/clinic/FileGallery";
+import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
+import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo-novelldent.png";
 
@@ -156,7 +162,7 @@ export const AdminDashboard = () => {
       <main className="container-wide py-8">
         {/* Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 max-w-2xl">
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-4xl">
             <TabsTrigger value="appointments" className="flex items-center gap-2">
               <CalendarDays className="w-4 h-4" />
               <span className="hidden sm:inline">Citas</span>
@@ -180,6 +186,18 @@ export const AdminDashboard = () => {
             <TabsTrigger value="reviews" className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Reseñas</span>
+            </TabsTrigger>
+            <TabsTrigger value="files" className="flex items-center gap-2">
+              <FolderOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">Archivos</span>
+            </TabsTrigger>
+            <TabsTrigger value="prescriptions" className="flex items-center gap-2">
+              <Pill className="w-4 h-4" />
+              <span className="hidden sm:inline">Recetas</span>
+            </TabsTrigger>
+            <TabsTrigger value="templates" className="flex items-center gap-2">
+              <FileStack className="w-4 h-4" />
+              <span className="hidden sm:inline">Documentos</span>
             </TabsTrigger>
           </TabsList>
 
@@ -464,6 +482,21 @@ export const AdminDashboard = () => {
           {/* Reviews Tab */}
           <TabsContent value="reviews">
             <ReviewsManager />
+          </TabsContent>
+
+          {/* Files Tab */}
+          <TabsContent value="files">
+            <FileGallery />
+          </TabsContent>
+
+          {/* Prescriptions Tab */}
+          <TabsContent value="prescriptions">
+            <PrescriptionManager />
+          </TabsContent>
+
+          {/* Documents Tab */}
+          <TabsContent value="templates">
+            <DocumentTemplates />
           </TabsContent>
         </Tabs>
       </main>
