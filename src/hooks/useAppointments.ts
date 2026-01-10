@@ -148,9 +148,24 @@ export const useUpdateAppointmentStatus = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async (appointment) => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       queryClient.invalidateQueries({ queryKey: ['booked-slots'] });
+      
+      // If appointment is completed and has a referral code, notify the referrer
+      if (appointment.status === 'completed' && appointment.referral_code) {
+        try {
+          await supabase.functions.invoke('notify-referral-complete', {
+            body: {
+              appointmentId: appointment.id,
+              referralCode: appointment.referral_code,
+            },
+          });
+        } catch (error) {
+          console.error('Error notifying referral completion:', error);
+        }
+      }
+      
       toast({
         title: "Estado actualizado",
         description: "El estado de la cita ha sido actualizado.",

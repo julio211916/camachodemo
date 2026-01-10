@@ -28,6 +28,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReferralSystem } from "@/components/ReferralSystem";
+import { DiscountHistory } from "@/components/clinic/DiscountHistory";
 import logo from "@/assets/logo-novelldent.png";
 
 export const PatientDashboard = () => {
@@ -555,7 +556,10 @@ export const PatientDashboard = () => {
           </TabsContent>
 
           <TabsContent value="referrals">
-            <ReferralSystem />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ReferralSystem />
+              <DiscountHistory />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
