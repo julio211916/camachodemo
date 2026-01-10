@@ -3,7 +3,7 @@ import { useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar, Clock, MapPin, User, Phone, Mail, CheckCircle2, ChevronRight, Stethoscope, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Phone, Mail, CheckCircle2, ChevronRight, Stethoscope, Loader2, Gift, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useBookedSlots, useCreateAppointment } from "@/hooks/useAppointments";
+import { supabase } from "@/integrations/supabase/client";
 
 const locations = [
   {
@@ -70,8 +71,11 @@ export const AppointmentBooking = () => {
     name: "",
     phone: "",
     email: "",
+    referralCode: "",
   });
   const [isComplete, setIsComplete] = useState(false);
+  const [referralValid, setReferralValid] = useState<boolean | null>(null);
+  const [checkingReferral, setCheckingReferral] = useState(false);
 
   // Fetch booked slots for selected location and date
   const { data: bookedSlots = [], isLoading: loadingSlots } = useBookedSlots(selectedLocation, selectedDate);
@@ -107,6 +111,28 @@ export const AppointmentBooking = () => {
     }
   };
 
+  const validateReferralCode = async (code: string) => {
+    if (!code || code.length < 4) {
+      setReferralValid(null);
+      return;
+    }
+    
+    setCheckingReferral(true);
+    try {
+      const { data } = await supabase
+        .from('referrals')
+        .select('id')
+        .eq('referral_code', code.toUpperCase())
+        .limit(1);
+      
+      setReferralValid(data && data.length > 0);
+    } catch {
+      setReferralValid(false);
+    } finally {
+      setCheckingReferral(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedDate) return;
 
@@ -121,12 +147,15 @@ export const AppointmentBooking = () => {
         patient_name: formData.name,
         patient_phone: formData.phone,
         patient_email: formData.email,
+        referral_code: formData.referralCode || undefined,
       });
 
       setIsComplete(true);
       toast({
         title: "¡Cita agendada!",
-        description: "Te hemos enviado un correo de confirmación.",
+        description: referralValid 
+          ? "Te hemos enviado un correo. ¡Tienes 5% de descuento por código de referido!" 
+          : "Te hemos enviado un correo de confirmación.",
       });
     } catch (error) {
       // Error handled by the mutation
@@ -139,8 +168,9 @@ export const AppointmentBooking = () => {
     setSelectedService("");
     setSelectedDate(undefined);
     setSelectedTime("");
-    setFormData({ name: "", phone: "", email: "" });
+    setFormData({ name: "", phone: "", email: "", referralCode: "" });
     setIsComplete(false);
+    setReferralValid(null);
   };
 
   const getLocationName = () => locations.find(l => l.id === selectedLocation)?.name || "";
@@ -563,6 +593,54 @@ export const AppointmentBooking = () => {
                             className="pl-12 h-14 rounded-xl"
                           />
                         </div>
+                      </div>
+
+                      {/* Referral Code Field */}
+                      <div>
+                        <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
+                          <Gift className="w-4 h-4 text-primary" />
+                          Código de referido
+                          <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+                        </label>
+                        <div className="relative">
+                          <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                          <Input
+                            value={formData.referralCode}
+                            onChange={(e) => {
+                              const code = e.target.value.toUpperCase();
+                              setFormData({ ...formData, referralCode: code });
+                              validateReferralCode(code);
+                            }}
+                            placeholder="REF-XXXXXXXX"
+                            className={cn(
+                              "pl-12 pr-12 h-14 rounded-xl uppercase",
+                              referralValid === true && "border-green-500 focus-visible:ring-green-500",
+                              referralValid === false && "border-red-500 focus-visible:ring-red-500"
+                            )}
+                            maxLength={12}
+                          />
+                          {checkingReferral && (
+                            <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground animate-spin" />
+                          )}
+                          {!checkingReferral && referralValid === true && (
+                            <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                          )}
+                        </div>
+                        {referralValid === true && (
+                          <motion.p
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-sm text-green-600 mt-2 flex items-center gap-1"
+                          >
+                            <Gift className="w-4 h-4" />
+                            ¡Código válido! Obtendrás 5% de descuento
+                          </motion.p>
+                        )}
+                        {referralValid === false && formData.referralCode.length >= 4 && (
+                          <p className="text-sm text-red-500 mt-2">
+                            Código no válido
+                          </p>
+                        )}
                       </div>
                     </div>
                   </motion.div>

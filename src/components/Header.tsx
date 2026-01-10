@@ -61,7 +61,8 @@ export const Header = () => {
                 <span>Nayarit & Jalisco, México</span>
               </span>
             </div>
-            <div className="flex items-center gap-4 ml-auto">
+            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+              <LanguageSelector />
               <ThemeToggle />
               {user ? (
                 <Button
