@@ -36,6 +36,7 @@ export interface CreateAppointmentData {
   patient_name: string;
   patient_phone: string;
   patient_email: string;
+  referral_code?: string;
 }
 
 // Fetch booked time slots for a specific location and date
