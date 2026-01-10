@@ -4,10 +4,13 @@ import { Eye, EyeOff, ArrowRight, Lock, Mail, Loader2, Shield } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import logo from "@/assets/logo-novelldent.png";
 
 export const AdminLogin = () => {
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +34,10 @@ export const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Theme toggle in corner */}
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       {/* Animated background gradients */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
@@ -77,7 +84,14 @@ export const AdminLogin = () => {
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
               className="relative inline-block"
             >
-              <img src={logo} alt="NovellDent" className="h-14 mx-auto mb-6 drop-shadow-lg" />
+              <motion.img 
+                src={logo} 
+                alt="NovellDent" 
+                className="h-14 mx-auto mb-6 drop-shadow-lg cursor-pointer" 
+                onClick={() => navigate("/")}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              />
               <motion.div
                 className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center"
                 initial={{ scale: 0 }}
