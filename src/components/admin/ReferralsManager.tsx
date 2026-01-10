@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -50,6 +51,8 @@ import {
   Eye,
   Check,
   X,
+  Send,
+  MessageSquare,
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -104,6 +107,13 @@ export const ReferralsManager = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedReferral, setSelectedReferral] = useState<Referral | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Email promo state
+  const [showPromoDialog, setShowPromoDialog] = useState(false);
+  const [promoSubject, setPromoSubject] = useState("🎁 ¡Gana descuentos con nuestro programa de referidos! - NovellDent");
+  const [promoMessage, setPromoMessage] = useState("");
+  const [promoEmails, setPromoEmails] = useState("");
+  const [isSendingPromo, setIsSendingPromo] = useState(false);
 
   useEffect(() => {
     fetchReferrals();
@@ -237,6 +247,43 @@ export const ReferralsManager = () => {
     }
   };
 
+  const sendPromoEmails = async () => {
+    setIsSendingPromo(true);
+    try {
+      const targetEmails = promoEmails.trim()
+        ? promoEmails.split(",").map((e) => e.trim()).filter(Boolean)
+        : undefined;
+
+      const { data, error } = await supabase.functions.invoke("send-referral-promo", {
+        body: {
+          targetEmails,
+          subject: promoSubject,
+          customMessage: promoMessage || undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Emails enviados",
+        description: `Se enviaron ${data.sent} de ${data.total} emails correctamente`,
+      });
+
+      setShowPromoDialog(false);
+      setPromoEmails("");
+      setPromoMessage("");
+    } catch (error) {
+      console.error("Error sending promo emails:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron enviar los emails",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingPromo(false);
+    }
+  };
+
   const filteredReferrals = referrals.filter((r) => {
     const matchesSearch =
       r.referrer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -301,10 +348,16 @@ export const ReferralsManager = () => {
             Administra el programa de referidos y descuentos
           </p>
         </div>
-        <Button onClick={fetchReferrals} variant="outline" className="gap-2">
-          <RefreshCw className="w-4 h-4" />
-          Actualizar
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowPromoDialog(true)} className="gap-2">
+            <Send className="w-4 h-4" />
+            Enviar Promoción
+          </Button>
+          <Button onClick={fetchReferrals} variant="outline" className="gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -797,6 +850,91 @@ export const ReferralsManager = () => {
             )}
             <Button variant="outline" onClick={() => setSelectedReferral(null)}>
               Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Promo Email Dialog */}
+      <Dialog open={showPromoDialog} onOpenChange={setShowPromoDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5" />
+              Enviar Email Promocional
+            </DialogTitle>
+            <DialogDescription>
+              Invita a los pacientes a participar en el programa de referidos
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Asunto del email</label>
+              <Input
+                value={promoSubject}
+                onChange={(e) => setPromoSubject(e.target.value)}
+                placeholder="Asunto del email"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Emails específicos (opcional)
+              </label>
+              <Input
+                value={promoEmails}
+                onChange={(e) => setPromoEmails(e.target.value)}
+                placeholder="email1@ejemplo.com, email2@ejemplo.com"
+              />
+              <p className="text-xs text-muted-foreground">
+                Deja vacío para enviar a todos los pacientes registrados
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Mensaje personalizado (opcional)
+              </label>
+              <Textarea
+                value={promoMessage}
+                onChange={(e) => setPromoMessage(e.target.value)}
+                placeholder="Escribe un mensaje personalizado que aparecerá en el email..."
+                rows={4}
+              />
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <p className="text-sm font-medium mb-2 flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Vista previa
+              </p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p><strong>Para:</strong> {promoEmails || "Todos los pacientes"}</p>
+                <p><strong>Asunto:</strong> {promoSubject}</p>
+                <p className="mt-2">
+                  El email incluirá información sobre el programa de referidos,
+                  cómo obtener el código y los beneficios del 5% de descuento.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button
+              onClick={sendPromoEmails}
+              disabled={isSendingPromo}
+              className="gap-2"
+            >
+              {isSendingPromo ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              Enviar Emails
+            </Button>
+            <Button variant="outline" onClick={() => setShowPromoDialog(false)}>
+              Cancelar
             </Button>
           </DialogFooter>
         </DialogContent>
