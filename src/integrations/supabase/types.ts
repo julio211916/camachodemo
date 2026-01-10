@@ -1124,6 +1124,62 @@ export type Database = {
           },
         ]
       }
+      scheduled_emails: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          html_content: string
+          id: string
+          name: string
+          result: Json | null
+          scheduled_at: string
+          sent_at: string | null
+          status: string
+          subject: string
+          target_emails: string[] | null
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          html_content: string
+          id?: string
+          name: string
+          result?: Json | null
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          target_emails?: string[] | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          html_content?: string
+          id?: string
+          name?: string
+          result?: Json | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          target_emails?: string[] | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_emails_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       treatments: {
         Row: {
           appointment_id: string | null

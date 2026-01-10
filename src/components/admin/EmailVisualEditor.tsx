@@ -65,7 +65,14 @@ import {
   Mail,
   Globe,
   Link as LinkIcon,
+  Clock,
+  Calendar,
+  CalendarClock,
+  XCircle,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Block types
 type BlockType = "heading" | "text" | "image" | "button" | "divider" | "spacer" | "columns" | "list" | "logo" | "social" | "footer" | "gallery";
@@ -965,16 +972,24 @@ export const EmailVisualEditor = () => {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [showScheduledList, setShowScheduledList] = useState(false);
   const [history, setHistory] = useState<EmailTemplate[]>([defaultTemplate]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isScheduling, setIsScheduling] = useState(false);
   const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>([]);
+  const [scheduledEmails, setScheduledEmails] = useState<any[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [loadingScheduled, setLoadingScheduled] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [targetEmails, setTargetEmails] = useState("");
   const [emailSubject, setEmailSubject] = useState("");
+  const [scheduledDate, setScheduledDate] = useState("");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [scheduleName, setScheduleName] = useState("");
 
   const selectedBlock = template.blocks.find((b) => b.id === selectedBlockId);
 
@@ -1284,11 +1299,105 @@ export const EmailVisualEditor = () => {
     }
   };
 
+  // Schedule email
+  const scheduleEmail = async () => {
+    if (!emailSubject.trim() || !scheduledDate || !scheduledTime || !scheduleName.trim()) {
+      toast({ title: "Error", description: "Nombre, asunto, fecha y hora son obligatorios", variant: "destructive" });
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      const emails = targetEmails.trim()
+        ? targetEmails.split(",").map((e) => e.trim()).filter(Boolean)
+        : null;
+
+      const scheduledAt = new Date(`${scheduledDate}T${scheduledTime}`);
+      
+      if (scheduledAt <= new Date()) {
+        toast({ title: "Error", description: "La fecha debe ser futura", variant: "destructive" });
+        setIsScheduling(false);
+        return;
+      }
+
+      const html = generateHTML();
+
+      const { error } = await supabase.from("scheduled_emails").insert({
+        name: scheduleName,
+        subject: emailSubject,
+        html_content: html,
+        target_emails: emails,
+        scheduled_at: scheduledAt.toISOString(),
+        template_id: template.id !== "new-template" ? template.id : null,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email programado",
+        description: `Se enviará el ${scheduledDate} a las ${scheduledTime}`,
+      });
+      setShowScheduleModal(false);
+      setTargetEmails("");
+      setEmailSubject("");
+      setScheduledDate("");
+      setScheduledTime("");
+      setScheduleName("");
+    } catch (error) {
+      console.error("Error scheduling email:", error);
+      toast({ title: "Error", description: "No se pudo programar el email", variant: "destructive" });
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  // Load scheduled emails
+  const loadScheduledEmails = async () => {
+    setLoadingScheduled(true);
+    try {
+      const { data, error } = await supabase
+        .from("scheduled_emails")
+        .select("*")
+        .order("scheduled_at", { ascending: true });
+
+      if (error) throw error;
+      setScheduledEmails(data || []);
+    } catch (error) {
+      console.error("Error loading scheduled emails:", error);
+      toast({ title: "Error", description: "No se pudieron cargar los emails programados", variant: "destructive" });
+    } finally {
+      setLoadingScheduled(false);
+    }
+  };
+
+  // Cancel scheduled email
+  const cancelScheduledEmail = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("scheduled_emails")
+        .update({ status: "cancelled" })
+        .eq("id", id);
+
+      if (error) throw error;
+      setScheduledEmails((prev) => prev.map((e) => e.id === id ? { ...e, status: "cancelled" } : e));
+      toast({ title: "Cancelado", description: "El email programado ha sido cancelado" });
+    } catch (error) {
+      console.error("Error cancelling scheduled email:", error);
+      toast({ title: "Error", description: "No se pudo cancelar el email", variant: "destructive" });
+    }
+  };
+
   useEffect(() => {
     if (showLoadModal) {
       loadTemplates();
     }
   }, [showLoadModal]);
+
+  useEffect(() => {
+    if (showScheduledList) {
+      loadScheduledEmails();
+    }
+  }, [showScheduledList]);
 
   return (
     <div className="h-[calc(100vh-200px)] flex flex-col">
@@ -1337,6 +1446,14 @@ export const EmailVisualEditor = () => {
           </Button>
           <Button variant="outline" size="sm" onClick={downloadHTML}>
             <Download className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowScheduledList(true)}>
+            <Clock className="w-4 h-4 mr-1" />
+            Programados
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowScheduleModal(true)}>
+            <Calendar className="w-4 h-4 mr-1" />
+            Programar
           </Button>
           <Button size="sm" onClick={() => setShowSendModal(true)}>
             <Send className="w-4 h-4 mr-1" />
@@ -1718,6 +1835,173 @@ export const EmailVisualEditor = () => {
             <Button onClick={sendEmail} disabled={isSending}>
               {isSending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
               Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Modal */}
+      <Dialog open={showScheduleModal} onOpenChange={setShowScheduleModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarClock className="w-5 h-5" />
+              Programar envío
+            </DialogTitle>
+            <DialogDescription>
+              Programa el envío de este email para una fecha y hora específica
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nombre de la campaña *</Label>
+              <Input
+                value={scheduleName}
+                onChange={(e) => setScheduleName(e.target.value)}
+                placeholder="Campaña de bienvenida enero"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Asunto *</Label>
+              <Input
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder="🎁 ¡Tenemos algo especial para ti!"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Fecha *</Label>
+                <Input
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Hora *</Label>
+                <Input
+                  type="time"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Destinatarios</Label>
+              <Input
+                value={targetEmails}
+                onChange={(e) => setTargetEmails(e.target.value)}
+                placeholder="email1@ejemplo.com, email2@ejemplo.com"
+              />
+              <p className="text-xs text-muted-foreground">
+                Deja vacío para enviar a todos los pacientes
+              </p>
+            </div>
+            <div className="bg-primary/5 rounded-lg p-3 flex items-start gap-2">
+              <Clock className="w-4 h-4 mt-0.5 text-primary" />
+              <p className="text-xs text-muted-foreground">
+                El email se enviará automáticamente en la fecha y hora programada
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowScheduleModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={scheduleEmail} disabled={isScheduling}>
+              {isScheduling ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Calendar className="w-4 h-4 mr-1" />}
+              Programar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Scheduled Emails List Modal */}
+      <Dialog open={showScheduledList} onOpenChange={setShowScheduledList}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Emails programados
+            </DialogTitle>
+            <DialogDescription>
+              Gestiona tus campañas de email programadas
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-[400px]">
+            {loadingScheduled ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin" />
+              </div>
+            ) : scheduledEmails.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No hay emails programados
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {scheduledEmails.map((scheduled) => (
+                  <Card key={scheduled.id} className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium truncate">{scheduled.name}</h4>
+                          <Badge
+                            variant={
+                              scheduled.status === "pending" ? "default" :
+                              scheduled.status === "sent" ? "secondary" :
+                              scheduled.status === "cancelled" ? "outline" : "destructive"
+                            }
+                            className="shrink-0"
+                          >
+                            {scheduled.status === "pending" && <Clock className="w-3 h-3 mr-1" />}
+                            {scheduled.status === "sent" && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                            {scheduled.status === "cancelled" && <XCircle className="w-3 h-3 mr-1" />}
+                            {scheduled.status === "failed" && <AlertCircle className="w-3 h-3 mr-1" />}
+                            {scheduled.status === "pending" ? "Pendiente" :
+                             scheduled.status === "sent" ? "Enviado" :
+                             scheduled.status === "cancelled" ? "Cancelado" : "Fallido"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{scheduled.subject}</p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(scheduled.scheduled_at).toLocaleString()}
+                          </span>
+                          {scheduled.target_emails ? (
+                            <span>{scheduled.target_emails.length} destinatarios</span>
+                          ) : (
+                            <span>Todos los pacientes</span>
+                          )}
+                        </div>
+                        {scheduled.result && scheduled.status === "sent" && (
+                          <p className="text-xs text-green-600 mt-1">
+                            ✓ Enviados: {scheduled.result.sent} | Fallidos: {scheduled.result.failed || 0}
+                          </p>
+                        )}
+                      </div>
+                      {scheduled.status === "pending" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:text-destructive shrink-0"
+                          onClick={() => cancelScheduledEmail(scheduled.id)}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowScheduledList(false)}>
+              Cerrar
             </Button>
           </DialogFooter>
         </DialogContent>

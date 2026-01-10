@@ -204,7 +204,7 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { targetEmails, subject, customMessage }: PromoEmailRequest = await req.json();
+    const { targetEmails, subject, customMessage, customHtml }: PromoEmailRequest = await req.json();
 
     let emailsToSend: { email: string; name: string }[] = [];
 
@@ -275,10 +275,12 @@ serve(async (req: Request): Promise<Response> => {
       
       const results = await Promise.allSettled(
         batch.map(async ({ email, name }) => {
+          // Use customHtml if provided, otherwise use the default template
+          const emailHtml = customHtml || getEmailTemplate(name, customMessage);
           const result = await sendEmail(
             [email],
             emailSubject,
-            getEmailTemplate(name, customMessage)
+            emailHtml
           );
           return result;
         })
