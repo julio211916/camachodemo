@@ -1,6 +1,6 @@
-import { Suspense, useRef, useState } from "react";
-import { Canvas, useLoader, useFrame } from "@react-three/fiber";
-import { OrbitControls, Center, PerspectiveCamera, Environment, Grid } from "@react-three/drei";
+import { Suspense, useRef, useState, useEffect } from "react";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import * as THREE from "three";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import {
   RotateCcw, 
   ZoomIn, 
   ZoomOut, 
-  Sun, 
   Palette,
   Loader2,
   Maximize2,
@@ -91,22 +90,18 @@ export const STLViewer = ({ fileUrl, fileName }: STLViewerProps) => {
   const ViewerContent = () => (
     <div className="relative w-full h-full">
       <Canvas shadows className="rounded-lg bg-gradient-to-b from-gray-900 to-gray-800">
-        <PerspectiveCamera makeDefault position={[0, 0, zoom]} />
+        <perspectiveCamera position={[0, 0, zoom]} />
         <ambientLight intensity={0.4} />
         <directionalLight 
           position={[10, 10, 5]} 
           intensity={1} 
           castShadow
-          shadow-mapSize-width={2048}
-          shadow-mapSize-height={2048}
         />
         <directionalLight position={[-10, -10, -5]} intensity={0.3} />
         <spotLight position={[0, 10, 0]} intensity={0.5} />
         
         <Suspense fallback={<LoadingFallback />}>
-          <Center>
-            <STLModel url={fileUrl} color={color} autoRotate={autoRotate} />
-          </Center>
+          <STLModel url={fileUrl} color={color} autoRotate={autoRotate} />
         </Suspense>
         
         <OrbitControls 
@@ -117,18 +112,7 @@ export const STLViewer = ({ fileUrl, fileName }: STLViewerProps) => {
           minDistance={2}
           maxDistance={20}
         />
-        <Grid 
-          infiniteGrid 
-          fadeDistance={30} 
-          fadeStrength={1} 
-          cellSize={0.5} 
-          cellThickness={0.5}
-          cellColor="#6366f1"
-          sectionSize={2}
-          sectionThickness={1}
-          sectionColor="#818cf8"
-        />
-        <Environment preset="studio" />
+        <gridHelper args={[10, 10, "#6366f1", "#818cf8"]} />
       </Canvas>
       
       {/* Controls Overlay */}
