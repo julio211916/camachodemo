@@ -318,6 +318,45 @@ export type Database = {
         }
         Relationships: []
       }
+      email_templates: {
+        Row: {
+          blocks: Json
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          global_styles: Json
+          id: string
+          is_default: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          blocks?: Json
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          global_styles?: Json
+          id?: string
+          is_default?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          global_styles?: Json
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number

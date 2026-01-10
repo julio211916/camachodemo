@@ -37,6 +37,7 @@ interface PromoEmailRequest {
   targetEmails?: string[]; // Specific emails, or null for all patients
   subject?: string;
   customMessage?: string;
+  customHtml?: string; // Full HTML from visual editor
 }
 
 const getEmailTemplate = (patientName: string, customMessage?: string) => `
