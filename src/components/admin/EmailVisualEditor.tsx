@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, Reorder, useDragControls } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,16 +19,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Type,
   Image,
   Square,
   Minus,
-  Link as LinkIcon,
   GripVertical,
   Trash2,
   Plus,
@@ -41,23 +42,33 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  Bold,
-  Italic,
   Download,
   Copy,
   LayoutTemplate,
   Heading1,
-  Heading2,
   List,
   Columns,
   CircleDot,
-  Mail,
   Smartphone,
   Monitor,
+  Send,
+  Loader2,
+  FolderOpen,
+  Share2,
+  FileText,
+  Images,
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Youtube,
+  Mail,
+  Globe,
+  Link as LinkIcon,
 } from "lucide-react";
 
 // Block types
-type BlockType = "heading" | "text" | "image" | "button" | "divider" | "spacer" | "columns" | "list" | "logo";
+type BlockType = "heading" | "text" | "image" | "button" | "divider" | "spacer" | "columns" | "list" | "logo" | "social" | "footer" | "gallery";
 
 interface EmailBlock {
   id: string;
@@ -69,6 +80,7 @@ interface EmailBlock {
 interface EmailTemplate {
   id: string;
   name: string;
+  description?: string;
   blocks: EmailBlock[];
   globalStyles: {
     backgroundColor: string;
@@ -79,6 +91,17 @@ interface EmailTemplate {
     textColor: string;
     width: number;
   };
+}
+
+interface SavedTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  blocks: EmailBlock[];
+  global_styles: EmailTemplate["globalStyles"];
+  category: string;
+  is_default: boolean;
+  created_at: string;
 }
 
 // Default blocks configuration
@@ -145,6 +168,51 @@ const blockTypes: { type: BlockType; label: string; icon: React.ReactNode; defau
     icon: <Columns className="w-4 h-4" />,
     defaultContent: { left: "Columna izquierda", right: "Columna derecha" },
     defaultStyles: { gap: 20, fontSize: 14, color: "#374151" },
+  },
+  {
+    type: "social",
+    label: "Redes",
+    icon: <Share2 className="w-4 h-4" />,
+    defaultContent: {
+      facebook: "https://facebook.com",
+      instagram: "https://instagram.com",
+      twitter: "",
+      linkedin: "",
+      youtube: "",
+      website: "",
+    },
+    defaultStyles: { alignment: "center", iconSize: 24, iconColor: "#3b82f6", spacing: 12 },
+  },
+  {
+    type: "footer",
+    label: "Footer",
+    icon: <FileText className="w-4 h-4" />,
+    defaultContent: {
+      companyName: "NovellDent",
+      address: "Av. Principal 123, Ciudad",
+      phone: "+1 234 567 890",
+      email: "info@novelldent.com",
+      links: [
+        { text: "Términos", url: "#" },
+        { text: "Privacidad", url: "#" },
+        { text: "Contacto", url: "#" },
+      ],
+      unsubscribeText: "Si no deseas recibir más emails, puedes darte de baja aquí",
+    },
+    defaultStyles: { backgroundColor: "#1e3a5f", textColor: "#ffffff", fontSize: 12, padding: 24 },
+  },
+  {
+    type: "gallery",
+    label: "Galería",
+    icon: <Images className="w-4 h-4" />,
+    defaultContent: {
+      images: [
+        { src: "https://via.placeholder.com/200x150", alt: "Imagen 1" },
+        { src: "https://via.placeholder.com/200x150", alt: "Imagen 2" },
+        { src: "https://via.placeholder.com/200x150", alt: "Imagen 3" },
+      ],
+    },
+    defaultStyles: { columns: 3, gap: 10, borderRadius: 8 },
   },
 ];
 
@@ -297,6 +365,71 @@ const BlockEditor = ({ block, onUpdate }: { block: EmailBlock; onUpdate: (update
         </>
       )}
 
+      {block.type === "social" && (
+        <>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Facebook className="w-4 h-4" /> Facebook</Label>
+            <Input value={block.content.facebook || ""} onChange={(e) => updateContent("facebook", e.target.value)} placeholder="URL de Facebook" />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Instagram className="w-4 h-4" /> Instagram</Label>
+            <Input value={block.content.instagram || ""} onChange={(e) => updateContent("instagram", e.target.value)} placeholder="URL de Instagram" />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Twitter className="w-4 h-4" /> Twitter/X</Label>
+            <Input value={block.content.twitter || ""} onChange={(e) => updateContent("twitter", e.target.value)} placeholder="URL de Twitter" />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Linkedin className="w-4 h-4" /> LinkedIn</Label>
+            <Input value={block.content.linkedin || ""} onChange={(e) => updateContent("linkedin", e.target.value)} placeholder="URL de LinkedIn" />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Youtube className="w-4 h-4" /> YouTube</Label>
+            <Input value={block.content.youtube || ""} onChange={(e) => updateContent("youtube", e.target.value)} placeholder="URL de YouTube" />
+          </div>
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Globe className="w-4 h-4" /> Website</Label>
+            <Input value={block.content.website || ""} onChange={(e) => updateContent("website", e.target.value)} placeholder="URL del sitio web" />
+          </div>
+        </>
+      )}
+
+      {block.type === "footer" && (
+        <>
+          <div className="space-y-2">
+            <Label>Nombre de empresa</Label>
+            <Input value={block.content.companyName || ""} onChange={(e) => updateContent("companyName", e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Dirección</Label>
+            <Input value={block.content.address || ""} onChange={(e) => updateContent("address", e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Teléfono</Label>
+            <Input value={block.content.phone || ""} onChange={(e) => updateContent("phone", e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Input value={block.content.email || ""} onChange={(e) => updateContent("email", e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label>Texto de baja</Label>
+            <Textarea value={block.content.unsubscribeText || ""} onChange={(e) => updateContent("unsubscribeText", e.target.value)} rows={2} />
+          </div>
+        </>
+      )}
+
+      {block.type === "gallery" && (
+        <div className="space-y-2">
+          <Label>URLs de imágenes (una por línea)</Label>
+          <Textarea
+            value={(block.content.images || []).map((img: any) => img.src).join("\n")}
+            onChange={(e) => updateContent("images", e.target.value.split("\n").filter(Boolean).map((src, i) => ({ src, alt: `Imagen ${i + 1}` })))}
+            rows={4}
+          />
+        </div>
+      )}
+
       {/* Style editors */}
       <div className="border-t pt-4 mt-4">
         <h4 className="font-medium text-sm mb-3 flex items-center gap-2">
@@ -355,6 +488,44 @@ const BlockEditor = ({ block, onUpdate }: { block: EmailBlock; onUpdate: (update
           </div>
         )}
 
+        {block.styles.textColor !== undefined && (
+          <div className="space-y-2 mb-3">
+            <Label className="text-xs">Color de texto</Label>
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={block.styles.textColor}
+                onChange={(e) => updateStyle("textColor", e.target.value)}
+                className="w-12 h-8 p-1"
+              />
+              <Input
+                value={block.styles.textColor}
+                onChange={(e) => updateStyle("textColor", e.target.value)}
+                className="flex-1"
+              />
+            </div>
+          </div>
+        )}
+
+        {block.styles.iconColor !== undefined && (
+          <div className="space-y-2 mb-3">
+            <Label className="text-xs">Color de iconos</Label>
+            <div className="flex gap-2">
+              <Input
+                type="color"
+                value={block.styles.iconColor}
+                onChange={(e) => updateStyle("iconColor", e.target.value)}
+                className="w-12 h-8 p-1"
+              />
+              <Input
+                value={block.styles.iconColor}
+                onChange={(e) => updateStyle("iconColor", e.target.value)}
+                className="flex-1"
+              />
+            </div>
+          </div>
+        )}
+
         {block.styles.alignment !== undefined && (
           <div className="space-y-2 mb-3">
             <Label className="text-xs">Alineación</Label>
@@ -396,7 +567,7 @@ const BlockEditor = ({ block, onUpdate }: { block: EmailBlock; onUpdate: (update
               value={[block.styles.padding]}
               onValueChange={([v]) => updateStyle("padding", v)}
               min={4}
-              max={32}
+              max={48}
               step={2}
             />
           </div>
@@ -437,6 +608,58 @@ const BlockEditor = ({ block, onUpdate }: { block: EmailBlock; onUpdate: (update
               min={1}
               max={8}
               step={1}
+            />
+          </div>
+        )}
+
+        {block.styles.iconSize !== undefined && (
+          <div className="space-y-2 mb-3">
+            <Label className="text-xs">Tamaño de iconos: {block.styles.iconSize}px</Label>
+            <Slider
+              value={[block.styles.iconSize]}
+              onValueChange={([v]) => updateStyle("iconSize", v)}
+              min={16}
+              max={48}
+              step={2}
+            />
+          </div>
+        )}
+
+        {block.styles.spacing !== undefined && (
+          <div className="space-y-2 mb-3">
+            <Label className="text-xs">Espaciado: {block.styles.spacing}px</Label>
+            <Slider
+              value={[block.styles.spacing]}
+              onValueChange={([v]) => updateStyle("spacing", v)}
+              min={4}
+              max={32}
+              step={2}
+            />
+          </div>
+        )}
+
+        {block.styles.columns !== undefined && (
+          <div className="space-y-2 mb-3">
+            <Label className="text-xs">Columnas: {block.styles.columns}</Label>
+            <Slider
+              value={[block.styles.columns]}
+              onValueChange={([v]) => updateStyle("columns", v)}
+              min={2}
+              max={4}
+              step={1}
+            />
+          </div>
+        )}
+
+        {block.styles.gap !== undefined && (
+          <div className="space-y-2 mb-3">
+            <Label className="text-xs">Gap: {block.styles.gap}px</Label>
+            <Slider
+              value={[block.styles.gap]}
+              onValueChange={([v]) => updateStyle("gap", v)}
+              min={4}
+              max={32}
+              step={2}
             />
           </div>
         )}
@@ -570,6 +793,93 @@ const BlockRenderer = ({ block, globalStyles }: { block: EmailBlock; globalStyle
         </div>
       );
 
+    case "social":
+      const socialIcons = [
+        { key: "facebook", icon: "📘", label: "Facebook" },
+        { key: "instagram", icon: "📷", label: "Instagram" },
+        { key: "twitter", icon: "🐦", label: "Twitter" },
+        { key: "linkedin", icon: "💼", label: "LinkedIn" },
+        { key: "youtube", icon: "📺", label: "YouTube" },
+        { key: "website", icon: "🌐", label: "Website" },
+      ];
+      return (
+        <div style={{ display: "flex", justifyContent: getAlignment(block.styles.alignment), gap: block.styles.spacing, padding: "12px 0" }}>
+          {socialIcons.map(({ key, icon }) => {
+            const url = block.content[key];
+            if (!url) return null;
+            return (
+              <a
+                key={key}
+                href={url}
+                style={{
+                  fontSize: block.styles.iconSize,
+                  textDecoration: "none",
+                }}
+              >
+                {icon}
+              </a>
+            );
+          })}
+        </div>
+      );
+
+    case "footer":
+      return (
+        <div
+          style={{
+            backgroundColor: block.styles.backgroundColor,
+            color: block.styles.textColor,
+            padding: block.styles.padding,
+            textAlign: "center",
+            fontSize: block.styles.fontSize,
+            borderRadius: 8,
+            marginTop: 16,
+          }}
+        >
+          <div style={{ fontWeight: "bold", fontSize: block.styles.fontSize + 2, marginBottom: 8 }}>
+            {block.content.companyName}
+          </div>
+          <div style={{ marginBottom: 4 }}>{block.content.address}</div>
+          <div style={{ marginBottom: 4 }}>{block.content.phone} | {block.content.email}</div>
+          {block.content.links && (
+            <div style={{ display: "flex", justifyContent: "center", gap: 16, margin: "12px 0" }}>
+              {(block.content.links || []).map((link: any, i: number) => (
+                <a key={i} href={link.url} style={{ color: block.styles.textColor, textDecoration: "underline" }}>
+                  {link.text}
+                </a>
+              ))}
+            </div>
+          )}
+          <div style={{ fontSize: block.styles.fontSize - 2, opacity: 0.8, marginTop: 12 }}>
+            {block.content.unsubscribeText}
+          </div>
+        </div>
+      );
+
+    case "gallery":
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${block.styles.columns}, 1fr)`,
+            gap: block.styles.gap,
+            padding: "8px 0",
+          }}
+        >
+          {(block.content.images || []).map((img: any, i: number) => (
+            <img
+              key={i}
+              src={img.src}
+              alt={img.alt}
+              style={{
+                width: "100%",
+                borderRadius: block.styles.borderRadius,
+              }}
+            />
+          ))}
+        </div>
+      );
+
     default:
       return null;
   }
@@ -623,6 +933,9 @@ const DraggableBlock = ({
             {block.type === "logo" && <span>{block.content.emoji} {block.content.text}</span>}
             {block.type === "list" && <span>{(block.content.items || []).length} elementos</span>}
             {block.type === "columns" && <span>2 columnas</span>}
+            {block.type === "social" && <span>Redes sociales</span>}
+            {block.type === "footer" && <span>Footer</span>}
+            {block.type === "gallery" && <span>{(block.content.images || []).length} imágenes</span>}
           </div>
         </div>
       </div>
@@ -649,8 +962,19 @@ export const EmailVisualEditor = () => {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [showSendModal, setShowSendModal] = useState(false);
   const [history, setHistory] = useState<EmailTemplate[]>([defaultTemplate]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [targetEmails, setTargetEmails] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
 
   const selectedBlock = template.blocks.find((b) => b.id === selectedBlockId);
 
@@ -732,7 +1056,6 @@ export const EmailVisualEditor = () => {
   const generateHTML = () => {
     const { globalStyles } = template;
     const blocksHTML = template.blocks.map((block) => {
-      // Generate HTML for each block
       switch (block.type) {
         case "logo":
           return `<div style="text-align: ${block.styles.alignment}; padding: 10px 0;">
@@ -757,6 +1080,36 @@ export const EmailVisualEditor = () => {
           return `<ul style="font-size: ${block.styles.fontSize}px; color: ${block.styles.color}; padding-left: 24px;">${(block.content.items || []).map((item: string) => `<li style="margin-bottom: 6px;">${item}</li>`).join("")}</ul>`;
         case "columns":
           return `<table width="100%"><tr><td style="width: 50%; font-size: ${block.styles.fontSize}px; color: ${block.styles.color}; padding-right: ${block.styles.gap / 2}px;">${block.content.left}</td><td style="width: 50%; font-size: ${block.styles.fontSize}px; color: ${block.styles.color}; padding-left: ${block.styles.gap / 2}px;">${block.content.right}</td></tr></table>`;
+        case "social":
+          const icons = [
+            { key: "facebook", icon: "📘" },
+            { key: "instagram", icon: "📷" },
+            { key: "twitter", icon: "🐦" },
+            { key: "linkedin", icon: "💼" },
+            { key: "youtube", icon: "📺" },
+            { key: "website", icon: "🌐" },
+          ];
+          const socialLinks = icons
+            .filter(({ key }) => block.content[key])
+            .map(({ key, icon }) => `<a href="${block.content[key]}" style="font-size: ${block.styles.iconSize}px; text-decoration: none; margin: 0 ${block.styles.spacing / 2}px;">${icon}</a>`)
+            .join("");
+          return `<div style="text-align: ${block.styles.alignment}; padding: 12px 0;">${socialLinks}</div>`;
+        case "footer":
+          const footerLinks = (block.content.links || [])
+            .map((link: any) => `<a href="${link.url}" style="color: ${block.styles.textColor}; text-decoration: underline; margin: 0 8px;">${link.text}</a>`)
+            .join("");
+          return `<div style="background-color: ${block.styles.backgroundColor}; color: ${block.styles.textColor}; padding: ${block.styles.padding}px; text-align: center; font-size: ${block.styles.fontSize}px; border-radius: 8px; margin-top: 16px;">
+            <div style="font-weight: bold; font-size: ${block.styles.fontSize + 2}px; margin-bottom: 8px;">${block.content.companyName}</div>
+            <div style="margin-bottom: 4px;">${block.content.address}</div>
+            <div style="margin-bottom: 4px;">${block.content.phone} | ${block.content.email}</div>
+            <div style="margin: 12px 0;">${footerLinks}</div>
+            <div style="font-size: ${block.styles.fontSize - 2}px; opacity: 0.8; margin-top: 12px;">${block.content.unsubscribeText}</div>
+          </div>`;
+        case "gallery":
+          const galleryImages = (block.content.images || [])
+            .map((img: any) => `<img src="${img.src}" alt="${img.alt}" style="width: calc(${100 / block.styles.columns}% - ${block.styles.gap}px); border-radius: ${block.styles.borderRadius}px; margin: ${block.styles.gap / 2}px;">`)
+            .join("");
+          return `<div style="display: flex; flex-wrap: wrap; justify-content: center; padding: 8px 0;">${galleryImages}</div>`;
         default:
           return "";
       }
@@ -804,6 +1157,139 @@ export const EmailVisualEditor = () => {
     toast({ title: "Descargado", description: "El archivo HTML ha sido descargado" });
   };
 
+  // Save template to database
+  const saveTemplate = async () => {
+    if (!templateName.trim()) {
+      toast({ title: "Error", description: "El nombre es obligatorio", variant: "destructive" });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.from("email_templates").insert({
+        name: templateName,
+        description: templateDescription || null,
+        blocks: template.blocks as any,
+        global_styles: template.globalStyles as any,
+        category: "custom",
+      });
+
+      if (error) throw error;
+
+      toast({ title: "Guardado", description: "La plantilla ha sido guardada exitosamente" });
+      setShowSaveModal(false);
+      setTemplateName("");
+      setTemplateDescription("");
+    } catch (error) {
+      console.error("Error saving template:", error);
+      toast({ title: "Error", description: "No se pudo guardar la plantilla", variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Load templates from database
+  const loadTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const { data, error } = await supabase
+        .from("email_templates")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      setSavedTemplates((data || []).map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        blocks: item.blocks as EmailBlock[],
+        global_styles: item.global_styles as EmailTemplate["globalStyles"],
+        category: item.category,
+        is_default: item.is_default,
+        created_at: item.created_at,
+      })));
+    } catch (error) {
+      console.error("Error loading templates:", error);
+      toast({ title: "Error", description: "No se pudieron cargar las plantillas", variant: "destructive" });
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  const loadTemplate = (saved: SavedTemplate) => {
+    const loadedTemplate: EmailTemplate = {
+      id: saved.id,
+      name: saved.name,
+      description: saved.description || undefined,
+      blocks: saved.blocks,
+      globalStyles: saved.global_styles,
+    };
+    setTemplate(loadedTemplate);
+    saveToHistory(loadedTemplate);
+    setShowLoadModal(false);
+    toast({ title: "Cargado", description: `Plantilla "${saved.name}" cargada` });
+  };
+
+  const deleteTemplate = async (id: string) => {
+    try {
+      const { error } = await supabase.from("email_templates").delete().eq("id", id);
+      if (error) throw error;
+      setSavedTemplates((prev) => prev.filter((t) => t.id !== id));
+      toast({ title: "Eliminado", description: "La plantilla ha sido eliminada" });
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      toast({ title: "Error", description: "No se pudo eliminar la plantilla", variant: "destructive" });
+    }
+  };
+
+  // Send email with template
+  const sendEmail = async () => {
+    if (!emailSubject.trim()) {
+      toast({ title: "Error", description: "El asunto es obligatorio", variant: "destructive" });
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const emails = targetEmails.trim()
+        ? targetEmails.split(",").map((e) => e.trim()).filter(Boolean)
+        : undefined;
+
+      const html = generateHTML();
+
+      const { data, error } = await supabase.functions.invoke("send-referral-promo", {
+        body: {
+          targetEmails: emails,
+          subject: emailSubject,
+          customMessage: "",
+          customHtml: html,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Emails enviados",
+        description: `Se enviaron ${data.sent} de ${data.total} emails correctamente`,
+      });
+      setShowSendModal(false);
+      setTargetEmails("");
+      setEmailSubject("");
+    } catch (error) {
+      console.error("Error sending emails:", error);
+      toast({ title: "Error", description: "No se pudieron enviar los emails", variant: "destructive" });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showLoadModal) {
+      loadTemplates();
+    }
+  }, [showLoadModal]);
+
   return (
     <div className="h-[calc(100vh-200px)] flex flex-col">
       {/* Toolbar */}
@@ -817,7 +1303,7 @@ export const EmailVisualEditor = () => {
           />
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={undo} disabled={historyIndex === 0}>
             <Undo2 className="w-4 h-4" />
           </Button>
@@ -832,17 +1318,29 @@ export const EmailVisualEditor = () => {
             <Smartphone className="w-4 h-4" />
           </Button>
           <div className="w-px h-6 bg-border mx-1" />
+          <Button variant="outline" size="sm" onClick={() => setShowLoadModal(true)}>
+            <FolderOpen className="w-4 h-4 mr-1" />
+            Cargar
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setShowSaveModal(true)}>
+            <Save className="w-4 h-4 mr-1" />
+            Guardar
+          </Button>
+          <div className="w-px h-6 bg-border mx-1" />
           <Button variant="outline" size="sm" onClick={() => setShowPreviewModal(true)}>
             <Eye className="w-4 h-4 mr-1" />
             Vista previa
           </Button>
           <Button variant="outline" size="sm" onClick={copyHTML}>
             <Copy className="w-4 h-4 mr-1" />
-            Copiar HTML
+            HTML
           </Button>
-          <Button size="sm" onClick={downloadHTML}>
-            <Download className="w-4 h-4 mr-1" />
-            Descargar
+          <Button variant="outline" size="sm" onClick={downloadHTML}>
+            <Download className="w-4 h-4" />
+          </Button>
+          <Button size="sm" onClick={() => setShowSendModal(true)}>
+            <Send className="w-4 h-4 mr-1" />
+            Enviar
           </Button>
         </div>
       </div>
@@ -1071,6 +1569,155 @@ export const EmailVisualEditor = () => {
             <Button onClick={downloadHTML}>
               <Download className="w-4 h-4 mr-1" />
               Descargar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Modal */}
+      <Dialog open={showSaveModal} onOpenChange={setShowSaveModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Save className="w-5 h-5" />
+              Guardar plantilla
+            </DialogTitle>
+            <DialogDescription>
+              Guarda esta plantilla para usarla más tarde
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nombre *</Label>
+              <Input
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Mi plantilla personalizada"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Descripción</Label>
+              <Textarea
+                value={templateDescription}
+                onChange={(e) => setTemplateDescription(e.target.value)}
+                placeholder="Descripción opcional..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={saveTemplate} disabled={isSaving}>
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Save className="w-4 h-4 mr-1" />}
+              Guardar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Load Modal */}
+      <Dialog open={showLoadModal} onOpenChange={setShowLoadModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FolderOpen className="w-5 h-5" />
+              Cargar plantilla
+            </DialogTitle>
+            <DialogDescription>
+              Selecciona una plantilla guardada
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="max-h-96">
+            {loadingTemplates ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin" />
+              </div>
+            ) : savedTemplates.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No hay plantillas guardadas
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedTemplates.map((saved) => (
+                  <Card key={saved.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className="flex-1" onClick={() => loadTemplate(saved)}>
+                        <h4 className="font-medium">{saved.name}</h4>
+                        {saved.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-1">{saved.description}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(saved.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTemplate(saved.id);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Modal */}
+      <Dialog open={showSendModal} onOpenChange={setShowSendModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Send className="w-5 h-5" />
+              Enviar email
+            </DialogTitle>
+            <DialogDescription>
+              Envía este email a tus pacientes
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Asunto *</Label>
+              <Input
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder="🎁 ¡Tenemos algo especial para ti!"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Destinatarios</Label>
+              <Input
+                value={targetEmails}
+                onChange={(e) => setTargetEmails(e.target.value)}
+                placeholder="email1@ejemplo.com, email2@ejemplo.com"
+              />
+              <p className="text-xs text-muted-foreground">
+                Deja vacío para enviar a todos los pacientes
+              </p>
+            </div>
+            <div className="bg-muted/50 rounded-lg p-3 flex items-start gap-2">
+              <Mail className="w-4 h-4 mt-0.5 text-primary" />
+              <p className="text-xs text-muted-foreground">
+                Se enviará el diseño actual del editor como email HTML
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSendModal(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={sendEmail} disabled={isSending}>
+              {isSending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+              Enviar
             </Button>
           </DialogFooter>
         </DialogContent>
