@@ -71,7 +71,7 @@ import {
   Bar,
   Legend,
 } from "recharts";
-
+import { EmailTemplates } from "./EmailTemplates";
 interface Referral {
   id: string;
   referrer_email: string;
@@ -595,6 +595,19 @@ export const ReferralsManager = () => {
               </motion.div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Email Templates */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Mail className="w-5 h-5" />
+            Plantillas de Email
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EmailTemplates />
         </CardContent>
       </Card>
 
