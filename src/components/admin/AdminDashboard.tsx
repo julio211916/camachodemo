@@ -27,6 +27,7 @@ import {
   FolderOpen,
   Pill,
   FileStack,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +63,7 @@ import { ExportData } from "./ExportData";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
+import { ReferralsManager } from "./ReferralsManager";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo-novelldent.png";
 
@@ -198,6 +200,10 @@ export const AdminDashboard = () => {
             <TabsTrigger value="templates" className="flex items-center gap-2">
               <FileStack className="w-4 h-4" />
               <span className="hidden sm:inline">Documentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="flex items-center gap-2">
+              <Gift className="w-4 h-4" />
+              <span className="hidden sm:inline">Referidos</span>
             </TabsTrigger>
           </TabsList>
 
@@ -497,6 +503,11 @@ export const AdminDashboard = () => {
           {/* Documents Tab */}
           <TabsContent value="templates">
             <DocumentTemplates />
+          </TabsContent>
+
+          {/* Referrals Tab */}
+          <TabsContent value="referrals">
+            <ReferralsManager />
           </TabsContent>
         </Tabs>
       </main>
