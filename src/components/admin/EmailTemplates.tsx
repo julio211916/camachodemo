@@ -38,7 +38,9 @@ import {
   Users,
   Clock,
   CheckCircle2,
+  Paintbrush,
 } from "lucide-react";
+import { EmailVisualEditor } from "./EmailVisualEditor";
 
 interface EmailTemplate {
   id: string;
@@ -135,13 +137,15 @@ const categoryLabels = {
 interface EmailTemplatesProps {
   onSelectTemplate?: (template: EmailTemplate) => void;
   showSendButton?: boolean;
+  showVisualEditor?: boolean;
 }
 
-export const EmailTemplates = ({ onSelectTemplate, showSendButton = true }: EmailTemplatesProps) => {
+export const EmailTemplates = ({ onSelectTemplate, showSendButton = true, showVisualEditor = true }: EmailTemplatesProps) => {
   const { toast } = useToast();
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showSendDialog, setShowSendDialog] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
   const [targetEmails, setTargetEmails] = useState("");
   const [customSubject, setCustomSubject] = useState("");
   const [customMessage, setCustomMessage] = useState("");
@@ -213,18 +217,26 @@ export const EmailTemplates = ({ onSelectTemplate, showSendButton = true }: Emai
             Selecciona una plantilla predefinida para enviar a tus pacientes
           </p>
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Filtrar por categoría" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas</SelectItem>
-            <SelectItem value="referral">Referidos</SelectItem>
-            <SelectItem value="reminder">Recordatorios</SelectItem>
-            <SelectItem value="celebration">Celebraciones</SelectItem>
-            <SelectItem value="loyalty">Lealtad</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          {showVisualEditor && (
+            <Button variant="outline" onClick={() => setShowEditor(true)} className="gap-2">
+              <Paintbrush className="w-4 h-4" />
+              Editor Visual
+            </Button>
+          )}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Filtrar por categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="referral">Referidos</SelectItem>
+              <SelectItem value="reminder">Recordatorios</SelectItem>
+              <SelectItem value="celebration">Celebraciones</SelectItem>
+              <SelectItem value="loyalty">Lealtad</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Templates Grid */}
@@ -450,6 +462,16 @@ export const EmailTemplates = ({ onSelectTemplate, showSendButton = true }: Emai
               Cancelar
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Visual Editor Dialog */}
+      <Dialog open={showEditor} onOpenChange={setShowEditor}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Editor Visual de Email</DialogTitle>
+          </DialogHeader>
+          <EmailVisualEditor />
         </DialogContent>
       </Dialog>
     </div>
