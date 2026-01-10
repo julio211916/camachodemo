@@ -59,6 +59,8 @@ export type Database = {
           patient_email: string
           patient_name: string
           patient_phone: string
+          referral_code: string | null
+          referred_by: string | null
           reminder_sent: string | null
           review_sent_at: string | null
           review_token: string | null
@@ -81,6 +83,8 @@ export type Database = {
           patient_email: string
           patient_name: string
           patient_phone: string
+          referral_code?: string | null
+          referred_by?: string | null
           reminder_sent?: string | null
           review_sent_at?: string | null
           review_token?: string | null
@@ -103,6 +107,8 @@ export type Database = {
           patient_email?: string
           patient_name?: string
           patient_phone?: string
+          referral_code?: string | null
+          referred_by?: string | null
           reminder_sent?: string | null
           review_sent_at?: string | null
           review_token?: string | null
@@ -975,6 +981,54 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          discount_amount: number | null
+          discount_applied_at: string | null
+          discount_percentage: number | null
+          id: string
+          referral_code: string
+          referred_email: string
+          referred_patient_id: string | null
+          referrer_email: string
+          referrer_patient_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          discount_amount?: number | null
+          discount_applied_at?: string | null
+          discount_percentage?: number | null
+          id?: string
+          referral_code: string
+          referred_email: string
+          referred_patient_id?: string | null
+          referrer_email: string
+          referrer_patient_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          discount_amount?: number | null
+          discount_applied_at?: string | null
+          discount_percentage?: number | null
+          id?: string
+          referral_code?: string
+          referred_email?: string
+          referred_patient_id?: string | null
+          referrer_email?: string
+          referrer_patient_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           appointment_id: string | null
@@ -1126,6 +1180,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
