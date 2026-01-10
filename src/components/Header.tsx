@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, MapPin } from "lucide-react";
+import { Menu, X, Phone, MapPin, LogIn, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-novelldent.png";
 
 const navItems = [
@@ -17,6 +20,8 @@ const navItems = [
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, userRole } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +30,10 @@ export const Header = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handlePortalClick = () => {
+    navigate('/portal');
+  };
 
   return (
     <>
@@ -53,6 +62,27 @@ export const Header = () => {
             </div>
             <div className="flex items-center gap-4 ml-auto">
               <ThemeToggle />
+              {user ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePortalClick}
+                  className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
+                >
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:inline">Mi Portal</span>
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handlePortalClick}
+                  className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span className="hidden sm:inline">Iniciar Sesión</span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
