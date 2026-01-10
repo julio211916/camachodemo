@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone, MapPin, LogIn, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
+import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-novelldent.png";
