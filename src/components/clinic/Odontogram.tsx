@@ -18,6 +18,8 @@ interface OdontogramProps {
   readOnly?: boolean;
 }
 
+type NotationSystem = 'fdi' | 'universal' | 'palmer';
+
 const conditions = [
   { value: "sano", label: "Sano", color: "#22c55e", bgClass: "bg-green-500" },
   { value: "caries", label: "Caries", color: "#ef4444", bgClass: "bg-red-500" },
@@ -39,13 +41,58 @@ const surfaces = [
   { value: "O", label: "Oclusal/Incisal", description: "Cara de mordida" },
 ];
 
-// Adult teeth (FDI notation)
+// Adult teeth (FDI notation) - stored internally
 const upperTeeth = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
 const lowerTeeth = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
 
-// Primary teeth
+// Primary teeth (FDI)
 const upperPrimaryTeeth = [55, 54, 53, 52, 51, 61, 62, 63, 64, 65];
 const lowerPrimaryTeeth = [85, 84, 83, 82, 81, 71, 72, 73, 74, 75];
+
+// Universal Numbering System (ADA) mapping
+const fdiToUniversal: Record<number, number | string> = {
+  // Upper right to upper left (1-16)
+  18: 1, 17: 2, 16: 3, 15: 4, 14: 5, 13: 6, 12: 7, 11: 8,
+  21: 9, 22: 10, 23: 11, 24: 12, 25: 13, 26: 14, 27: 15, 28: 16,
+  // Lower left to lower right (17-32)
+  38: 17, 37: 18, 36: 19, 35: 20, 34: 21, 33: 22, 32: 23, 31: 24,
+  41: 25, 42: 26, 43: 27, 44: 28, 45: 29, 46: 30, 47: 31, 48: 32,
+  // Primary teeth (A-T)
+  55: 'A', 54: 'B', 53: 'C', 52: 'D', 51: 'E',
+  61: 'F', 62: 'G', 63: 'H', 64: 'I', 65: 'J',
+  75: 'K', 74: 'L', 73: 'M', 72: 'N', 71: 'O',
+  81: 'P', 82: 'Q', 83: 'R', 84: 'S', 85: 'T',
+};
+
+// Palmer Notation mapping (quadrant + number)
+const fdiToPalmer: Record<number, string> = {
+  // Upper right (⏋)
+  18: '8⏋', 17: '7⏋', 16: '6⏋', 15: '5⏋', 14: '4⏋', 13: '3⏋', 12: '2⏋', 11: '1⏋',
+  // Upper left (⏌)
+  21: '⏌1', 22: '⏌2', 23: '⏌3', 24: '⏌4', 25: '⏌5', 26: '⏌6', 27: '⏌7', 28: '⏌8',
+  // Lower left (⎿)
+  38: '⎿8', 37: '⎿7', 36: '⎿6', 35: '⎿5', 34: '⎿4', 33: '⎿3', 32: '⎿2', 31: '⎿1',
+  // Lower right (⏌)
+  41: '1⎾', 42: '2⎾', 43: '3⎾', 44: '4⎾', 45: '5⎾', 46: '6⎾', 47: '7⎾', 48: '8⎾',
+  // Primary teeth
+  55: 'E⏋', 54: 'D⏋', 53: 'C⏋', 52: 'B⏋', 51: 'A⏋',
+  61: '⏌A', 62: '⏌B', 63: '⏌C', 64: '⏌D', 65: '⏌E',
+  75: '⎿E', 74: '⎿D', 73: '⎿C', 72: '⎿B', 71: '⎿A',
+  81: 'A⎾', 82: 'B⎾', 83: 'C⎾', 84: 'D⎾', 85: 'E⎾',
+};
+
+// Helper to get tooth number based on notation system
+const getToothLabel = (fdiNumber: number, notation: NotationSystem): string => {
+  switch (notation) {
+    case 'universal':
+      return String(fdiToUniversal[fdiNumber] || fdiNumber);
+    case 'palmer':
+      return fdiToPalmer[fdiNumber] || String(fdiNumber);
+    case 'fdi':
+    default:
+      return String(fdiNumber);
+  }
+};
 
 // Tooth types for visual representation
 const getToothType = (number: number): 'molar' | 'premolar' | 'canine' | 'incisor' => {
@@ -74,6 +121,7 @@ export const Odontogram = ({ patientId, patientName, readOnly = false }: Odontog
   const [dialogOpen, setDialogOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [hoveredTooth, setHoveredTooth] = useState<number | null>(null);
+  const [notation, setNotation] = useState<NotationSystem>('fdi');
 
   const { data: toothData, isLoading } = useQuery({
     queryKey: ['odontogram', patientId],
@@ -363,13 +411,16 @@ export const Odontogram = ({ patientId, patientName, readOnly = false }: Odontog
 
               {/* Tooth number */}
               <div className={`absolute ${isUpper ? '-bottom-5' : '-top-5'} left-1/2 -translate-x-1/2 text-[10px] font-bold text-muted-foreground`}>
-                {number}
+                {getToothLabel(number, notation)}
               </div>
             </motion.div>
           </TooltipTrigger>
           <TooltipContent side={isUpper ? "bottom" : "top"} className="p-3">
             <div className="text-sm">
-              <p className="font-semibold">Diente #{number}</p>
+              <p className="font-semibold">Diente {getToothLabel(number, notation)}</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                FDI: {number} | Universal: {fdiToUniversal[number]} | Palmer: {fdiToPalmer[number]}
+              </p>
               <p className="text-muted-foreground capitalize">{conditions.find(c => c.value === condition)?.label || "Sano"}</p>
               {Object.entries(surfaceColors).map(([surface, cond]) => 
                 cond && (
@@ -448,6 +499,16 @@ export const Odontogram = ({ patientId, patientName, readOnly = false }: Odontog
             >
               {showPrimary ? "Permanentes" : "Temporales"}
             </Button>
+            <Select value={notation} onValueChange={(val) => setNotation(val as NotationSystem)}>
+              <SelectTrigger className="w-[130px] h-8">
+                <SelectValue placeholder="Sistema" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fdi">FDI (ISO)</SelectItem>
+                <SelectItem value="universal">Universal (ADA)</SelectItem>
+                <SelectItem value="palmer">Palmer</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </CardHeader>
