@@ -42,7 +42,8 @@ import {
   ClipboardList,
   Building2,
   Shield,
-  FileText
+  FileText,
+  User
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -88,6 +89,7 @@ import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { CMSBuilder } from "@/components/admin/CMSBuilder";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { AdminAppointmentsList } from "./AdminAppointmentsList";
+import { MyProfile } from "@/components/dashboard/MyProfile";
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -180,6 +182,7 @@ export const AdminDashboard = () => {
     {
       title: "Administración",
       items: [
+        { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
         { id: "profiles", label: "Fotos Perfil", icon: <Camera className="w-5 h-5" /> },
         { id: "qr", label: "QR Pacientes", icon: <QrCode className="w-5 h-5" /> },
         { id: "cms", label: "CMS Builder", icon: <Layout className="w-5 h-5" /> },
@@ -300,6 +303,8 @@ export const AdminDashboard = () => {
         return <AnalyticsDashboard />;
       case "advanced":
         return <AdvancedAnalytics />;
+      case "profile":
+        return <MyProfile />;
       case "profiles":
         return <ProfilePhotoUpload userId={user?.id || ""} userType="admin" />;
       case "qr":
