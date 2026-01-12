@@ -94,6 +94,7 @@ import { LocationsManager } from "./LocationsManager";
 import { BlogManager } from "./BlogManager";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
+import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -165,6 +166,7 @@ export const AdminDashboard = () => {
       title: "Imagenología",
       items: [
         { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
+        { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Cpu className="w-5 h-5" /> },
         { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
       ]
     },
@@ -298,6 +300,8 @@ export const AdminDashboard = () => {
         return <DigitalSignature />;
       case "dicom":
         return <DICOMViewer />;
+      case "cbct-panoramic":
+        return <CBCTPanoramicGenerator patientId="demo" patientName="Paciente Demo" />;
       case "3d-viewer":
         return <Model3DViewer />;
       case "referrals":

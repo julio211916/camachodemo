@@ -1,9 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Plus, Archive, Download, MoreHorizontal, 
   ChevronDown, User, Calendar, CreditCard, Tag,
-  X, Save, FileText, QrCode, Users, Filter
+  X, Save, FileText, QrCode, Users, Filter, Upload, Camera, Loader2, Check
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -62,9 +63,22 @@ const COMMON_TAGS = [
   'Seguimiento'
 ];
 
+interface NewPatientForm {
+  full_name: string;
+  email: string;
+  phone: string;
+  birth_year: string;
+  gender: string;
+  address: string;
+  notes: string;
+  tags: string[];
+  avatar_url: string | null;
+}
+
 export const PatientManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // State
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,6 +90,9 @@ export const PatientManager = () => {
   const [detailTab, setDetailTab] = useState("details");
   const [isAddingPatient, setIsAddingPatient] = useState(false);
   const [visibleCount, setVisibleCount] = useState(10);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
   
   // Form state for editing
   const [editForm, setEditForm] = useState({
@@ -87,6 +104,19 @@ export const PatientManager = () => {
     address: "",
     notes: "",
     tags: [] as string[]
+  });
+
+  // Form state for new patient
+  const [newPatientForm, setNewPatientForm] = useState<NewPatientForm>({
+    full_name: "",
+    email: "",
+    phone: "",
+    birth_year: "",
+    gender: "",
+    address: "",
+    notes: "",
+    tags: [],
+    avatar_url: null
   });
 
   // Fetch patients
@@ -202,6 +232,127 @@ export const PatientManager = () => {
       toast({ title: "Archivado", description: "Pacientes archivados correctamente" });
     }
   });
+
+  // Create new patient mutation
+  const createPatientMutation = useMutation({
+    mutationFn: async (data: NewPatientForm) => {
+      // Generate a unique user_id for patients created manually (not via auth)
+      const tempUserId = crypto.randomUUID();
+      
+      // Upload photo if selected
+      let avatarUrl = null;
+      if (selectedPhotoFile) {
+        const fileExt = selectedPhotoFile.name.split('.').pop();
+        const fileName = `patient/${tempUserId}/avatar.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, selectedPhotoFile, { upsert: true });
+        
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+          avatarUrl = urlData.publicUrl;
+        }
+      }
+      
+      // Insert profile
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: tempUserId,
+          full_name: data.full_name,
+          email: data.email,
+          phone: data.phone || null,
+          birth_year: data.birth_year ? parseInt(data.birth_year) : null,
+          gender: data.gender || null,
+          address: data.address || null,
+          notes: data.notes || null,
+          tags: data.tags,
+          avatar_url: avatarUrl,
+          is_archived: false
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return profile;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+      setIsAddingPatient(false);
+      resetNewPatientForm();
+      toast({ title: "Paciente agregado", description: "El nuevo paciente ha sido registrado" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message || "No se pudo crear el paciente", 
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const resetNewPatientForm = () => {
+    setNewPatientForm({
+      full_name: "",
+      email: "",
+      phone: "",
+      birth_year: "",
+      gender: "",
+      address: "",
+      notes: "",
+      tags: [],
+      avatar_url: null
+    });
+    setPreviewPhoto(null);
+    setSelectedPhotoFile(null);
+  };
+
+  const handlePhotoSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Error", description: "Por favor selecciona una imagen", variant: "destructive" });
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "Error", description: "La imagen debe ser menor a 5MB", variant: "destructive" });
+      return;
+    }
+    
+    setSelectedPhotoFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewPhoto(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCreatePatient = () => {
+    if (!newPatientForm.full_name.trim()) {
+      toast({ title: "Error", description: "El nombre es requerido", variant: "destructive" });
+      return;
+    }
+    if (!newPatientForm.email.trim()) {
+      toast({ title: "Error", description: "El email es requerido", variant: "destructive" });
+      return;
+    }
+    createPatientMutation.mutate(newPatientForm);
+  };
+
+  const addNewPatientTag = (tag: string) => {
+    if (!newPatientForm.tags.includes(tag)) {
+      setNewPatientForm({ ...newPatientForm, tags: [...newPatientForm.tags, tag] });
+    }
+  };
+
+  const removeNewPatientTag = (tag: string) => {
+    setNewPatientForm({ ...newPatientForm, tags: newPatientForm.tags.filter(t => t !== tag) });
+  };
 
   const handleSelectPatient = (patient: Patient) => {
     setSelectedPatient(patient);
@@ -677,6 +828,169 @@ export const PatientManager = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Add New Patient Dialog */}
+      <Dialog open={isAddingPatient} onOpenChange={(open) => { setIsAddingPatient(open); if (!open) resetNewPatientForm(); }}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Agregar Nuevo Paciente
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Photo Upload */}
+            <div className="flex justify-center">
+              <div className="relative group">
+                <Avatar className="w-24 h-24 border-4 border-border cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                  <AvatarImage src={previewPhoto || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl">
+                    {newPatientForm.full_name ? newPatientForm.full_name.slice(0, 2).toUpperCase() : <User className="w-8 h-8" />}
+                  </AvatarFallback>
+                </Avatar>
+                <div 
+                  className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="w-6 h-6 text-white" />
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoSelect}
+                />
+              </div>
+            </div>
+            <p className="text-center text-sm text-muted-foreground">Clic para agregar foto</p>
+
+            {/* Form Fields */}
+            <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label>Nombre completo *</Label>
+                  <Input
+                    value={newPatientForm.full_name}
+                    onChange={(e) => setNewPatientForm({ ...newPatientForm, full_name: e.target.value })}
+                    placeholder="Nombre del paciente"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Email *</Label>
+                <Input
+                  type="email"
+                  value={newPatientForm.email}
+                  onChange={(e) => setNewPatientForm({ ...newPatientForm, email: e.target.value })}
+                  placeholder="correo@ejemplo.com"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Teléfono</Label>
+                  <Input
+                    value={newPatientForm.phone}
+                    onChange={(e) => setNewPatientForm({ ...newPatientForm, phone: e.target.value })}
+                    placeholder="+52 555 555 5555"
+                  />
+                </div>
+                <div>
+                  <Label>Año de nacimiento</Label>
+                  <Input
+                    type="number"
+                    value={newPatientForm.birth_year}
+                    onChange={(e) => setNewPatientForm({ ...newPatientForm, birth_year: e.target.value })}
+                    placeholder="1990"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Género</Label>
+                  <Select value={newPatientForm.gender} onValueChange={(v) => setNewPatientForm({ ...newPatientForm, gender: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Masculino ♂</SelectItem>
+                      <SelectItem value="female">Femenino ♀</SelectItem>
+                      <SelectItem value="other">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Dirección</Label>
+                  <Input
+                    value={newPatientForm.address}
+                    onChange={(e) => setNewPatientForm({ ...newPatientForm, address: e.target.value })}
+                    placeholder="Dirección"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Notas</Label>
+                <Textarea
+                  value={newPatientForm.notes}
+                  onChange={(e) => setNewPatientForm({ ...newPatientForm, notes: e.target.value })}
+                  placeholder="Notas adicionales del paciente..."
+                  rows={2}
+                />
+              </div>
+
+              {/* Tags */}
+              <div>
+                <Label>Etiquetas</Label>
+                <div className="flex flex-wrap gap-2 mt-2 mb-2">
+                  {newPatientForm.tags.map(tag => (
+                    <Badge key={tag} variant="secondary" className="gap-1">
+                      {tag}
+                      <button onClick={() => removeNewPatientTag(tag)} className="ml-1 hover:text-destructive">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {COMMON_TAGS.filter(t => !newPatientForm.tags.includes(t)).map(tag => (
+                    <Badge 
+                      key={tag} 
+                      variant="outline" 
+                      className="cursor-pointer hover:bg-primary/10"
+                      onClick={() => addNewPatientTag(tag)}
+                    >
+                      + {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setIsAddingPatient(false); resetNewPatientForm(); }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleCreatePatient}
+              disabled={createPatientMutation.isPending}
+              className="gap-2"
+            >
+              {createPatientMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Check className="w-4 h-4" />
+              )}
+              Crear Paciente
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
