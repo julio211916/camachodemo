@@ -39,7 +39,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useToast } from "@/hooks/use-toast";
 import { TreatmentForm } from "./TreatmentForm";
-import { FileGallery } from "@/components/clinic/FileGallery";
+import { AdvancedFileManager } from "@/components/clinic/AdvancedFileManager";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
 import { XRayAnalysis } from "@/components/clinic/XRayAnalysis";
@@ -668,7 +668,7 @@ export const DoctorDashboard = () => {
 
           {/* Files Tab */}
           <TabsContent value="files">
-            <FileGallery />
+            <AdvancedFileManager patientId="" patientName="Todos los pacientes" />
           </TabsContent>
 
           {/* Prescriptions Tab */}

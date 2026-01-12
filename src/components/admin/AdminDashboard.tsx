@@ -74,7 +74,7 @@ import { DoctorsManager } from "./DoctorsManager";
 import { ReviewsManager } from "./ReviewsManager";
 import { AppointmentCalendar } from "./AppointmentCalendar";
 import { ExportData } from "./ExportData";
-import { FileGallery } from "@/components/clinic/FileGallery";
+import { AdvancedFileManager } from "@/components/clinic/AdvancedFileManager";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
 import { ReferralsManager } from "./ReferralsManager";
@@ -626,7 +626,7 @@ export const AdminDashboard = () => {
 
           {/* Files Tab */}
           <TabsContent value="files">
-            <FileGallery />
+            <AdvancedFileManager patientId="" patientName="Todos los pacientes" />
           </TabsContent>
 
           {/* Prescriptions Tab */}
