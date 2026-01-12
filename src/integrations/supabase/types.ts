@@ -955,6 +955,33 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_notes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          note: string
+          patient_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note: string
+          patient_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          note?: string
+          patient_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -1054,36 +1081,51 @@ export type Database = {
         Row: {
           address: string | null
           avatar_url: string | null
+          birth_year: number | null
           created_at: string
           date_of_birth: string | null
           email: string
           full_name: string
+          gender: string | null
           id: string
+          is_archived: boolean | null
+          notes: string | null
           phone: string | null
+          tags: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          birth_year?: number | null
           created_at?: string
           date_of_birth?: string | null
           email: string
           full_name: string
+          gender?: string | null
           id?: string
+          is_archived?: boolean | null
+          notes?: string | null
           phone?: string | null
+          tags?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
           address?: string | null
           avatar_url?: string | null
+          birth_year?: number | null
           created_at?: string
           date_of_birth?: string | null
           email?: string
           full_name?: string
+          gender?: string | null
           id?: string
+          is_archived?: boolean | null
+          notes?: string | null
           phone?: string | null
+          tags?: string[] | null
           updated_at?: string
           user_id?: string
         }

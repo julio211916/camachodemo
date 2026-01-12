@@ -93,6 +93,7 @@ import { MyProfile } from "@/components/dashboard/MyProfile";
 import { LocationsManager } from "./LocationsManager";
 import { BlogManager } from "./BlogManager";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
+import { PatientManager } from "@/components/clinic/PatientManager";
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -118,8 +119,6 @@ export const AdminDashboard = () => {
       title: "Clínica",
       items: [
         { id: "doctors", label: "Doctores", icon: <Stethoscope className="w-5 h-5" /> },
-        { id: "odontogram", label: "Odontograma", icon: <Activity className="w-5 h-5" /> },
-        { id: "interactive-odontogram", label: "Odontograma SVG", icon: <Cpu className="w-5 h-5" /> },
         { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
         { id: "aesthetics", label: "Estética Facial", icon: <Smile className="w-5 h-5" /> },
         { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
@@ -253,12 +252,10 @@ export const AdminDashboard = () => {
         return <AdminAppointmentsList appointments={appointments} />;
       case "calendar":
         return <AppointmentCalendar appointments={appointments} />;
+      case "patients":
+        return <PatientManager />;
       case "doctors":
         return <DoctorsManager />;
-      case "odontogram":
-        return <Odontogram patientId="demo-patient" />;
-      case "interactive-odontogram":
-        return <InteractiveOdontogram patientId="demo-patient" />;
       case "orthodontics":
         return <OrthodonticsModule patientId="demo-patient" />;
       case "aesthetics":

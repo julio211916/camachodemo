@@ -37,6 +37,7 @@ import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { MyProfile } from "@/components/dashboard/MyProfile";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
+import { PatientManager } from "@/components/clinic/PatientManager";
 
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
@@ -69,8 +70,6 @@ export const DoctorDashboard = () => {
       { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
     ]},
     { title: "Clínica", items: [
-      { id: "odontogram", label: "Odontograma", icon: <Activity className="w-5 h-5" /> },
-      { id: "interactive-odontogram", label: "Odontograma SVG", icon: <Cpu className="w-5 h-5" /> },
       { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
       { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
       { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
@@ -107,8 +106,7 @@ export const DoctorDashboard = () => {
     switch (activeSection) {
       case "dashboard": return <><PageHeader title="Dashboard" subtitle={`Dr. ${profile?.full_name || 'Doctor'}`} /><StatsGrid stats={stats} /></>;
       case "kanban": return <ClinicKanbanBoard />;
-      case "odontogram": return <Odontogram patientId="demo" />;
-      case "interactive-odontogram": return <InteractiveOdontogram patientId="demo" />;
+      case "patients": return <PatientManager />;
       case "orthodontics": return <OrthodonticsModule patientId="demo" />;
       case "inventory": return <InventoryManager />;
       case "lab": return <LabOrdersManager />;
