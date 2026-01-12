@@ -130,7 +130,7 @@ export const DashboardLayout = ({
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="min-h-screen bg-background flex">
+      <div className="min-h-screen bg-background flex dashboard-theme">
         {/* Mobile Overlay */}
         <AnimatePresence>
           {mobileOpen && (
