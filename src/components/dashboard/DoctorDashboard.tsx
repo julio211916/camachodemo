@@ -27,6 +27,7 @@ import {
   Receipt,
   DollarSign,
   Sparkles,
+  Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,6 +51,7 @@ import { InvoicingModule } from "@/components/clinic/InvoicingModule";
 import { ExpensesManager } from "@/components/clinic/ExpensesManager";
 import { Odontogram } from "@/components/clinic/Odontogram";
 import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
+import { TelemedicineModule } from "@/components/clinic/TelemedicineModule";
 import logo from "@/assets/logo-novelldent.png";
 
 export const DoctorDashboard = () => {
@@ -333,6 +335,10 @@ export const DoctorDashboard = () => {
             <TabsTrigger value="smile" className="gap-2">
               <Smile className="w-4 h-4" />
               Simulador
+            </TabsTrigger>
+            <TabsTrigger value="telemedicine" className="gap-2">
+              <Video className="w-4 h-4" />
+              Telemedicina
             </TabsTrigger>
           </TabsList>
 
@@ -688,6 +694,11 @@ export const DoctorDashboard = () => {
           {/* Smile Simulator Tab */}
           <TabsContent value="smile">
             <SmileSimulator />
+          </TabsContent>
+
+          {/* Telemedicine Tab */}
+          <TabsContent value="telemedicine">
+            <TelemedicineModule userRole="doctor" />
           </TabsContent>
         </Tabs>
       </main>

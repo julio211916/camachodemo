@@ -41,6 +41,7 @@ import {
   Activity,
   Sparkles,
   Wallet,
+  Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,6 +92,7 @@ import { Odontogram } from "@/components/clinic/Odontogram";
 import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
 import { FacialAestheticsModule } from "@/components/clinic/FacialAestheticsModule";
 import { LoyaltyModule } from "@/components/clinic/LoyaltyModule";
+import { TelemedicineModule } from "@/components/clinic/TelemedicineModule";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo-novelldent.png";
 
@@ -287,6 +289,10 @@ export const AdminDashboard = () => {
             <TabsTrigger value="chat" className="flex items-center gap-2">
               <MessagesSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Chat Interno</span>
+            </TabsTrigger>
+            <TabsTrigger value="telemedicine" className="flex items-center gap-2">
+              <Video className="w-4 h-4" />
+              <span className="hidden sm:inline">Telemedicina</span>
             </TabsTrigger>
           </TabsList>
 
@@ -661,6 +667,11 @@ export const AdminDashboard = () => {
           {/* Internal Chat Tab */}
           <TabsContent value="chat">
             <InternalChatModule />
+          </TabsContent>
+
+          {/* Telemedicine Tab */}
+          <TabsContent value="telemedicine">
+            <TelemedicineModule userRole="admin" />
           </TabsContent>
         </Tabs>
       </main>
