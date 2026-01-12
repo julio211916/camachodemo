@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 interface OrthodonticsModuleProps {
-  patientId: string;
+  patientId?: string;
   patientName?: string;
 }
 
