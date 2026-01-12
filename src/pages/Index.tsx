@@ -14,6 +14,7 @@ import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ChatBot } from "@/components/ChatBot";
 import { Preloader } from "@/components/Preloader";
+import { DentalParallaxSection } from "@/components/DentalParallaxSection";
 
 const Index = () => {
   const [showPreloader, setShowPreloader] = useState(true);
@@ -26,6 +27,7 @@ const Index = () => {
         <Header />
         <main>
           <Hero />
+          <DentalParallaxSection />
           <About />
           <Specialties />
           <Services />
