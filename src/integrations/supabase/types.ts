@@ -127,6 +127,57 @@ export type Database = {
           },
         ]
       }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          author_name: string | null
+          content: string
+          cover_image: string | null
+          created_at: string
+          display_order: number | null
+          excerpt: string | null
+          id: string
+          is_published: boolean | null
+          published_at: string | null
+          slug: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string | null
+          author_name?: string | null
+          content: string
+          cover_image?: string | null
+          created_at?: string
+          display_order?: number | null
+          excerpt?: string | null
+          id?: string
+          is_published?: boolean | null
+          published_at?: string | null
+          slug: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string | null
+          author_name?: string | null
+          content?: string
+          cover_image?: string | null
+          created_at?: string
+          display_order?: number | null
+          excerpt?: string | null
+          id?: string
+          is_published?: boolean | null
+          published_at?: string | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cash_register: {
         Row: {
           closed_at: string | null
@@ -635,6 +686,51 @@ export type Database = {
           status?: string
           updated_at?: string
           work_type?: string
+        }
+        Relationships: []
+      }
+      locations: {
+        Row: {
+          address: string
+          city: string | null
+          created_at: string
+          directions_url: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          map_url: string | null
+          name: string
+          phone: string
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city?: string | null
+          created_at?: string
+          directions_url?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          map_url?: string | null
+          name: string
+          phone: string
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string | null
+          created_at?: string
+          directions_url?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          map_url?: string | null
+          name?: string
+          phone?: string
+          state?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

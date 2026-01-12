@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Phone, MapPin, LogIn, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logo from "@/assets/logo-novelldent.png";
+
+interface NavItem {
+  label: string;
+  href: string;
+  isRoute?: boolean;
+}
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,6 +29,7 @@ export const Header = () => {
     { label: t('nav.services'), href: "#servicios" },
     { label: t('nav.appointments'), href: "#reservar" },
     { label: t('nav.locations'), href: "#sucursales" },
+    { label: "Blog", href: "/blog", isRoute: true },
     { label: t('nav.contact'), href: "#contacto" },
   ];
 
@@ -111,16 +118,28 @@ export const Header = () => {
 
             {/* Desktop nav */}
             <nav className="hidden lg:flex items-center gap-8">
-              {navItems.map((item) => (
-                <motion.a
-                  key={item.href}
-                  href={item.href}
-                  className={`font-medium transition-colors relative group ${isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/80 hover:text-white"}`}
-                  whileHover={{ y: -2 }}
-                >
-                  {item.label}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
-                </motion.a>
+              {navItems.map((item: NavItem) => (
+                item.isRoute ? (
+                  <motion.div key={item.href} whileHover={{ y: -2 }}>
+                    <Link
+                      to={item.href}
+                      className={`font-medium transition-colors relative group ${isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/80 hover:text-white"}`}
+                    >
+                      {item.label}
+                      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+                    </Link>
+                  </motion.div>
+                ) : (
+                  <motion.a
+                    key={item.href}
+                    href={item.href}
+                    className={`font-medium transition-colors relative group ${isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/80 hover:text-white"}`}
+                    whileHover={{ y: -2 }}
+                  >
+                    {item.label}
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
+                  </motion.a>
+                )
               ))}
               <motion.a
                 href="#reservar"
@@ -155,18 +174,35 @@ export const Header = () => {
           >
             <div className="absolute inset-0 bg-background/95 backdrop-blur-lg pt-32 px-6">
               <nav className="flex flex-col gap-6">
-                {navItems.map((item, index) => (
-                  <motion.a
-                    key={item.href}
-                    href={item.href}
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-2xl font-serif text-foreground hover:text-primary transition-colors"
-                  >
-                    {item.label}
-                  </motion.a>
+                {navItems.map((item: NavItem, index: number) => (
+                  item.isRoute ? (
+                    <motion.div
+                      key={item.href}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        to={item.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="text-2xl font-serif text-foreground hover:text-primary transition-colors"
+                      >
+                        {item.label}
+                      </Link>
+                    </motion.div>
+                  ) : (
+                    <motion.a
+                      key={item.href}
+                      href={item.href}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-2xl font-serif text-foreground hover:text-primary transition-colors"
+                    >
+                      {item.label}
+                    </motion.a>
+                  )
                 ))}
                 <motion.a
                   href="#reservar"
