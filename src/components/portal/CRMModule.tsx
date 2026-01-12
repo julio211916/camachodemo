@@ -54,12 +54,24 @@ interface Lead {
 interface AutomationRule {
   id: string;
   name: string;
-  trigger: 'no_contact' | 'email_opened' | 'status_change' | 'score_threshold' | 'birthday';
+  description?: string;
+  trigger: 'no_contact' | 'email_opened' | 'status_change' | 'score_threshold' | 'birthday' | 'inactivity' | 'nurturing_sequence' | 'treatment_followup';
   triggerValue?: number;
-  action: 'send_email' | 'send_whatsapp' | 'create_task' | 'assign_to' | 'change_status';
+  triggerDays?: number;
+  action: 'send_email' | 'send_whatsapp' | 'create_task' | 'assign_to' | 'change_status' | 'send_sms' | 'add_tag';
   actionValue?: string;
+  sequence?: NurturingStep[];
   isActive: boolean;
   executedCount: number;
+  category: 'engagement' | 'birthday' | 'inactivity' | 'nurturing' | 'followup';
+}
+
+interface NurturingStep {
+  id: string;
+  day: number;
+  action: 'send_email' | 'send_whatsapp' | 'send_sms';
+  template: string;
+  subject?: string;
 }
 
 interface Campaign {
@@ -133,10 +145,45 @@ const MOCK_LEADS: Lead[] = [
 ];
 
 const MOCK_AUTOMATIONS: AutomationRule[] = [
-  { id: '1', name: 'Seguimiento 3 días sin contacto', trigger: 'no_contact', triggerValue: 3, action: 'send_email', actionValue: 'template_followup', isActive: true, executedCount: 45 },
-  { id: '2', name: 'Email abierto - crear tarea', trigger: 'email_opened', action: 'create_task', actionValue: 'Llamar al lead', isActive: true, executedCount: 23 },
-  { id: '3', name: 'Score alto - asignar manager', trigger: 'score_threshold', triggerValue: 80, action: 'assign_to', actionValue: 'manager_sales', isActive: false, executedCount: 12 },
-  { id: '4', name: 'Lead interesado - enviar catálogo', trigger: 'status_change', triggerValue: 2, action: 'send_whatsapp', actionValue: 'catalogo_servicios', isActive: true, executedCount: 67 },
+  // Engagement automations
+  { id: '1', name: 'Seguimiento 3 días sin contacto', description: 'Envía recordatorio automático cuando no hay contacto en 3 días', trigger: 'no_contact', triggerValue: 3, action: 'send_email', actionValue: 'template_followup', isActive: true, executedCount: 45, category: 'engagement' },
+  { id: '2', name: 'Email abierto - crear tarea', description: 'Crea tarea de llamada cuando el lead abre un email', trigger: 'email_opened', action: 'create_task', actionValue: 'Llamar al lead', isActive: true, executedCount: 23, category: 'engagement' },
+  { id: '3', name: 'Score alto - asignar manager', description: 'Asigna leads con score > 80 al gerente de ventas', trigger: 'score_threshold', triggerValue: 80, action: 'assign_to', actionValue: 'manager_sales', isActive: false, executedCount: 12, category: 'engagement' },
+  { id: '4', name: 'Lead interesado - enviar catálogo', description: 'Envía catálogo de servicios cuando el lead muestra interés', trigger: 'status_change', triggerValue: 2, action: 'send_whatsapp', actionValue: 'catalogo_servicios', isActive: true, executedCount: 67, category: 'engagement' },
+  
+  // Birthday automations
+  { id: '5', name: 'Felicitación de cumpleaños', description: 'Envía felicitación y promoción especial el día del cumpleaños', trigger: 'birthday', triggerDays: 0, action: 'send_email', actionValue: 'birthday_greeting', isActive: true, executedCount: 156, category: 'birthday' },
+  { id: '6', name: 'Recordatorio pre-cumpleaños', description: 'Envía WhatsApp 3 días antes del cumpleaños', trigger: 'birthday', triggerDays: -3, action: 'send_whatsapp', actionValue: 'birthday_promo', isActive: true, executedCount: 89, category: 'birthday' },
+  { id: '7', name: 'Oferta post-cumpleaños', description: 'Envía oferta especial válida por 7 días después del cumpleaños', trigger: 'birthday', triggerDays: 1, action: 'send_email', actionValue: 'birthday_offer', isActive: false, executedCount: 34, category: 'birthday' },
+  
+  // Inactivity automations
+  { id: '8', name: 'Alerta inactividad 30 días', description: 'Envía recordatorio cuando paciente no agenda en 30 días', trigger: 'inactivity', triggerDays: 30, action: 'send_email', actionValue: 'reactivation_30', isActive: true, executedCount: 234, category: 'inactivity' },
+  { id: '9', name: 'Alerta inactividad 60 días', description: 'Envía oferta especial a pacientes inactivos por 60 días', trigger: 'inactivity', triggerDays: 60, action: 'send_whatsapp', actionValue: 'reactivation_60', isActive: true, executedCount: 145, category: 'inactivity' },
+  { id: '10', name: 'Alerta inactividad 90 días', description: 'Llamada de seguimiento para pacientes inactivos 90 días', trigger: 'inactivity', triggerDays: 90, action: 'create_task', actionValue: 'Llamar paciente inactivo', isActive: true, executedCount: 78, category: 'inactivity' },
+  { id: '11', name: 'Paciente perdido 180 días', description: 'Campaña de recuperación para pacientes sin visita en 6 meses', trigger: 'inactivity', triggerDays: 180, action: 'send_email', actionValue: 'win_back_campaign', isActive: false, executedCount: 23, category: 'inactivity' },
+  
+  // Nurturing sequences
+  { id: '12', name: 'Secuencia Bienvenida Nuevos', description: 'Serie de 5 emails educativos para nuevos leads', trigger: 'nurturing_sequence', action: 'send_email', isActive: true, executedCount: 412, category: 'nurturing', sequence: [
+    { id: 's1', day: 0, action: 'send_email', template: 'welcome', subject: 'Bienvenido a nuestra clínica' },
+    { id: 's2', day: 2, action: 'send_email', template: 'services', subject: 'Conoce nuestros servicios' },
+    { id: 's3', day: 5, action: 'send_whatsapp', template: 'promo_first', subject: '' },
+    { id: 's4', day: 7, action: 'send_email', template: 'testimonials', subject: 'Lo que dicen nuestros pacientes' },
+    { id: 's5', day: 14, action: 'send_email', template: 'appointment_cta', subject: 'Agenda tu primera cita' },
+  ]},
+  { id: '13', name: 'Secuencia Ortodoncia', description: 'Información sobre tratamientos de ortodoncia', trigger: 'nurturing_sequence', action: 'send_email', isActive: true, executedCount: 89, category: 'nurturing', sequence: [
+    { id: 's1', day: 0, action: 'send_email', template: 'ortho_intro', subject: 'Transforma tu sonrisa' },
+    { id: 's2', day: 3, action: 'send_email', template: 'ortho_types', subject: 'Tipos de ortodoncia disponibles' },
+    { id: 's3', day: 7, action: 'send_whatsapp', template: 'ortho_promo', subject: '' },
+  ]},
+  { id: '14', name: 'Secuencia Implantes', description: 'Educación sobre implantes dentales', trigger: 'nurturing_sequence', action: 'send_email', isActive: false, executedCount: 45, category: 'nurturing', sequence: [
+    { id: 's1', day: 0, action: 'send_email', template: 'implant_intro', subject: 'Recupera tu sonrisa con implantes' },
+    { id: 's2', day: 5, action: 'send_email', template: 'implant_process', subject: 'El proceso paso a paso' },
+  ]},
+  
+  // Treatment followup
+  { id: '15', name: 'Post-tratamiento 24h', description: 'Seguimiento 24 horas después del tratamiento', trigger: 'treatment_followup', triggerDays: 1, action: 'send_whatsapp', actionValue: 'post_treatment_24h', isActive: true, executedCount: 567, category: 'followup' },
+  { id: '16', name: 'Recordatorio revisión 6 meses', description: 'Recordatorio para revisión semestral', trigger: 'treatment_followup', triggerDays: 180, action: 'send_email', actionValue: 'checkup_reminder', isActive: true, executedCount: 234, category: 'followup' },
+  { id: '17', name: 'Satisfacción post-servicio', description: 'Encuesta de satisfacción 3 días después', trigger: 'treatment_followup', triggerDays: 3, action: 'send_email', actionValue: 'satisfaction_survey', isActive: true, executedCount: 456, category: 'followup' },
 ];
 
 const MOCK_CAMPAIGNS: Campaign[] = [
