@@ -26,6 +26,7 @@ import { es } from "date-fns/locale";
 import { InteractiveOdontogram } from "./InteractiveOdontogram";
 import { PatientQRCode } from "./PatientQRCode";
 import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
+import { Model3DViewerWithAnnotations } from "./Model3DViewerWithAnnotations";
 
 interface Patient {
   id: string;
@@ -656,7 +657,7 @@ export const PatientManager = () => {
 
             {/* Tabs */}
             <Tabs value={detailTab} onValueChange={setDetailTab} className="flex-1 flex flex-col">
-              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+              <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent flex-wrap">
                 <TabsTrigger value="details" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
                   <User className="w-4 h-4 mr-2" />
                   Detalles
@@ -664,6 +665,10 @@ export const PatientManager = () => {
                 <TabsTrigger value="odontogram" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
                   <FileText className="w-4 h-4 mr-2" />
                   Odontograma
+                </TabsTrigger>
+                <TabsTrigger value="3d-viewer" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
+                  <Users className="w-4 h-4 mr-2" />
+                  Modelos 3D
                 </TabsTrigger>
                 <TabsTrigger value="appointments" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
                   <Calendar className="w-4 h-4 mr-2" />
@@ -783,6 +788,13 @@ export const PatientManager = () => {
                 <TabsContent value="odontogram" className="m-0 p-2">
                   <InteractiveOdontogram 
                     patientId={selectedPatient.user_id} 
+                    patientName={selectedPatient.full_name}
+                  />
+                </TabsContent>
+
+                <TabsContent value="3d-viewer" className="m-0 p-2 h-[500px]">
+                  <Model3DViewerWithAnnotations
+                    patientId={selectedPatient.user_id}
                     patientName={selectedPatient.full_name}
                   />
                 </TabsContent>
