@@ -5,7 +5,7 @@ import {
   Calendar, Clock, Users, FileText, Stethoscope, Activity, TrendingUp,
   FolderOpen, Pill, FileStack, Brain, Scan, Smile, Package, FlaskConical,
   Receipt, DollarSign, Sparkles, Video, PenTool, HardDrive, Eye, FileEdit,
-  Box, Camera, QrCode, Cpu, Image as ImageIcon, User
+  Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -36,6 +36,7 @@ import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
 import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { MyProfile } from "@/components/dashboard/MyProfile";
+import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
@@ -62,6 +63,7 @@ export const DoctorDashboard = () => {
   const navGroups: NavGroup[] = useMemo(() => [
     { title: "Principal", items: [
       { id: "dashboard", label: "Dashboard", icon: <Calendar className="w-5 h-5" /> },
+      { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
       { id: "today", label: "Citas Hoy", icon: <Clock className="w-5 h-5" />, badge: todayAppointments.length },
       { id: "patients", label: "Pacientes", icon: <Users className="w-5 h-5" /> },
       { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
@@ -104,6 +106,7 @@ export const DoctorDashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard": return <><PageHeader title="Dashboard" subtitle={`Dr. ${profile?.full_name || 'Doctor'}`} /><StatsGrid stats={stats} /></>;
+      case "kanban": return <ClinicKanbanBoard />;
       case "odontogram": return <Odontogram patientId="demo" />;
       case "interactive-odontogram": return <InteractiveOdontogram patientId="demo" />;
       case "orthodontics": return <OrthodonticsModule patientId="demo" />;

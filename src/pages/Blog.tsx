@@ -4,11 +4,14 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { Calendar, User, ArrowRight, Tag } from "lucide-react";
+import { Calendar, User, ArrowRight, Tag, Search, X } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Link } from "react-router-dom";
 import { fadeInUp, staggerContainer } from "@/hooks/useAnimations";
+import { Input } from "@/components/ui/input";
+import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
 
 interface BlogPost {
   id: string;
@@ -23,6 +26,8 @@ interface BlogPost {
 }
 
 const Blog = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["blog-posts"],
     queryFn: async () => {
@@ -35,6 +40,18 @@ const Blog = () => {
       return data as BlogPost[];
     },
   });
+
+  const filteredPosts = useMemo(() => {
+    if (!searchQuery.trim()) return posts;
+    const query = searchQuery.toLowerCase();
+    return posts.filter(
+      (post) =>
+        post.title.toLowerCase().includes(query) ||
+        post.excerpt?.toLowerCase().includes(query) ||
+        post.content.toLowerCase().includes(query) ||
+        post.tags?.some((tag) => tag.toLowerCase().includes(query))
+    );
+  }, [posts, searchQuery]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,6 +83,35 @@ const Blog = () => {
             >
               Consejos, novedades y todo lo que necesitas saber para mantener tu sonrisa saludable
             </motion.p>
+
+            {/* Search Bar */}
+            <motion.div variants={fadeInUp} className="mt-8 max-w-md mx-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Buscar artículos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-10 h-12 rounded-full bg-card border-border"
+                />
+                {searchQuery && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                    onClick={() => setSearchQuery("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {searchQuery && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  {filteredPosts.length} resultado{filteredPosts.length !== 1 ? "s" : ""} para "{searchQuery}"
+                </p>
+              )}
+            </motion.div>
           </motion.div>
 
           {isLoading ? (
@@ -78,11 +124,22 @@ const Blog = () => {
                 </div>
               ))}
             </div>
-          ) : posts.length === 0 ? (
+          ) : filteredPosts.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-muted-foreground text-lg">
-                Próximamente publicaremos artículos interesantes. ¡Vuelve pronto!
+                {searchQuery
+                  ? "No se encontraron artículos con esa búsqueda"
+                  : "Próximamente publicaremos artículos interesantes. ¡Vuelve pronto!"}
               </p>
+              {searchQuery && (
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => setSearchQuery("")}
+                >
+                  Ver todos los artículos
+                </Button>
+              )}
             </div>
           ) : (
             <motion.div
@@ -91,7 +148,7 @@ const Blog = () => {
               variants={staggerContainer}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
-              {posts.map((post, index) => (
+              {filteredPosts.map((post, index) => (
                 <motion.article
                   key={post.id}
                   variants={fadeInUp}
