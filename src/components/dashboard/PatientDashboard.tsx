@@ -18,6 +18,7 @@ import {
   Pill,
   AlertCircle,
   Gift,
+  Stethoscope,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +30,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReferralSystem } from "@/components/ReferralSystem";
 import { DiscountHistory } from "@/components/clinic/DiscountHistory";
+import { MedicalHistory } from "@/components/clinic/MedicalHistory";
+import { Odontogram } from "@/components/clinic/Odontogram";
 import logo from "@/assets/logo-novelldent.png";
 
 export const PatientDashboard = () => {
@@ -221,6 +224,14 @@ export const PatientDashboard = () => {
             <TabsTrigger value="profile" className="gap-2">
               <User className="w-4 h-4" />
               Mi Perfil
+            </TabsTrigger>
+            <TabsTrigger value="odontogram" className="gap-2">
+              <Stethoscope className="w-4 h-4" />
+              Odontograma
+            </TabsTrigger>
+            <TabsTrigger value="medical" className="gap-2">
+              <Heart className="w-4 h-4" />
+              Historia Clínica
             </TabsTrigger>
             <TabsTrigger value="referrals" className="gap-2">
               <Gift className="w-4 h-4" />
@@ -553,6 +564,14 @@ export const PatientDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="odontogram">
+            {user?.id && <Odontogram patientId={user.id} patientName={profile?.full_name} readOnly={true} />}
+          </TabsContent>
+
+          <TabsContent value="medical">
+            {user?.id && <MedicalHistory patientId={user.id} patientName={profile?.full_name} readOnly={true} />}
           </TabsContent>
 
           <TabsContent value="referrals">
