@@ -19,6 +19,11 @@ import {
   AlertCircle,
   Gift,
   Stethoscope,
+  Box,
+  Camera,
+  QrCode,
+  FolderOpen,
+  Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +38,10 @@ import { DiscountHistory } from "@/components/clinic/DiscountHistory";
 import { MedicalHistory } from "@/components/clinic/MedicalHistory";
 import { Odontogram } from "@/components/clinic/Odontogram";
 import { AdvancedFileManager } from "@/components/clinic/AdvancedFileManager";
+import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
+import { PatientQRCode } from "@/components/clinic/PatientQRCode";
+import { FileGallery } from "@/components/clinic/FileGallery";
+import { Model3DViewer } from "@/components/clinic/Model3DViewer";
 import logo from "@/assets/logo-novelldent.png";
 
 export const PatientDashboard = () => {
@@ -239,8 +248,24 @@ export const PatientDashboard = () => {
               Referidos
             </TabsTrigger>
             <TabsTrigger value="files" className="gap-2">
-              <FileText className="w-4 h-4" />
+              <FolderOpen className="w-4 h-4" />
               Mis Archivos
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="gap-2">
+              <ImageIcon className="w-4 h-4" />
+              Galería
+            </TabsTrigger>
+            <TabsTrigger value="3d" className="gap-2">
+              <Box className="w-4 h-4" />
+              Modelos 3D
+            </TabsTrigger>
+            <TabsTrigger value="photo" className="gap-2">
+              <Camera className="w-4 h-4" />
+              Mi Foto
+            </TabsTrigger>
+            <TabsTrigger value="qr" className="gap-2">
+              <QrCode className="w-4 h-4" />
+              Mi QR
             </TabsTrigger>
           </TabsList>
 
@@ -589,6 +614,34 @@ export const PatientDashboard = () => {
           <TabsContent value="files">
             {user?.id && <AdvancedFileManager patientId={user.id} patientName={profile?.full_name} readOnly={true} />}
           </TabsContent>
+
+          <TabsContent value="gallery">
+            {user?.id && <FileGallery patientId={user.id} patientName={profile?.full_name} />}
+          </TabsContent>
+
+          <TabsContent value="3d">
+            <Model3DViewer />
+          </TabsContent>
+
+          <TabsContent value="photo">
+            {user?.id && (
+              <ProfilePhotoUpload 
+                userId={user.id} 
+                userType="patient" 
+                currentPhotoUrl={profile?.avatar_url || undefined}
+                userName={profile?.full_name}
+              />
+            )}
+          </TabsContent>
+
+          <TabsContent value="qr">
+            {user?.id && (
+              <PatientQRCode 
+                patientId={user.id} 
+                patientName={profile?.full_name || 'Paciente'} 
+                patientEmail={user?.email || ''} 
+              />
+            )}</TabsContent>
         </Tabs>
       </main>
     </div>

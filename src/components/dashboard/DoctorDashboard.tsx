@@ -28,6 +28,15 @@ import {
   DollarSign,
   Sparkles,
   Video,
+  PenTool,
+  HardDrive,
+  Eye,
+  FileEdit,
+  Box,
+  Camera,
+  QrCode,
+  Cpu,
+  Image as ImageIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,6 +61,16 @@ import { ExpensesManager } from "@/components/clinic/ExpensesManager";
 import { Odontogram } from "@/components/clinic/Odontogram";
 import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
 import { TelemedicineModule } from "@/components/clinic/TelemedicineModule";
+import { DigitalSignature } from "@/components/clinic/DigitalSignature";
+import { BackupManager } from "@/components/clinic/BackupManager";
+import { DICOMViewer } from "@/components/clinic/DICOMViewer";
+import { TemplateEditor } from "@/components/clinic/TemplateEditor";
+import { InteractiveOdontogram } from "@/components/clinic/InteractiveOdontogram";
+import { Model3DViewer } from "@/components/clinic/Model3DViewer";
+import { STLViewer } from "@/components/clinic/STLViewer";
+import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
+import { PatientQRCode } from "@/components/clinic/PatientQRCode";
+import { FileGallery } from "@/components/clinic/FileGallery";
 import logo from "@/assets/logo-novelldent.png";
 
 export const DoctorDashboard = () => {
@@ -339,6 +358,42 @@ export const DoctorDashboard = () => {
             <TabsTrigger value="telemedicine" className="gap-2">
               <Video className="w-4 h-4" />
               Telemedicina
+            </TabsTrigger>
+            <TabsTrigger value="signature" className="gap-2">
+              <PenTool className="w-4 h-4" />
+              Firma Digital
+            </TabsTrigger>
+            <TabsTrigger value="backup" className="gap-2">
+              <HardDrive className="w-4 h-4" />
+              Backups
+            </TabsTrigger>
+            <TabsTrigger value="dicom" className="gap-2">
+              <Eye className="w-4 h-4" />
+              DICOM
+            </TabsTrigger>
+            <TabsTrigger value="template-editor" className="gap-2">
+              <FileEdit className="w-4 h-4" />
+              Editor Plantillas
+            </TabsTrigger>
+            <TabsTrigger value="interactive-odontogram" className="gap-2">
+              <Cpu className="w-4 h-4" />
+              Odontograma SVG
+            </TabsTrigger>
+            <TabsTrigger value="3d-viewer" className="gap-2">
+              <Box className="w-4 h-4" />
+              Visor 3D
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="gap-2">
+              <ImageIcon className="w-4 h-4" />
+              Galería
+            </TabsTrigger>
+            <TabsTrigger value="profiles" className="gap-2">
+              <Camera className="w-4 h-4" />
+              Mi Foto
+            </TabsTrigger>
+            <TabsTrigger value="qr" className="gap-2">
+              <QrCode className="w-4 h-4" />
+              QR Pacientes
             </TabsTrigger>
           </TabsList>
 
@@ -699,6 +754,51 @@ export const DoctorDashboard = () => {
           {/* Telemedicine Tab */}
           <TabsContent value="telemedicine">
             <TelemedicineModule userRole="doctor" />
+          </TabsContent>
+
+          {/* Digital Signature Tab */}
+          <TabsContent value="signature">
+            <DigitalSignature patientId="demo-patient" patientName="Paciente Demo" />
+          </TabsContent>
+
+          {/* Backup Manager Tab */}
+          <TabsContent value="backup">
+            <BackupManager />
+          </TabsContent>
+
+          {/* DICOM Viewer Tab */}
+          <TabsContent value="dicom">
+            <DICOMViewer />
+          </TabsContent>
+
+          {/* Template Editor Tab */}
+          <TabsContent value="template-editor">
+            <TemplateEditor />
+          </TabsContent>
+
+          {/* Interactive Odontogram Tab */}
+          <TabsContent value="interactive-odontogram">
+            <InteractiveOdontogram patientId="demo-patient" />
+          </TabsContent>
+
+          {/* 3D Viewer Tab */}
+          <TabsContent value="3d-viewer">
+            <Model3DViewer />
+          </TabsContent>
+
+          {/* File Gallery Tab */}
+          <TabsContent value="gallery">
+            <FileGallery patientId="demo-patient" patientName="Mis Archivos" />
+          </TabsContent>
+
+          {/* Profile Photos Tab */}
+          <TabsContent value="profiles">
+            <ProfilePhotoUpload userId={user?.id || ''} userType="doctor" currentPhotoUrl={profile?.avatar_url || undefined} userName={profile?.full_name} />
+          </TabsContent>
+
+          {/* Patient QR Codes Tab */}
+          <TabsContent value="qr">
+            <PatientQRCode patientId="demo-patient" patientName="Paciente Demo" patientEmail="demo@example.com" />
           </TabsContent>
         </Tabs>
       </main>
