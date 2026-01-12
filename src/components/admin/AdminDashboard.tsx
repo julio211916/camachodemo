@@ -90,6 +90,8 @@ import { CMSBuilder } from "@/components/admin/CMSBuilder";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { AdminAppointmentsList } from "./AdminAppointmentsList";
 import { MyProfile } from "@/components/dashboard/MyProfile";
+import { LocationsManager } from "./LocationsManager";
+import { BlogManager } from "./BlogManager";
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -170,6 +172,7 @@ export const AdminDashboard = () => {
       items: [
         { id: "referrals", label: "Referidos", icon: <Gift className="w-5 h-5" /> },
         { id: "loyalty", label: "Fidelización", icon: <Gift className="w-5 h-5" /> },
+        { id: "blog", label: "Blog", icon: <FileText className="w-5 h-5" /> },
       ]
     },
     {
@@ -183,6 +186,7 @@ export const AdminDashboard = () => {
       title: "Administración",
       items: [
         { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
+        { id: "locations", label: "Sucursales", icon: <Building2 className="w-5 h-5" /> },
         { id: "profiles", label: "Fotos Perfil", icon: <Camera className="w-5 h-5" /> },
         { id: "qr", label: "QR Pacientes", icon: <QrCode className="w-5 h-5" /> },
         { id: "cms", label: "CMS Builder", icon: <Layout className="w-5 h-5" /> },
@@ -297,6 +301,10 @@ export const AdminDashboard = () => {
         return <Model3DViewer />;
       case "referrals":
         return <ReferralsManager />;
+      case "blog":
+        return <BlogManager />;
+      case "locations":
+        return <LocationsManager />;
       case "loyalty":
         return <LoyaltyModule />;
       case "analytics":
