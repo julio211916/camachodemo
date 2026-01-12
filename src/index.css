@@ -1,13 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* ==========================================
-     PUBLIC PAGES - Original elegant theme
-     ========================================== */
   :root {
     --background: 0 0% 100%;
     --foreground: 210 25% 15%;
@@ -52,7 +49,6 @@
     --gradient-hero: linear-gradient(180deg, hsla(175, 60%, 35%, 0.05) 0%, hsla(175, 60%, 35%, 0) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(38 85% 55%) 0%, hsl(38 75% 45%) 100%);
     --gradient-glass: linear-gradient(135deg, hsla(0, 0%, 100%, 0.9) 0%, hsla(0, 0%, 100%, 0.7) 100%);
-    --gradient-text-animated: linear-gradient(90deg, hsl(175 60% 35%), hsl(175 45% 50%), hsl(38 85% 55%), hsl(175 60% 35%));
     
     /* Shadows */
     --shadow-soft: 0 4px 20px -2px hsla(210, 25%, 15%, 0.08);
@@ -109,7 +105,6 @@
     --gradient-hero: linear-gradient(180deg, hsla(175, 55%, 45%, 0.08) 0%, hsla(175, 55%, 45%, 0) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(38 80% 55%) 0%, hsl(38 70% 45%) 100%);
     --gradient-glass: linear-gradient(135deg, hsla(210, 30%, 15%, 0.9) 0%, hsla(210, 30%, 12%, 0.7) 100%);
-    --gradient-text-animated: linear-gradient(90deg, hsl(175 55% 45%), hsl(175 40% 60%), hsl(38 80% 55%), hsl(175 55% 45%));
     
     --shadow-soft: 0 4px 20px -2px hsla(0, 0%, 0%, 0.3);
     --shadow-medium: 0 8px 30px -4px hsla(0, 0%, 0%, 0.4);
@@ -123,72 +118,6 @@
     --sidebar-accent-foreground: 210 20% 90%;
     --sidebar-border: 210 25% 18%;
     --sidebar-ring: 175 55% 45%;
-  }
-
-  /* ==========================================
-     DASHBOARD THEME - Modern OKLCH (scoped)
-     ========================================== */
-  .dashboard-theme {
-    --background: oklch(0.9911 0 0);
-    --foreground: oklch(0.2046 0 0);
-    --card: oklch(0.9911 0 0);
-    --card-foreground: oklch(0.2046 0 0);
-    --popover: oklch(0.9911 0 0);
-    --popover-foreground: oklch(0.4386 0 0);
-    --primary: oklch(0.5 0.15 165);
-    --primary-foreground: oklch(0.98 0 0);
-    --secondary: oklch(0.9640 0 0);
-    --secondary-foreground: oklch(0.2046 0 0);
-    --muted: oklch(0.9461 0 0);
-    --muted-foreground: oklch(0.4 0 0);
-    --accent: oklch(0.9461 0 0);
-    --accent-foreground: oklch(0.2435 0 0);
-    --destructive: oklch(0.5523 0.1927 32.7272);
-    --destructive-foreground: oklch(0.98 0 0);
-    --border: oklch(0.9037 0 0);
-    --input: oklch(0.9731 0 0);
-    --ring: oklch(0.5 0.15 165);
-    
-    --sidebar-background: oklch(0.98 0 0);
-    --sidebar-foreground: oklch(0.4 0 0);
-    --sidebar-primary: oklch(0.5 0.15 165);
-    --sidebar-primary-foreground: oklch(0.98 0 0);
-    --sidebar-accent: oklch(0.96 0 0);
-    --sidebar-accent-foreground: oklch(0.2 0 0);
-    --sidebar-border: oklch(0.92 0 0);
-    --sidebar-ring: oklch(0.5 0.15 165);
-  }
-
-  .dashboard-theme.dark,
-  .dark .dashboard-theme {
-    --background: oklch(0.14 0.005 285);
-    --foreground: oklch(0.95 0 0);
-    --card: oklch(0.18 0.005 285);
-    --card-foreground: oklch(0.95 0 0);
-    --popover: oklch(0.2 0.005 285);
-    --popover-foreground: oklch(0.85 0 0);
-    --primary: oklch(0.65 0.15 165);
-    --primary-foreground: oklch(0.12 0 0);
-    --secondary: oklch(0.22 0.005 285);
-    --secondary-foreground: oklch(0.95 0 0);
-    --muted: oklch(0.2 0.005 285);
-    --muted-foreground: oklch(0.65 0 0);
-    --accent: oklch(0.25 0.005 285);
-    --accent-foreground: oklch(0.95 0 0);
-    --destructive: oklch(0.5 0.15 25);
-    --destructive-foreground: oklch(0.95 0 0);
-    --border: oklch(0.28 0.005 285);
-    --input: oklch(0.22 0.005 285);
-    --ring: oklch(0.65 0.15 165);
-    
-    --sidebar-background: oklch(0.12 0.005 285);
-    --sidebar-foreground: oklch(0.7 0 0);
-    --sidebar-primary: oklch(0.65 0.15 165);
-    --sidebar-primary-foreground: oklch(0.12 0 0);
-    --sidebar-accent: oklch(0.2 0.005 285);
-    --sidebar-accent-foreground: oklch(0.95 0 0);
-    --sidebar-border: oklch(0.25 0.005 285);
-    --sidebar-ring: oklch(0.65 0.15 165);
   }
 }
 
@@ -216,11 +145,11 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', 'Outfit', sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', 'Outfit', serif;
+    font-family: 'Playfair Display', serif;
   }
 }
 
@@ -230,42 +159,14 @@
     box-shadow: var(--shadow-soft);
   }
 
-  /* Animated gradient text - Apple style */
   .gradient-text {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-primary);
   }
 
-  .gradient-text-animated {
-    @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-text-animated);
-    background-size: 300% 100%;
-    animation: gradient-shift 8s ease infinite;
-  }
-
-  @keyframes gradient-shift {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
   .gradient-text-gold {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-gold);
-  }
-
-  /* Apple-style text glow */
-  .text-glow {
-    text-shadow: 0 0 80px hsla(175, 60%, 35%, 0.5),
-                 0 0 40px hsla(175, 60%, 35%, 0.3);
-  }
-
-  .dark .text-glow {
-    text-shadow: 0 0 80px hsla(175, 55%, 45%, 0.6),
-                 0 0 40px hsla(175, 55%, 45%, 0.4);
   }
 
   .section-padding {
@@ -276,7 +177,6 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Apple-style buttons */
   .btn-primary {
     @apply inline-flex items-center justify-center px-8 py-4 text-base font-medium text-primary-foreground rounded-full transition-all duration-300;
     background: var(--gradient-primary);
@@ -288,24 +188,8 @@
     box-shadow: 0 8px 25px hsla(175, 60%, 35%, 0.4);
   }
 
-  .btn-apple {
-    @apply inline-flex items-center justify-center px-8 py-4 text-base font-semibold rounded-full transition-all duration-300;
-    @apply bg-foreground text-background hover:opacity-90;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  .btn-apple:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-  }
-
   .btn-outline {
     @apply inline-flex items-center justify-center px-8 py-4 text-base font-medium border-2 border-primary text-primary rounded-full transition-all duration-300 hover:bg-primary hover:text-primary-foreground;
-  }
-
-  .btn-ghost-apple {
-    @apply inline-flex items-center justify-center px-8 py-4 text-base font-medium text-foreground rounded-full transition-all duration-300;
-    @apply border border-border/50 hover:bg-muted/50 hover:border-border;
   }
 
   .video-overlay {
@@ -326,26 +210,6 @@
       hsla(210, 30%, 8%, 0.9) 100%
     );
   }
-
-  /* Apple-style card hover */
-  .card-hover-apple {
-    @apply transition-all duration-500;
-  }
-
-  .card-hover-apple:hover {
-    transform: translateY(-8px) scale(1.01);
-    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.15);
-  }
-
-  .dark .card-hover-apple:hover {
-    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5);
-  }
-
-  /* Blur glass effect */
-  .glass-blur {
-    @apply backdrop-blur-xl bg-background/70;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
 }
 
 @layer utilities {
@@ -363,11 +227,6 @@
 
   .animate-fade-in-up {
     animation: fade-in-up 0.8s ease-out forwards;
-  }
-
-  .animate-shimmer {
-    animation: shimmer 2s linear infinite;
-    background-size: 200% 100%;
   }
 
   @keyframes float {
@@ -388,26 +247,5 @@
   @keyframes fade-in-up {
     from { transform: translateY(40px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  /* Responsive text that scales like Apple */
-  .text-display {
-    @apply text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl;
-    @apply font-bold tracking-tight leading-[1.05];
-  }
-
-  .text-headline {
-    @apply text-3xl sm:text-4xl md:text-5xl lg:text-6xl;
-    @apply font-bold tracking-tight leading-[1.1];
-  }
-
-  .text-subheadline {
-    @apply text-lg sm:text-xl md:text-2xl;
-    @apply text-muted-foreground leading-relaxed;
   }
 }

@@ -39,7 +39,7 @@ export const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden dashboard-theme">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Top bar controls */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <LanguageSelector />
