@@ -1,9 +1,9 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Calendar, Clock, MapPin, User, Phone, Mail, CheckCircle2, ChevronRight, Stethoscope, Loader2, Gift, Tag } from "lucide-react";
+import { es, enUS, pt, ru } from "date-fns/locale";
+import { Calendar, Clock, MapPin, User, Phone, Mail, CheckCircle2, ChevronRight, Stethoscope, Loader2, Gift, Tag, Lock, Eye, EyeOff, Sparkles, PartyPopper, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useBookedSlots, useCreateAppointment } from "@/hooks/useAppointments";
 import { supabase } from "@/integrations/supabase/client";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 
 const locations = [
   {
@@ -40,27 +42,72 @@ const locations = [
   },
 ];
 
-const services = [
-  { id: "general", name: "Odontología General" },
-  { id: "ortodoncia", name: "Ortodoncia" },
-  { id: "implantes", name: "Implantes Dentales" },
-  { id: "estetica", name: "Estética Dental" },
-  { id: "blanqueamiento", name: "Blanqueamiento" },
-  { id: "endodoncia", name: "Endodoncia" },
-  { id: "periodoncia", name: "Periodoncia" },
-  { id: "infantil", name: "Odontopediatría" },
-];
+const serviceTranslations = {
+  es: [
+    { id: "general", name: "Odontología General" },
+    { id: "ortodoncia", name: "Ortodoncia" },
+    { id: "implantes", name: "Implantes Dentales" },
+    { id: "estetica", name: "Estética Dental" },
+    { id: "blanqueamiento", name: "Blanqueamiento" },
+    { id: "endodoncia", name: "Endodoncia" },
+    { id: "periodoncia", name: "Periodoncia" },
+    { id: "infantil", name: "Odontopediatría" },
+  ],
+  en: [
+    { id: "general", name: "General Dentistry" },
+    { id: "ortodoncia", name: "Orthodontics" },
+    { id: "implantes", name: "Dental Implants" },
+    { id: "estetica", name: "Dental Aesthetics" },
+    { id: "blanqueamiento", name: "Whitening" },
+    { id: "endodoncia", name: "Endodontics" },
+    { id: "periodoncia", name: "Periodontics" },
+    { id: "infantil", name: "Pediatric Dentistry" },
+  ],
+  pt: [
+    { id: "general", name: "Odontologia Geral" },
+    { id: "ortodoncia", name: "Ortodontia" },
+    { id: "implantes", name: "Implantes Dentários" },
+    { id: "estetica", name: "Estética Dental" },
+    { id: "blanqueamiento", name: "Clareamento" },
+    { id: "endodoncia", name: "Endodontia" },
+    { id: "periodoncia", name: "Periodontia" },
+    { id: "infantil", name: "Odontopediatria" },
+  ],
+  ru: [
+    { id: "general", name: "Общая стоматология" },
+    { id: "ortodoncia", name: "Ортодонтия" },
+    { id: "implantes", name: "Зубные имплантаты" },
+    { id: "estetica", name: "Эстетическая стоматология" },
+    { id: "blanqueamiento", name: "Отбеливание" },
+    { id: "endodoncia", name: "Эндодонтия" },
+    { id: "periodoncia", name: "Пародонтология" },
+    { id: "infantil", name: "Детская стоматология" },
+  ],
+};
 
 // Horarios de mañana y tarde con mejor distribución
 const morningSlots = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00"];
 const afternoonSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
 const allTimeSlots = [...morningSlots, ...afternoonSlots];
 
+const getDateLocale = (lang: string) => {
+  switch (lang) {
+    case 'en': return enUS;
+    case 'pt': return pt;
+    case 'ru': return ru;
+    default: return es;
+  }
+};
+
 export const AppointmentBooking = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { toast } = useToast();
+  const { t, language } = useLanguage();
+  const navigate = useNavigate();
   const createAppointment = useCreateAppointment();
+  const services = serviceTranslations[language] || serviceTranslations.es;
+  const dateLocale = getDateLocale(language);
 
   const [step, setStep] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -76,6 +123,13 @@ export const AppointmentBooking = () => {
   const [isComplete, setIsComplete] = useState(false);
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
   const [checkingReferral, setCheckingReferral] = useState(false);
+  
+  // Account creation states
+  const [showAccountCreation, setShowAccountCreation] = useState(true);
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [accountCreated, setAccountCreated] = useState(false);
 
   // Fetch booked slots for selected location and date
   const { data: bookedSlots = [], isLoading: loadingSlots } = useBookedSlots(selectedLocation, selectedDate);
@@ -171,16 +225,76 @@ export const AppointmentBooking = () => {
     setFormData({ name: "", phone: "", email: "", referralCode: "" });
     setIsComplete(false);
     setReferralValid(null);
+    setShowAccountCreation(true);
+    setPassword("");
+    setAccountCreated(false);
+  };
+
+  const handleCreateAccount = async () => {
+    if (password.length < 6) {
+      toast({
+        title: t('common.error') || "Error",
+        description: t('confirmation.passwordMinLength') || "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCreatingAccount(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: {
+            full_name: formData.name,
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      // Assign patient role
+      if (data.user) {
+        await supabase.from('user_roles').insert({ 
+          user_id: data.user.id, 
+          role: 'patient' 
+        });
+        
+        // Create profile
+        await supabase.from('profiles').insert({
+          user_id: data.user.id,
+          email: formData.email,
+          full_name: formData.name,
+          phone: formData.phone,
+        });
+      }
+
+      setAccountCreated(true);
+      toast({
+        title: t('confirmation.accountCreated'),
+        description: t('confirmation.accountCreatedDesc'),
+      });
+    } catch (error: any) {
+      toast({
+        title: t('common.error') || "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setCreatingAccount(false);
+    }
   };
 
   const getLocationName = () => locations.find(l => l.id === selectedLocation)?.name || "";
   const getServiceName = () => services.find(s => s.id === selectedService)?.name || "";
 
   const steps = [
-    { number: 1, title: "Sucursal", icon: MapPin },
-    { number: 2, title: "Fecha", icon: Calendar },
-    { number: 3, title: "Hora", icon: Clock },
-    { number: 4, title: "Datos", icon: User },
+    { number: 1, title: t('appointments.step.branch'), icon: MapPin },
+    { number: 2, title: t('appointments.step.date'), icon: Calendar },
+    { number: 3, title: t('appointments.step.time'), icon: Clock },
+    { number: 4, title: t('appointments.step.data'), icon: User },
   ];
 
   return (
@@ -193,13 +307,13 @@ export const AppointmentBooking = () => {
           className="text-center max-w-3xl mx-auto mb-12"
         >
           <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            Reserva Online
+            {t('appointments.badge')}
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground mb-6">
-            Agenda tu <span className="gradient-text">cita ahora</span>
+            {t('appointments.title')} <span className="gradient-text">{t('appointments.titleHighlight')}</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            Reserva tu cita en línea de forma rápida y sencilla. Selecciona tu sucursal, fecha y hora preferida.
+            {t('appointments.subtitle')}
           </p>
         </motion.div>
 
@@ -246,53 +360,262 @@ export const AppointmentBooking = () => {
 
           {/* Booking Card */}
           <div className="bg-card rounded-3xl border border-border/50 shadow-2xl overflow-hidden">
-            {isComplete ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="p-8 md:p-12 text-center"
-              >
+            <AnimatePresence mode="wait">
+              {isComplete ? (
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", delay: 0.2 }}
-                  className="w-24 h-24 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6"
+                  key="complete"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="p-8 md:p-12"
                 >
-                  <CheckCircle2 className="w-12 h-12 text-green-500" />
+                  {accountCreated ? (
+                    // Account Created Success Screen
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center"
+                    >
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", delay: 0.2 }}
+                        className="relative w-32 h-32 mx-auto mb-8"
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-primary/30 to-accent/30 rounded-full blur-xl"
+                          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-2xl">
+                          <Sparkles className="w-16 h-16 text-white" />
+                        </div>
+                      </motion.div>
+                      
+                      <motion.h3 
+                        className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        {t('confirmation.accountCreated')}
+                      </motion.h3>
+                      <motion.p 
+                        className="text-muted-foreground mb-8"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        {t('confirmation.accountCreatedDesc')}
+                      </motion.p>
+                      
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="flex flex-col sm:flex-row gap-4 justify-center"
+                      >
+                        <Button 
+                          onClick={() => navigate('/portal')} 
+                          className="btn-primary rounded-full min-w-[200px]"
+                        >
+                          {t('confirmation.goToPortal')}
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={resetForm} 
+                          className="rounded-full"
+                        >
+                          {t('appointments.bookAnother')}
+                        </Button>
+                      </motion.div>
+                    </motion.div>
+                  ) : (
+                    // Appointment Confirmed Screen with Account Creation
+                    <div className="text-center">
+                      {/* Celebration Animation */}
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", delay: 0.2, stiffness: 200 }}
+                        className="relative w-32 h-32 mx-auto mb-8"
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-green-500/20 rounded-full blur-xl"
+                          animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.8, 0.5] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <motion.div 
+                          className="relative w-full h-full rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-2xl"
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 0.5, delay: 0.5 }}
+                        >
+                          <PartyPopper className="w-16 h-16 text-white" />
+                        </motion.div>
+                        
+                        {/* Confetti particles */}
+                        {[...Array(12)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className="absolute w-3 h-3 rounded-full"
+                            style={{
+                              background: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][i % 5],
+                              left: '50%',
+                              top: '50%',
+                            }}
+                            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+                            animate={{
+                              x: Math.cos((i * 30 * Math.PI) / 180) * 80,
+                              y: Math.sin((i * 30 * Math.PI) / 180) * 80,
+                              opacity: 0,
+                              scale: 0,
+                            }}
+                            transition={{ duration: 1, delay: 0.3 + i * 0.05 }}
+                          />
+                        ))}
+                      </motion.div>
+                      
+                      <motion.h3 
+                        className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        {t('confirmation.title')}
+                      </motion.h3>
+                      
+                      <motion.p
+                        className="text-muted-foreground mb-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        {t('confirmation.subtitle')}
+                      </motion.p>
+
+                      {/* Appointment Summary */}
+                      <motion.div 
+                        className="bg-secondary/50 rounded-2xl p-6 mb-8 max-w-md mx-auto"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <div className="space-y-3 text-left">
+                          <div className="flex items-center gap-3">
+                            <MapPin className="w-5 h-5 text-primary shrink-0" />
+                            <span className="text-foreground">{getLocationName()}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Stethoscope className="w-5 h-5 text-primary shrink-0" />
+                            <span className="text-foreground">{getServiceName()}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Calendar className="w-5 h-5 text-primary shrink-0" />
+                            <span className="text-foreground">
+                              {selectedDate && format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: dateLocale })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <Clock className="w-5 h-5 text-primary shrink-0" />
+                            <span className="text-foreground">{selectedTime} {t('appointments.hrs')}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                      
+                      <motion.p 
+                        className="text-muted-foreground mb-8"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                      >
+                        {t('confirmation.emailSent')} <strong className="text-foreground">{formData.email}</strong>
+                      </motion.p>
+
+                      {/* Account Creation Section */}
+                      {showAccountCreation && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.7 }}
+                          className="bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-6 max-w-md mx-auto mb-6"
+                        >
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <User className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="text-left">
+                              <h4 className="font-semibold text-foreground">{t('confirmation.createAccount')}</h4>
+                              <p className="text-sm text-muted-foreground">{t('confirmation.createAccountDesc')}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div className="relative">
+                              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                              <Input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder={t('confirmation.passwordPlaceholder')}
+                                className="pl-12 pr-12 h-14 rounded-xl"
+                                minLength={6}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                              >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              </button>
+                            </div>
+                            
+                            <Button
+                              onClick={handleCreateAccount}
+                              disabled={creatingAccount || password.length < 6}
+                              className="w-full h-12 rounded-xl btn-primary"
+                            >
+                              {creatingAccount ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                              ) : (
+                                <>
+                                  {t('confirmation.register')}
+                                  <ArrowRight className="w-5 h-5 ml-2" />
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="flex flex-col sm:flex-row gap-4 justify-center"
+                      >
+                        {showAccountCreation && (
+                          <Button 
+                            variant="ghost" 
+                            onClick={() => setShowAccountCreation(false)}
+                            className="text-muted-foreground"
+                          >
+                            {t('confirmation.skipForNow')}
+                          </Button>
+                        )}
+                        <Button 
+                          variant="outline" 
+                          onClick={resetForm} 
+                          className="rounded-full"
+                        >
+                          {t('appointments.bookAnother')}
+                        </Button>
+                      </motion.div>
+                    </div>
+                  )}
                 </motion.div>
-                <h3 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4">
-                  ¡Cita Confirmada!
-                </h3>
-                <div className="bg-secondary/50 rounded-2xl p-6 mb-8 max-w-md mx-auto">
-                  <div className="space-y-3 text-left">
-                    <div className="flex items-center gap-3">
-                      <MapPin className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">{getLocationName()}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Stethoscope className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">{getServiceName()}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">
-                        {selectedDate && format(selectedDate, "EEEE, d 'de' MMMM 'de' yyyy", { locale: es })}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-5 h-5 text-primary" />
-                      <span className="text-foreground">{selectedTime} hrs</span>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-muted-foreground mb-6">
-                  Te hemos enviado un correo de confirmación a <strong>{formData.email}</strong>
-                </p>
-                <Button onClick={resetForm} className="btn-primary rounded-full">
-                  Agendar otra cita
-                </Button>
-              </motion.div>
-            ) : (
+              ) : (
               <div className="p-6 md:p-10">
                 {/* Step 1: Location & Service */}
                 {step === 1 && (
@@ -305,7 +628,7 @@ export const AppointmentBooking = () => {
                     <div>
                       <h3 className="text-xl font-serif font-bold text-foreground mb-4 flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-primary" />
-                        Selecciona una Sucursal
+                        {t('appointments.selectBranch')}
                       </h3>
                       <div className="grid sm:grid-cols-2 gap-4">
                         {locations.map((location) => (
@@ -331,11 +654,11 @@ export const AppointmentBooking = () => {
                     <div>
                       <h3 className="text-xl font-serif font-bold text-foreground mb-4 flex items-center gap-2">
                         <Stethoscope className="w-5 h-5 text-primary" />
-                        Tipo de Servicio
+                        {t('appointments.serviceType')}
                       </h3>
                       <Select value={selectedService} onValueChange={setSelectedService}>
                         <SelectTrigger className="w-full h-14 rounded-xl text-base">
-                          <SelectValue placeholder="Selecciona un servicio" />
+                          <SelectValue placeholder={t('appointments.selectService')} />
                         </SelectTrigger>
                         <SelectContent>
                           {services.map((service) => (
@@ -359,7 +682,7 @@ export const AppointmentBooking = () => {
                   >
                     <h3 className="text-xl font-serif font-bold text-foreground mb-4 flex items-center gap-2">
                       <Calendar className="w-5 h-5 text-primary" />
-                      Selecciona una Fecha
+                      {t('appointments.selectDate')}
                     </h3>
                     <div className="flex justify-center">
                       <div className="bg-secondary/30 rounded-2xl p-4 inline-block">
@@ -367,7 +690,7 @@ export const AppointmentBooking = () => {
                           mode="single"
                           selected={selectedDate}
                           onSelect={setSelectedDate}
-                          locale={es}
+                          locale={dateLocale}
                           disabled={(date) => {
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
@@ -385,7 +708,7 @@ export const AppointmentBooking = () => {
                         className="text-center"
                       >
                         <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-medium">
-                          {format(selectedDate, "EEEE, d 'de' MMMM", { locale: es })}
+                          {format(selectedDate, "EEEE, d 'de' MMMM", { locale: dateLocale })}
                         </span>
                       </motion.div>
                     )}
@@ -402,13 +725,13 @@ export const AppointmentBooking = () => {
                   >
                     <h3 className="text-xl font-serif font-bold text-foreground mb-4 flex items-center gap-2">
                       <Clock className="w-5 h-5 text-primary" />
-                      Selecciona una Hora Disponible
+                      {t('appointments.selectTime')}
                     </h3>
                     
                     {loadingSlots ? (
                       <div className="flex items-center justify-center py-12">
                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                        <span className="ml-3 text-muted-foreground">Cargando horarios...</span>
+                        <span className="ml-3 text-muted-foreground">{t('appointments.loadingSlots')}</span>
                       </div>
                     ) : availableTimeSlots.length === 0 ? (
                       <div className="text-center py-12">
@@ -416,10 +739,10 @@ export const AppointmentBooking = () => {
                           <Clock className="w-8 h-8 text-muted-foreground" />
                         </div>
                         <p className="text-muted-foreground mb-4">
-                          No hay horarios disponibles para esta fecha y sucursal.
+                          {t('appointments.noSlots')}
                         </p>
                         <Button variant="outline" onClick={handleBack} className="rounded-full">
-                          Seleccionar otra fecha
+                          {t('appointments.selectAnotherDate')}
                         </Button>
                       </div>
                     ) : (
@@ -430,7 +753,7 @@ export const AppointmentBooking = () => {
                             <span className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
                               ☀️
                             </span>
-                            <span>Mañana</span>
+                            <span>{t('appointments.morning')}</span>
                           </div>
                           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                             {morningSlots.map((time) => {
@@ -464,7 +787,7 @@ export const AppointmentBooking = () => {
                             <span className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                               🌅
                             </span>
-                            <span>Tarde</span>
+                            <span>{t('appointments.afternoon')}</span>
                           </div>
                           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                             {afternoonSlots.map((time) => {
@@ -495,15 +818,15 @@ export const AppointmentBooking = () => {
                         <div className="flex items-center justify-center gap-4 pt-2 text-xs text-muted-foreground">
                           <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded bg-secondary/50 border border-border" />
-                            <span>Disponible</span>
+                            <span>{t('appointments.available')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded bg-primary" />
-                            <span>Seleccionado</span>
+                            <span>{t('appointments.selected')}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded bg-muted/50 line-through" />
-                            <span>Ocupado</span>
+                            <span>{t('appointments.booked')}</span>
                           </div>
                         </div>
                       </>
@@ -521,12 +844,12 @@ export const AppointmentBooking = () => {
                   >
                     <h3 className="text-xl font-serif font-bold text-foreground mb-4 flex items-center gap-2">
                       <User className="w-5 h-5 text-primary" />
-                      Tus Datos
+                      {t('appointments.yourData')}
                     </h3>
 
                     {/* Summary */}
                     <div className="bg-secondary/30 rounded-2xl p-5 mb-6">
-                      <div className="text-sm text-muted-foreground mb-2">Resumen de tu cita</div>
+                      <div className="text-sm text-muted-foreground mb-2">{t('appointments.summary')}</div>
                       <div className="grid sm:grid-cols-2 gap-4 text-sm">
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4 text-primary" />
@@ -539,12 +862,12 @@ export const AppointmentBooking = () => {
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-primary" />
                           <span className="text-foreground">
-                            {selectedDate && format(selectedDate, "d 'de' MMMM, yyyy", { locale: es })}
+                            {selectedDate && format(selectedDate, "d 'de' MMMM, yyyy", { locale: dateLocale })}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-primary" />
-                          <span className="text-foreground">{selectedTime} hrs</span>
+                          <span className="text-foreground">{selectedTime} {t('appointments.hrs')}</span>
                         </div>
                       </div>
                     </div>
@@ -552,21 +875,21 @@ export const AppointmentBooking = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="text-sm font-medium text-foreground mb-2 block">
-                          Nombre completo
+                          {t('appointments.fullName')}
                         </label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            placeholder="Tu nombre completo"
+                            placeholder={t('appointments.fullNamePlaceholder')}
                             className="pl-12 h-14 rounded-xl"
                           />
                         </div>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-foreground mb-2 block">
-                          Teléfono
+                          {t('appointments.phone')}
                         </label>
                         <div className="relative">
                           <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -574,14 +897,14 @@ export const AppointmentBooking = () => {
                             type="tel"
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            placeholder="Tu número de teléfono"
+                            placeholder={t('appointments.phonePlaceholder')}
                             className="pl-12 h-14 rounded-xl"
                           />
                         </div>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-foreground mb-2 block">
-                          Email
+                          {t('appointments.email')}
                         </label>
                         <div className="relative">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -589,7 +912,7 @@ export const AppointmentBooking = () => {
                             type="email"
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            placeholder="tu@email.com"
+                            placeholder={t('appointments.emailPlaceholder')}
                             className="pl-12 h-14 rounded-xl"
                           />
                         </div>
@@ -599,8 +922,8 @@ export const AppointmentBooking = () => {
                       <div>
                         <label className="text-sm font-medium text-foreground mb-2 block flex items-center gap-2">
                           <Gift className="w-4 h-4 text-primary" />
-                          Código de referido
-                          <span className="text-xs text-muted-foreground font-normal">(opcional)</span>
+                          {t('appointments.referralCode')}
+                          <span className="text-xs text-muted-foreground font-normal">{t('appointments.referralOptional')}</span>
                         </label>
                         <div className="relative">
                           <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -611,7 +934,7 @@ export const AppointmentBooking = () => {
                               setFormData({ ...formData, referralCode: code });
                               validateReferralCode(code);
                             }}
-                            placeholder="REF-XXXXXXXX"
+                            placeholder={t('appointments.referralPlaceholder')}
                             className={cn(
                               "pl-12 pr-12 h-14 rounded-xl uppercase",
                               referralValid === true && "border-green-500 focus-visible:ring-green-500",
@@ -633,12 +956,12 @@ export const AppointmentBooking = () => {
                             className="text-sm text-green-600 mt-2 flex items-center gap-1"
                           >
                             <Gift className="w-4 h-4" />
-                            ¡Código válido! Obtendrás 5% de descuento
+                            {t('appointments.validCode')}
                           </motion.p>
                         )}
                         {referralValid === false && formData.referralCode.length >= 4 && (
                           <p className="text-sm text-red-500 mt-2">
-                            Código no válido
+                            {t('appointments.invalidCode')}
                           </p>
                         )}
                       </div>
@@ -654,7 +977,7 @@ export const AppointmentBooking = () => {
                     disabled={step === 1}
                     className="rounded-full"
                   >
-                    Atrás
+                    {t('appointments.back')}
                   </Button>
                   
                   {step < 4 ? (
@@ -663,7 +986,7 @@ export const AppointmentBooking = () => {
                       disabled={!canProceed()}
                       className="btn-primary rounded-full"
                     >
-                      Continuar
+                      {t('appointments.continue')}
                       <ChevronRight className="w-5 h-5 ml-1" />
                     </Button>
                   ) : (
@@ -676,7 +999,7 @@ export const AppointmentBooking = () => {
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
                         <>
-                          Confirmar Cita
+                          {t('appointments.confirm')}
                           <CheckCircle2 className="w-5 h-5 ml-2" />
                         </>
                       )}
@@ -684,7 +1007,8 @@ export const AppointmentBooking = () => {
                   )}
                 </div>
               </div>
-            )}
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>
