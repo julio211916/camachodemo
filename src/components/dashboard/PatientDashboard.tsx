@@ -32,6 +32,7 @@ import { ReferralSystem } from "@/components/ReferralSystem";
 import { DiscountHistory } from "@/components/clinic/DiscountHistory";
 import { MedicalHistory } from "@/components/clinic/MedicalHistory";
 import { Odontogram } from "@/components/clinic/Odontogram";
+import { AdvancedFileManager } from "@/components/clinic/AdvancedFileManager";
 import logo from "@/assets/logo-novelldent.png";
 
 export const PatientDashboard = () => {
@@ -236,6 +237,10 @@ export const PatientDashboard = () => {
             <TabsTrigger value="referrals" className="gap-2">
               <Gift className="w-4 h-4" />
               Referidos
+            </TabsTrigger>
+            <TabsTrigger value="files" className="gap-2">
+              <FileText className="w-4 h-4" />
+              Mis Archivos
             </TabsTrigger>
           </TabsList>
 
@@ -579,6 +584,10 @@ export const PatientDashboard = () => {
               <ReferralSystem />
               <DiscountHistory />
             </div>
+          </TabsContent>
+
+          <TabsContent value="files">
+            {user?.id && <AdvancedFileManager patientId={user.id} patientName={profile?.full_name} readOnly={true} />}
           </TabsContent>
         </Tabs>
       </main>
