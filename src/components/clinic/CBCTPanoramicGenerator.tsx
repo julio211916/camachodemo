@@ -25,9 +25,11 @@ import {
   SunDim,
   Contrast,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  FileImage
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { downloadDicom, exportCanvasToDicom } from "@/lib/dicomExporter";
 
 interface CBCTPanoramicGeneratorProps {
   patientId: string;
@@ -682,6 +684,30 @@ export const CBCTPanoramicGenerator = ({ patientId, patientName }: CBCTPanoramic
               <Button onClick={downloadPanoramic} variant="outline" className="gap-2">
                 <Download className="w-4 h-4" />
                 Descargar PNG
+              </Button>
+              <Button 
+                onClick={async () => {
+                  const canvas = canvasRef.current;
+                  if (!canvas) return;
+                  try {
+                    await downloadDicom(canvas, {
+                      patientId,
+                      patientName,
+                      studyDescription: 'Dental Panoramic X-Ray',
+                      seriesDescription: `Panoramic ${projectionMode.toUpperCase()} from CBCT`,
+                      modality: 'OPG',
+                      institutionName: 'NovellDent Dental Clinic'
+                    });
+                    toast({ title: "Exportado", description: "Archivo DICOM descargado correctamente" });
+                  } catch (error) {
+                    toast({ title: "Error", description: "No se pudo exportar el archivo DICOM", variant: "destructive" });
+                  }
+                }}
+                variant="outline" 
+                className="gap-2"
+              >
+                <FileImage className="w-4 h-4" />
+                Exportar DICOM
               </Button>
               <Button 
                 onClick={() => saveMutation.mutate()} 

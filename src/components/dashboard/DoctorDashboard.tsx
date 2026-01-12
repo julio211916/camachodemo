@@ -32,6 +32,7 @@ import { DICOMViewer } from "@/components/clinic/DICOMViewer";
 import { TemplateEditor } from "@/components/clinic/TemplateEditor";
 import { InteractiveOdontogram } from "@/components/clinic/InteractiveOdontogram";
 import { Model3DViewer } from "@/components/clinic/Model3DViewer";
+import { Model3DViewerCloud } from "@/components/clinic/Model3DViewerCloud";
 import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
 import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { FileGallery } from "@/components/clinic/FileGallery";
@@ -122,7 +123,7 @@ export const DoctorDashboard = () => {
       case "signature": return <DigitalSignature />;
       case "dicom": return <DICOMViewer />;
       case "cbct-panoramic": return <CBCTPanoramicGenerator patientId="demo" patientName="Paciente Demo" />;
-      case "3d-viewer": return <Model3DViewer />;
+      case "3d-viewer": return <Model3DViewerCloud patientId="demo" patientName="Paciente Demo" />;
       case "profile": return <MyProfile />;
       default: return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }
