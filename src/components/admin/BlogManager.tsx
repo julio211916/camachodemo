@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,6 +14,8 @@ import { Plus, Edit, Trash2, GripVertical, Eye, EyeOff, Calendar, User } from "l
 import { PageHeader } from "@/components/layout/ContentCard";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { Textarea } from "@/components/ui/textarea";
 
 interface BlogPost {
   id: string;
@@ -245,12 +246,10 @@ export const BlogManager = () => {
               </div>
               <div className="space-y-2">
                 <Label>Contenido *</Label>
-                <Textarea
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Contenido completo del artículo..."
-                  rows={10}
-                  required
+                <RichTextEditor
+                  content={formData.content}
+                  onChange={(content) => setFormData({ ...formData, content })}
+                  className="min-h-[300px]"
                 />
               </div>
               <div className="space-y-2">

@@ -1,54 +1,58 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState } from "react";
-import { MapPin, Phone, Clock, Navigation } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { MapPin, Phone, Clock, Navigation, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const locations = [
-  {
-    name: "Matriz Tepic",
-    address: "Country Club 10, Caoba y Av. Insurgentes, Versalles, C.P. 63139, Tepic, Nayarit",
-    phone: "+52 311 133 8000",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3735.8897!2d-104.8954!3d21.5051!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x842735a2ac67893f%3A0x4c9a5e7d8f1b2c3d!2sCountry%20Club%2010%2C%20Versalles%2C%20Tepic%2C%20Nay.!5e0!3m2!1ses!2smx!4v1704567890",
-    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=21.5051,-104.8954",
-  },
-  {
-    name: "La Cruz de Huanacaxtle",
-    address: "La Cruz de Huanacaxtle, Bahía de Banderas, Nayarit",
-    phone: "+52 329 295 5000",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3732.4521!2d-105.3842!3d20.7515!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x842145f8a9d2e3b5%3A0x6a7b8c9d0e1f2a3b!2sLa%20Cruz%20de%20Huanacaxtle%2C%20Nay.!5e0!3m2!1ses!2smx!4v1704567891",
-    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=20.7515,-105.3842",
-  },
-  {
-    name: "Marina Nuevo Nayarit",
-    address: "Nuevo Vallarta Plaza Business Center, Bahía de Banderas, Nayarit",
-    phone: "+52 322 183 7666",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3732.1245!2d-105.2987!3d20.7012!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x84214523bc789def%3A0x1a2b3c4d5e6f7890!2sNuevo%20Vallarta%2C%20Nay.!5e0!3m2!1ses!2smx!4v1704567892",
-    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=20.7012,-105.2987",
-  },
-  {
-    name: "Centro Empresarial Nuevo Nayarit",
-    address: "Núcleo Médico Joya, Bahía de Banderas, Nayarit",
-    phone: "+52 322 183 7666",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3732.3567!2d-105.3125!3d20.6845!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8421452abcdef123%3A0x9876543210fedcba!2sNucleo%20Medico%20Joya%2C%20Nay.!5e0!3m2!1ses!2smx!4v1704567893",
-    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=20.6845,-105.3125",
-  },
-  {
-    name: "Puerto Mágico Puerto Vallarta",
-    address: "Plaza Puerto Mágico, Puerto Vallarta, Jalisco",
-    phone: "+52 322 183 7666",
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3733.8912!2d-105.2345!3d20.6123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x842147fedcba9876%3A0xabcdef1234567890!2sPuerto%20Vallarta%2C%20Jal.!5e0!3m2!1ses!2smx!4v1704567894",
-    directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=20.6123,-105.2345",
-  },
-];
+interface Location {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  map_url: string | null;
+  directions_url: string | null;
+  city: string | null;
+  state: string | null;
+  is_active: boolean;
+  display_order: number;
+}
 
 export const Locations = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [selectedLocation, setSelectedLocation] = useState<typeof locations[0] | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const { t } = useLanguage();
+
+  const { data: locations = [], isLoading } = useQuery({
+    queryKey: ["public-locations"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("locations")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data as Location[];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <section id="sucursales" className="section-padding" ref={ref}>
+        <div className="container-wide flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </section>
+    );
+  }
+
+  if (locations.length === 0) {
+    return null;
+  }
 
   return (
     <section id="sucursales" className="section-padding" ref={ref}>
@@ -74,31 +78,36 @@ export const Locations = () => {
         <div className="grid md:grid-cols-2 gap-8">
           {locations.map((location, index) => (
             <motion.div
-              key={location.name}
+              key={location.id}
               initial={{ opacity: 0, y: 40 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.15 }}
               className="group relative overflow-hidden rounded-3xl bg-card border border-border/50 hover:shadow-xl transition-all duration-300"
             >
               {/* Map Preview */}
-              <div className="aspect-[16/9] overflow-hidden relative cursor-pointer" onClick={() => setSelectedLocation(location)}>
-                <iframe
-                  src={location.mapUrl}
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="pointer-events-none"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                  <span className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium">
-                    {t('locations.viewMap')}
-                  </span>
+              {location.map_url && (
+                <div 
+                  className="aspect-[16/9] overflow-hidden relative cursor-pointer" 
+                  onClick={() => setSelectedLocation(location)}
+                >
+                  <iframe
+                    src={location.map_url}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="pointer-events-none"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                    <span className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-medium">
+                      {t('locations.viewMap')}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
               
               {/* Location Info */}
               <div className="p-6">
@@ -110,7 +119,11 @@ export const Locations = () => {
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <p className="flex items-start gap-2">
                         <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
-                        <span className="line-clamp-2">{location.address}</span>
+                        <span className="line-clamp-2">
+                          {location.address}
+                          {location.city && `, ${location.city}`}
+                          {location.state && `, ${location.state}`}
+                        </span>
                       </p>
                       <p className="flex items-center gap-2">
                         <Phone className="w-4 h-4 flex-shrink-0 text-primary" />
@@ -122,17 +135,19 @@ export const Locations = () => {
                       </p>
                     </div>
                   </div>
-                  <motion.a
-                    href={location.directionsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground"
-                    title={t('locations.directions')}
-                  >
-                    <Navigation className="w-5 h-5" />
-                  </motion.a>
+                  {location.directions_url && (
+                    <motion.a
+                      href={location.directions_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="flex-shrink-0 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground"
+                      title={t('locations.directions')}
+                    >
+                      <Navigation className="w-5 h-5" />
+                    </motion.a>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -149,11 +164,11 @@ export const Locations = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 p-4">
-            {selectedLocation && (
+            {selectedLocation && selectedLocation.map_url && (
               <div className="space-y-4 h-full flex flex-col">
                 <div className="flex-1 rounded-xl overflow-hidden min-h-[300px]">
                   <iframe
-                    src={selectedLocation.mapUrl}
+                    src={selectedLocation.map_url}
                     width="100%"
                     height="100%"
                     style={{ border: 0, minHeight: '400px' }}
@@ -167,19 +182,23 @@ export const Locations = () => {
                     <p className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-primary" />
                       {selectedLocation.address}
+                      {selectedLocation.city && `, ${selectedLocation.city}`}
+                      {selectedLocation.state && `, ${selectedLocation.state}`}
                     </p>
                   </div>
-                  <Button asChild>
-                    <a
-                      href={selectedLocation.directionsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="gap-2"
-                    >
-                      <Navigation className="w-4 h-4" />
-                      {t('locations.directions')}
-                    </a>
-                  </Button>
+                  {selectedLocation.directions_url && (
+                    <Button asChild>
+                      <a
+                        href={selectedLocation.directions_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="gap-2"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        {t('locations.directions')}
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
