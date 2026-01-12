@@ -1,14 +1,16 @@
-import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, ArrowRight } from "lucide-react";
 import { ReactTyped } from "react-typed";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Hero = () => {
+  const { t } = useLanguage();
+  
   const services = [
-    "Implantes Dentales",
-    "Ortodoncia Invisible",
-    "Blanqueamiento",
-    "Diseño de Sonrisa",
+    t('hero.service1'),
+    t('hero.service2'),
+    t('hero.service3'),
+    t('hero.service4'),
   ];
 
   return (
@@ -59,7 +61,7 @@ export const Hero = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8"
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            Odontología Digital de Vanguardia
+            {t('hero.badge')}
           </motion.span>
 
           {/* Main headline */}
@@ -69,9 +71,9 @@ export const Hero = () => {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-foreground mb-6 tracking-tight leading-[1.1]"
           >
-            Tu sonrisa.
+            {t('hero.title1')}
             <br />
-            <span className="gradient-text">Perfeccionada.</span>
+            <span className="gradient-text">{t('hero.title2')}</span>
           </motion.h1>
 
           {/* Typewriter subtitle */}
@@ -81,7 +83,7 @@ export const Hero = () => {
             transition={{ duration: 0.8, delay: 0.5 }}
             className="text-xl md:text-2xl text-muted-foreground mb-12 h-8"
           >
-            Especialistas en{" "}
+            {t('hero.specialistsIn')}{" "}
             <span className="text-foreground font-medium">
               <ReactTyped
                 strings={services}
@@ -108,7 +110,7 @@ export const Hero = () => {
               whileTap={{ scale: 0.98 }}
               className="group inline-flex items-center gap-3 px-8 py-4 bg-foreground text-background rounded-full font-medium text-lg transition-all hover:bg-foreground/90"
             >
-              Agendar Cita
+              {t('hero.cta')}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.a>
             <motion.a
@@ -117,7 +119,7 @@ export const Hero = () => {
               whileTap={{ scale: 0.98 }}
               className="inline-flex items-center gap-2 px-8 py-4 text-foreground rounded-full font-medium text-lg border border-border hover:bg-muted/50 transition-all"
             >
-              Conocer Más
+              {t('hero.secondary')}
             </motion.a>
           </motion.div>
         </motion.div>
@@ -130,10 +132,10 @@ export const Hero = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mt-24 max-w-3xl mx-auto"
         >
           {[
-            { number: "15+", label: "Años" },
-            { number: "4", label: "Sucursales" },
-            { number: "9", label: "Especialidades" },
-            { number: "10K+", label: "Pacientes" },
+            { number: "15+", label: t('hero.years') },
+            { number: "4", label: t('hero.branches') },
+            { number: "9", label: t('hero.specialties') },
+            { number: "10K+", label: t('hero.patients') },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}

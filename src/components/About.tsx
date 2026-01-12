@@ -2,34 +2,36 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Shield, Cpu, Award, Users } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import heroDental from "@/assets/hero-dental.jpg";
-
-const features = [
-  {
-    icon: Cpu,
-    title: "Tecnología Digital",
-    description: "Equipos de última generación para diagnósticos precisos.",
-  },
-  {
-    icon: Shield,
-    title: "Seguridad Total",
-    description: "Protocolos rigurosos de higiene y bioseguridad.",
-  },
-  {
-    icon: Award,
-    title: "Certificados",
-    description: "Especialistas con amplia experiencia y constante actualización.",
-  },
-  {
-    icon: Users,
-    title: "Personalizado",
-    description: "Tratamientos diseñados específicamente para ti.",
-  },
-];
 
 export const About = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: Cpu,
+      title: t('about.feature1.title'),
+      description: t('about.feature1.desc'),
+    },
+    {
+      icon: Shield,
+      title: t('about.feature2.title'),
+      description: t('about.feature2.desc'),
+    },
+    {
+      icon: Award,
+      title: t('about.feature3.title'),
+      description: t('about.feature3.desc'),
+    },
+    {
+      icon: Users,
+      title: t('about.feature4.title'),
+      description: t('about.feature4.desc'),
+    },
+  ];
 
   return (
     <section id="quienes-somos" className="section-padding bg-background" ref={ref}>
@@ -56,7 +58,7 @@ export const About = () => {
               className="absolute -bottom-8 -right-8 bg-card rounded-2xl p-6 border border-border shadow-lg"
             >
               <div className="text-4xl font-serif font-bold gradient-text">15+</div>
-              <div className="text-sm text-muted-foreground">Años de experiencia</div>
+              <div className="text-sm text-muted-foreground">{t('about.yearsExperience')}</div>
             </motion.div>
           </motion.div>
 
@@ -67,18 +69,17 @@ export const About = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
           >
             <span className="text-primary text-sm font-medium uppercase tracking-wider mb-4 block">
-              Quiénes Somos
+              {t('about.badge')}
             </span>
             <h2 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6 leading-tight">
-              Vanguardia en
+              {t('about.title1')}
               <br />
-              <span className="gradient-text">Odontología Digital</span>
+              <span className="gradient-text">{t('about.title2')}</span>
             </h2>
-            <p className="text-lg text-muted-foreground mb-10 leading-relaxed">
-              En <strong className="text-foreground">NovellDent</strong> nos enfocamos en brindarte 
-              la mejor experiencia en salud dental, con tecnología de punta y un equipo de especialistas 
-              comprometidos con tu bienestar.
-            </p>
+            <p 
+              className="text-lg text-muted-foreground mb-10 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: t('about.description') }}
+            />
 
             <div className="grid sm:grid-cols-2 gap-6">
               {features.map((feature, index) => (

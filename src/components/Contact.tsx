@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Contact = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -21,8 +23,8 @@ export const Contact = () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     
     toast({
-      title: "¡Mensaje enviado!",
-      description: "Nos pondremos en contacto contigo pronto.",
+      title: t('contact.sent'),
+      description: t('contact.sentDesc'),
     });
     
     setIsSubmitting(false);
@@ -40,14 +42,14 @@ export const Contact = () => {
             transition={{ duration: 0.8 }}
           >
             <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-              Contacto
+              {t('contact.badge')}
             </span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground mb-6">
-              ¿Listo para{" "}
-              <span className="gradient-text">transformar tu sonrisa</span>?
+              {t('contact.title')}{" "}
+              <span className="gradient-text">{t('contact.titleHighlight')}</span>?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Estamos aquí para responder todas tus preguntas. Contáctanos y agenda tu cita hoy mismo.
+              {t('contact.subtitle')}
             </p>
 
             <div className="space-y-6">
@@ -60,7 +62,7 @@ export const Contact = () => {
                   <Phone className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Llámanos</div>
+                  <div className="text-sm text-muted-foreground">{t('contact.callUs')}</div>
                   <div className="font-semibold text-foreground">+52 322 183 7666</div>
                 </div>
               </motion.a>
@@ -76,7 +78,7 @@ export const Contact = () => {
                   <MessageCircle className="w-5 h-5 text-green-500" />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">WhatsApp</div>
+                  <div className="text-sm text-muted-foreground">{t('contact.whatsapp')}</div>
                   <div className="font-semibold text-foreground">+52 322 183 7666</div>
                 </div>
               </motion.a>
@@ -90,7 +92,7 @@ export const Contact = () => {
                   <Mail className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Email</div>
+                  <div className="text-sm text-muted-foreground">{t('contact.email')}</div>
                   <div className="font-semibold text-foreground">info@novelldent.com</div>
                 </div>
               </motion.a>
@@ -106,58 +108,58 @@ export const Contact = () => {
           >
             <div className="bg-card rounded-3xl p-8 md:p-10 border border-border/50 shadow-xl">
               <h3 className="text-2xl font-serif font-bold text-foreground mb-6">
-                Agenda tu Cita
+                {t('contact.formTitle')}
               </h3>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">
-                      Nombre
+                      {t('contact.name')}
                     </label>
                     <Input
                       required
-                      placeholder="Tu nombre"
+                      placeholder={t('contact.namePlaceholder')}
                       className="rounded-xl"
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground mb-2 block">
-                      Teléfono
+                      {t('appointments.phone')}
                     </label>
                     <Input
                       required
                       type="tel"
-                      placeholder="Tu teléfono"
+                      placeholder={t('contact.phonePlaceholder')}
                       className="rounded-xl"
                     />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">
-                    Email
+                    {t('contact.email')}
                   </label>
                   <Input
                     required
                     type="email"
-                    placeholder="tu@email.com"
+                    placeholder={t('contact.emailPlaceholder')}
                     className="rounded-xl"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">
-                    Servicio de interés
+                    {t('contact.service')}
                   </label>
                   <Input
-                    placeholder="Ej: Blanqueamiento dental"
+                    placeholder={t('contact.servicePlaceholder')}
                     className="rounded-xl"
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">
-                    Mensaje
+                    {t('contact.message')}
                   </label>
                   <Textarea
-                    placeholder="Cuéntanos sobre tu caso..."
+                    placeholder={t('contact.messagePlaceholder')}
                     className="rounded-xl min-h-[120px]"
                   />
                 </div>
@@ -167,11 +169,11 @@ export const Contact = () => {
                   className="w-full btn-primary rounded-full h-14 text-base"
                 >
                   {isSubmitting ? (
-                    "Enviando..."
+                    t('contact.sending')
                   ) : (
                     <>
                       <Send className="w-5 h-5 mr-2" />
-                      Enviar Mensaje
+                      {t('contact.send')}
                     </>
                   )}
                 </Button>

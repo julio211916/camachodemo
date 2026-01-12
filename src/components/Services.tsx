@@ -2,37 +2,39 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight, Check } from "lucide-react";
-
-const services = [
-  {
-    title: "Blanqueamiento",
-    description: "Recupera el blanco natural de tus dientes con tecnología LED profesional.",
-    features: ["Resultados inmediatos", "Sin sensibilidad"],
-    image: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600&q=80",
-  },
-  {
-    title: "Implantes",
-    description: "Reemplaza piezas dentales con implantes de titanio de alta calidad.",
-    features: ["Biocompatibles", "Duraderos"],
-    image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80",
-  },
-  {
-    title: "Ortodoncia",
-    description: "Alineadores transparentes para corregir tu sonrisa discretamente.",
-    features: ["Casi invisibles", "Removibles"],
-    image: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&q=80",
-  },
-  {
-    title: "Diseño de Sonrisa",
-    description: "Transformación completa con carillas y técnicas de estética dental.",
-    features: ["Personalizado", "Resultados naturales"],
-    image: "https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=600&q=80",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Services = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { t } = useLanguage();
+
+  const services = [
+    {
+      title: t('services.whitening'),
+      description: t('services.whitening.desc'),
+      features: [t('services.whitening.f1'), t('services.whitening.f2')],
+      image: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600&q=80",
+    },
+    {
+      title: t('services.implants'),
+      description: t('services.implants.desc'),
+      features: [t('services.implants.f1'), t('services.implants.f2')],
+      image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80",
+    },
+    {
+      title: t('services.orthodontics'),
+      description: t('services.orthodontics.desc'),
+      features: [t('services.orthodontics.f1'), t('services.orthodontics.f2')],
+      image: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&q=80",
+    },
+    {
+      title: t('services.smileDesign'),
+      description: t('services.smileDesign.desc'),
+      features: [t('services.smileDesign.f1'), t('services.smileDesign.f2')],
+      image: "https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=600&q=80",
+    },
+  ];
 
   return (
     <section id="servicios" className="section-padding bg-muted/30" ref={ref}>
@@ -44,13 +46,13 @@ export const Services = () => {
           className="text-center max-w-2xl mx-auto mb-16"
         >
           <span className="text-primary text-sm font-medium uppercase tracking-wider mb-4 block">
-            Servicios
+            {t('services.badge')}
           </span>
           <h2 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-6">
-            Resultados que transforman
+            {t('services.title')}
           </h2>
           <p className="text-lg text-muted-foreground">
-            Tratamientos con planificación precisa para alcanzar resultados óptimos.
+            {t('services.subtitle')}
           </p>
         </motion.div>
 
@@ -93,7 +95,7 @@ export const Services = () => {
                   href="#cita"
                   className="inline-flex items-center gap-2 text-primary font-medium group/link"
                 >
-                  Agendar
+                  {t('services.schedule')}
                   <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                 </motion.a>
               </div>

@@ -6,23 +6,25 @@ import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/contexts/LanguageContext";
 import logo from "@/assets/logo-novelldent.png";
-
-const navItems = [
-  { label: "Inicio", href: "#inicio" },
-  { label: "Quiénes Somos", href: "#quienes-somos" },
-  { label: "Especialidades", href: "#especialidades" },
-  { label: "Servicios", href: "#servicios" },
-  { label: "Reservar", href: "#reservar" },
-  { label: "Sucursales", href: "#sucursales" },
-  { label: "Contacto", href: "#contacto" },
-];
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, userRole } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { label: t('nav.home'), href: "#inicio" },
+    { label: t('nav.about'), href: "#quienes-somos" },
+    { label: t('nav.specialties'), href: "#especialidades" },
+    { label: t('nav.services'), href: "#servicios" },
+    { label: t('nav.appointments'), href: "#reservar" },
+    { label: t('nav.locations'), href: "#sucursales" },
+    { label: t('nav.contact'), href: "#contacto" },
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -72,7 +74,7 @@ export const Header = () => {
                   className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
                 >
                   <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">Mi Portal</span>
+                  <span className="hidden sm:inline">{t('nav.portal')}</span>
                 </Button>
               ) : (
                 <Button
@@ -82,7 +84,7 @@ export const Header = () => {
                   className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
                 >
                   <LogIn className="w-4 h-4" />
-                  <span className="hidden sm:inline">Iniciar Sesión</span>
+                  <span className="hidden sm:inline">{t('nav.login')}</span>
                 </Button>
               )}
             </div>
@@ -111,7 +113,7 @@ export const Header = () => {
             <nav className="hidden lg:flex items-center gap-8">
               {navItems.map((item) => (
                 <motion.a
-                  key={item.label}
+                  key={item.href}
                   href={item.href}
                   className={`font-medium transition-colors relative group ${isScrolled ? "text-foreground/80 hover:text-primary" : "text-white/80 hover:text-white"}`}
                   whileHover={{ y: -2 }}
@@ -126,7 +128,7 @@ export const Header = () => {
                 whileTap={{ scale: 0.95 }}
                 className="btn-primary text-sm"
               >
-                Agendar Cita
+                {t('nav.bookNow')}
               </motion.a>
             </nav>
 
@@ -155,7 +157,7 @@ export const Header = () => {
               <nav className="flex flex-col gap-6">
                 {navItems.map((item, index) => (
                   <motion.a
-                    key={item.label}
+                    key={item.href}
                     href={item.href}
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -174,7 +176,7 @@ export const Header = () => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="btn-primary mt-4 text-center"
                 >
-                  Agendar Cita
+                  {t('nav.bookNow')}
                 </motion.a>
               </nav>
             </div>
