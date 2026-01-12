@@ -22,6 +22,11 @@ import {
   Brain,
   Scan,
   Smile,
+  Package,
+  FlaskConical,
+  Receipt,
+  DollarSign,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +44,12 @@ import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
 import { XRayAnalysis } from "@/components/clinic/XRayAnalysis";
 import { AIReportsModule } from "@/components/clinic/AIReportsModule";
 import { SmileSimulator } from "@/components/clinic/SmileSimulator";
+import { InventoryManager } from "@/components/clinic/InventoryManager";
+import { LabOrdersManager } from "@/components/clinic/LabOrdersManager";
+import { InvoicingModule } from "@/components/clinic/InvoicingModule";
+import { ExpensesManager } from "@/components/clinic/ExpensesManager";
+import { Odontogram } from "@/components/clinic/Odontogram";
+import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
 import logo from "@/assets/logo-novelldent.png";
 
 export const DoctorDashboard = () => {
@@ -274,6 +285,30 @@ export const DoctorDashboard = () => {
             <TabsTrigger value="treatments" className="gap-2">
               <FileText className="w-4 h-4" />
               Tratamientos
+            </TabsTrigger>
+            <TabsTrigger value="odontogram" className="gap-2">
+              <Activity className="w-4 h-4" />
+              Odontograma
+            </TabsTrigger>
+            <TabsTrigger value="orthodontics" className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              Ortodoncia
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="gap-2">
+              <Package className="w-4 h-4" />
+              Inventario
+            </TabsTrigger>
+            <TabsTrigger value="lab" className="gap-2">
+              <FlaskConical className="w-4 h-4" />
+              Laboratorio
+            </TabsTrigger>
+            <TabsTrigger value="invoicing" className="gap-2">
+              <Receipt className="w-4 h-4" />
+              Facturación
+            </TabsTrigger>
+            <TabsTrigger value="expenses" className="gap-2">
+              <DollarSign className="w-4 h-4" />
+              Gastos
             </TabsTrigger>
             <TabsTrigger value="files" className="gap-2">
               <FolderOpen className="w-4 h-4" />
@@ -593,6 +628,36 @@ export const DoctorDashboard = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Odontogram Tab */}
+          <TabsContent value="odontogram">
+            <Odontogram patientId="demo-patient" />
+          </TabsContent>
+
+          {/* Orthodontics Tab */}
+          <TabsContent value="orthodontics">
+            <OrthodonticsModule />
+          </TabsContent>
+
+          {/* Inventory Tab */}
+          <TabsContent value="inventory">
+            <InventoryManager />
+          </TabsContent>
+
+          {/* Lab Orders Tab */}
+          <TabsContent value="lab">
+            <LabOrdersManager />
+          </TabsContent>
+
+          {/* Invoicing Tab */}
+          <TabsContent value="invoicing">
+            <InvoicingModule />
+          </TabsContent>
+
+          {/* Expenses Tab */}
+          <TabsContent value="expenses">
+            <ExpensesManager />
           </TabsContent>
 
           {/* Files Tab */}

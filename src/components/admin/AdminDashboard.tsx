@@ -33,6 +33,14 @@ import {
   Smile,
   Headphones,
   MessagesSquare,
+  Package,
+  FlaskConical,
+  CreditCard,
+  Receipt,
+  DollarSign,
+  Activity,
+  Sparkles,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +82,15 @@ import { AIReportsModule } from "@/components/clinic/AIReportsModule";
 import { SmileSimulator } from "@/components/clinic/SmileSimulator";
 import { ContactCenterModule } from "@/components/clinic/ContactCenterModule";
 import { InternalChatModule } from "@/components/clinic/InternalChatModule";
+import { InventoryManager } from "@/components/clinic/InventoryManager";
+import { LabOrdersManager } from "@/components/clinic/LabOrdersManager";
+import { CashRegisterModule } from "@/components/clinic/CashRegisterModule";
+import { InvoicingModule } from "@/components/clinic/InvoicingModule";
+import { ExpensesManager } from "@/components/clinic/ExpensesManager";
+import { Odontogram } from "@/components/clinic/Odontogram";
+import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
+import { FacialAestheticsModule } from "@/components/clinic/FacialAestheticsModule";
+import { LoyaltyModule } from "@/components/clinic/LoyaltyModule";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo-novelldent.png";
 
@@ -174,7 +191,7 @@ export const AdminDashboard = () => {
       <main className="container-wide py-8">
         {/* Tabs Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex flex-wrap h-auto gap-1 w-full max-w-4xl">
+          <TabsList className="flex flex-wrap h-auto gap-1 w-full">
             <TabsTrigger value="appointments" className="flex items-center gap-2">
               <CalendarDays className="w-4 h-4" />
               <span className="hidden sm:inline">Citas</span>
@@ -186,6 +203,42 @@ export const AdminDashboard = () => {
             <TabsTrigger value="doctors" className="flex items-center gap-2">
               <Stethoscope className="w-4 h-4" />
               <span className="hidden sm:inline">Doctores</span>
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="flex items-center gap-2">
+              <Package className="w-4 h-4" />
+              <span className="hidden sm:inline">Inventario</span>
+            </TabsTrigger>
+            <TabsTrigger value="lab" className="flex items-center gap-2">
+              <FlaskConical className="w-4 h-4" />
+              <span className="hidden sm:inline">Laboratorio</span>
+            </TabsTrigger>
+            <TabsTrigger value="cash" className="flex items-center gap-2">
+              <Wallet className="w-4 h-4" />
+              <span className="hidden sm:inline">Caja</span>
+            </TabsTrigger>
+            <TabsTrigger value="invoicing" className="flex items-center gap-2">
+              <Receipt className="w-4 h-4" />
+              <span className="hidden sm:inline">Facturación</span>
+            </TabsTrigger>
+            <TabsTrigger value="expenses" className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              <span className="hidden sm:inline">Gastos</span>
+            </TabsTrigger>
+            <TabsTrigger value="odontogram" className="flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              <span className="hidden sm:inline">Odontograma</span>
+            </TabsTrigger>
+            <TabsTrigger value="orthodontics" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden sm:inline">Ortodoncia</span>
+            </TabsTrigger>
+            <TabsTrigger value="aesthetics" className="flex items-center gap-2">
+              <Smile className="w-4 h-4" />
+              <span className="hidden sm:inline">Estética</span>
+            </TabsTrigger>
+            <TabsTrigger value="loyalty" className="flex items-center gap-2">
+              <Gift className="w-4 h-4" />
+              <span className="hidden sm:inline">Fidelización</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
@@ -503,6 +556,51 @@ export const AdminDashboard = () => {
           {/* Doctors Tab */}
           <TabsContent value="doctors">
             <DoctorsManager />
+          </TabsContent>
+
+          {/* Inventory Tab */}
+          <TabsContent value="inventory">
+            <InventoryManager />
+          </TabsContent>
+
+          {/* Lab Orders Tab */}
+          <TabsContent value="lab">
+            <LabOrdersManager />
+          </TabsContent>
+
+          {/* Cash Register Tab */}
+          <TabsContent value="cash">
+            <CashRegisterModule />
+          </TabsContent>
+
+          {/* Invoicing Tab */}
+          <TabsContent value="invoicing">
+            <InvoicingModule />
+          </TabsContent>
+
+          {/* Expenses Tab */}
+          <TabsContent value="expenses">
+            <ExpensesManager />
+          </TabsContent>
+
+          {/* Odontogram Tab */}
+          <TabsContent value="odontogram">
+            <Odontogram patientId="demo-patient" />
+          </TabsContent>
+
+          {/* Orthodontics Tab */}
+          <TabsContent value="orthodontics">
+            <OrthodonticsModule />
+          </TabsContent>
+
+          {/* Facial Aesthetics Tab */}
+          <TabsContent value="aesthetics">
+            <FacialAestheticsModule />
+          </TabsContent>
+
+          {/* Loyalty Tab */}
+          <TabsContent value="loyalty">
+            <LoyaltyModule />
           </TabsContent>
 
           {/* Analytics Tab */}
