@@ -5,7 +5,7 @@ import {
   Calendar, Clock, Users, FileText, Stethoscope, Activity, TrendingUp,
   FolderOpen, Pill, FileStack, Brain, Scan, Smile, Package, FlaskConical,
   Receipt, DollarSign, Sparkles, Video, PenTool, HardDrive, Eye, FileEdit,
-  Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList
+  Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList, Layers
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -38,6 +38,7 @@ import { FileGallery } from "@/components/clinic/FileGallery";
 import { MyProfile } from "@/components/dashboard/MyProfile";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
+import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
@@ -88,6 +89,7 @@ export const DoctorDashboard = () => {
     ]},
     { title: "Imagenología", items: [
       { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
+      { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Layers className="w-5 h-5" /> },
       { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
     ]},
     { title: "Cuenta", items: [
@@ -119,6 +121,7 @@ export const DoctorDashboard = () => {
       case "templates": return <DocumentTemplates />;
       case "signature": return <DigitalSignature />;
       case "dicom": return <DICOMViewer />;
+      case "cbct-panoramic": return <CBCTPanoramicGenerator patientId="demo" patientName="Paciente Demo" />;
       case "3d-viewer": return <Model3DViewer />;
       case "profile": return <MyProfile />;
       default: return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
