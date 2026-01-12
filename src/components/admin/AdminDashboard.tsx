@@ -1,46 +1,32 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { format, parseISO, isToday, isTomorrow, isPast } from "date-fns";
+import { useState, useMemo } from "react";
+import { format, parseISO, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   Calendar,
-  Clock,
-  MapPin,
-  User,
-  Phone,
-  Mail,
-  LogOut,
-  Search,
-  Filter,
-  CheckCircle2,
-  XCircle,
-  Clock4,
-  Trash2,
-  Loader2,
   CalendarDays,
+  Clock4,
+  CheckCircle2,
+  Users,
   Stethoscope,
-  MoreVertical,
-  BarChart3,
-  MessageSquare,
-  Bell,
-  TrendingUp,
-  FolderOpen,
-  Pill,
-  FileStack,
-  Gift,
-  Brain,
-  Scan,
-  Smile,
-  Headphones,
-  MessagesSquare,
   Package,
   FlaskConical,
-  CreditCard,
+  Wallet,
   Receipt,
   DollarSign,
   Activity,
   Sparkles,
-  Wallet,
+  Gift,
+  BarChart3,
+  TrendingUp,
+  MessageSquare,
+  FolderOpen,
+  Pill,
+  FileStack,
+  Scan,
+  Brain,
+  Smile,
+  Headphones,
+  MessagesSquare,
   Video,
   PenTool,
   HardDrive,
@@ -51,39 +37,26 @@ import {
   QrCode,
   Layout,
   Image as ImageIcon,
-  Cpu
+  Cpu,
+  Bell,
+  ClipboardList,
+  Building2,
+  Shield,
+  FileText
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
+import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
+import { StatsGrid } from "@/components/layout/DashboardStats";
+import { ContentCard, PageHeader } from "@/components/layout/ContentCard";
 import { useAuth } from "@/hooks/useAuth";
-import { useAppointments, useUpdateAppointmentStatus, useDeleteAppointment, Appointment } from "@/hooks/useAppointments";
+import { useAppointments } from "@/hooks/useAppointments";
 import { useRealtimeAppointments, useRealtimeReviews } from "@/hooks/useRealtimeNotifications";
+
+// Module imports
 import { AnalyticsDashboard } from "./AnalyticsDashboard";
 import { AdvancedAnalytics } from "./AdvancedAnalytics";
 import { DoctorsManager } from "./DoctorsManager";
 import { ReviewsManager } from "./ReviewsManager";
 import { AppointmentCalendar } from "./AppointmentCalendar";
-import { ExportData } from "./ExportData";
 import { AdvancedFileManager } from "@/components/clinic/AdvancedFileManager";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
@@ -114,678 +87,243 @@ import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
 import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { CMSBuilder } from "@/components/admin/CMSBuilder";
 import { FileGallery } from "@/components/clinic/FileGallery";
-import { cn } from "@/lib/utils";
-import logo from "@/assets/logo-novelldent.png";
-
-const statusConfig = {
-  pending: {
-    label: "Pendiente",
-    color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
-    icon: Clock4,
-  },
-  confirmed: {
-    label: "Confirmada",
-    color: "bg-green-500/10 text-green-600 border-green-500/30",
-    icon: CheckCircle2,
-  },
-  cancelled: {
-    label: "Cancelada",
-    color: "bg-red-500/10 text-red-600 border-red-500/30",
-    icon: XCircle,
-  },
-  completed: {
-    label: "Completada",
-    color: "bg-blue-500/10 text-blue-600 border-blue-500/30",
-    icon: CheckCircle2,
-  },
-};
+import { AdminAppointmentsList } from "./AdminAppointmentsList";
 
 export const AdminDashboard = () => {
-  const { signOut, user } = useAuth();
-  const { data: appointments = [], isLoading } = useAppointments();
-  const updateStatus = useUpdateAppointmentStatus();
-  const deleteAppointment = useDeleteAppointment();
+  const { user } = useAuth();
+  const { data: appointments = [] } = useAppointments();
+  const [activeSection, setActiveSection] = useState("dashboard");
 
-  // Enable realtime notifications
   useRealtimeAppointments(true);
   useRealtimeReviews(true);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [locationFilter, setLocationFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState("appointments");
+  // Navigation groups
+  const navGroups: NavGroup[] = useMemo(() => [
+    {
+      title: "Principal",
+      items: [
+        { id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" /> },
+        { id: "appointments", label: "Citas", icon: <CalendarDays className="w-5 h-5" />, badge: appointments.filter(a => a.status === "pending").length },
+        { id: "calendar", label: "Calendario", icon: <Calendar className="w-5 h-5" /> },
+        { id: "patients", label: "Pacientes", icon: <Users className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Clínica",
+      items: [
+        { id: "doctors", label: "Doctores", icon: <Stethoscope className="w-5 h-5" /> },
+        { id: "odontogram", label: "Odontograma", icon: <Activity className="w-5 h-5" /> },
+        { id: "interactive-odontogram", label: "Odontograma SVG", icon: <Cpu className="w-5 h-5" /> },
+        { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
+        { id: "aesthetics", label: "Estética Facial", icon: <Smile className="w-5 h-5" /> },
+        { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Finanzas",
+      items: [
+        { id: "cash", label: "Caja", icon: <Wallet className="w-5 h-5" /> },
+        { id: "invoicing", label: "Facturación", icon: <Receipt className="w-5 h-5" /> },
+        { id: "expenses", label: "Gastos", icon: <DollarSign className="w-5 h-5" /> },
+        { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Inteligencia Artificial",
+      items: [
+        { id: "xray", label: "Análisis RX", icon: <Scan className="w-5 h-5" /> },
+        { id: "ai-reports", label: "Reportes IA", icon: <Brain className="w-5 h-5" /> },
+        { id: "smile", label: "Diseño Sonrisa", icon: <Smile className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Comunicación",
+      items: [
+        { id: "contact-center", label: "Contact Center", icon: <Headphones className="w-5 h-5" /> },
+        { id: "chat", label: "Chat Interno", icon: <MessagesSquare className="w-5 h-5" /> },
+        { id: "telemedicine", label: "Telemedicina", icon: <Video className="w-5 h-5" /> },
+        { id: "reviews", label: "Reseñas", icon: <MessageSquare className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Documentos",
+      items: [
+        { id: "files", label: "Archivos", icon: <FolderOpen className="w-5 h-5" /> },
+        { id: "gallery", label: "Galería", icon: <ImageIcon className="w-5 h-5" /> },
+        { id: "prescriptions", label: "Recetas", icon: <Pill className="w-5 h-5" /> },
+        { id: "templates", label: "Plantillas Doc", icon: <FileStack className="w-5 h-5" /> },
+        { id: "template-editor", label: "Editor Plantillas", icon: <FileEdit className="w-5 h-5" /> },
+        { id: "signature", label: "Firma Digital", icon: <PenTool className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Imagenología",
+      items: [
+        { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
+        { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Marketing",
+      items: [
+        { id: "referrals", label: "Referidos", icon: <Gift className="w-5 h-5" /> },
+        { id: "loyalty", label: "Fidelización", icon: <Gift className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Análisis",
+      items: [
+        { id: "analytics", label: "Analytics", icon: <BarChart3 className="w-5 h-5" /> },
+        { id: "advanced", label: "Métricas Avanzadas", icon: <TrendingUp className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Administración",
+      items: [
+        { id: "profiles", label: "Fotos Perfil", icon: <Camera className="w-5 h-5" /> },
+        { id: "qr", label: "QR Pacientes", icon: <QrCode className="w-5 h-5" /> },
+        { id: "cms", label: "CMS Builder", icon: <Layout className="w-5 h-5" /> },
+        { id: "backup", label: "Backups", icon: <HardDrive className="w-5 h-5" /> },
+      ]
+    }
+  ], [appointments]);
 
-  // Filter appointments
-  const filteredAppointments = appointments.filter((apt) => {
-    const matchesSearch =
-      apt.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      apt.patient_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      apt.patient_phone.includes(searchTerm);
-    
-    const matchesStatus = statusFilter === "all" || apt.status === statusFilter;
-    const matchesLocation = locationFilter === "all" || apt.location_id === locationFilter;
+  // Stats calculations
+  const stats = useMemo(() => [
+    {
+      label: "Citas Hoy",
+      value: appointments.filter(a => isToday(parseISO(a.appointment_date))).length,
+      icon: CalendarDays,
+      color: "primary" as const,
+      trend: { value: 12, label: "vs ayer" }
+    },
+    {
+      label: "Pendientes",
+      value: appointments.filter(a => a.status === "pending").length,
+      icon: Clock4,
+      color: "warning" as const
+    },
+    {
+      label: "Confirmadas",
+      value: appointments.filter(a => a.status === "confirmed").length,
+      icon: CheckCircle2,
+      color: "success" as const
+    },
+    {
+      label: "Total Citas",
+      value: appointments.length,
+      icon: Calendar,
+      color: "info" as const
+    }
+  ], [appointments]);
 
-    return matchesSearch && matchesStatus && matchesLocation;
-  });
-
-  // Get unique locations for filter
-  const locations = [...new Set(appointments.map((a) => a.location_id))];
-
-  const getDateLabel = (dateStr: string) => {
-    const date = parseISO(dateStr);
-    if (isToday(date)) return "Hoy";
-    if (isTomorrow(date)) return "Mañana";
-    return format(date, "EEEE, d 'de' MMMM", { locale: es });
+  // Render active section
+  const renderContent = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return (
+          <div className="space-y-6">
+            <PageHeader 
+              title="Dashboard" 
+              subtitle={`Bienvenido de vuelta, ${user?.email}`}
+            />
+            <StatsGrid stats={stats} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ContentCard title="Citas Recientes" icon={CalendarDays}>
+                <AdminAppointmentsList appointments={appointments.slice(0, 5)} compact />
+              </ContentCard>
+              <ContentCard title="Analytics Rápido" icon={BarChart3}>
+                <AnalyticsDashboard />
+              </ContentCard>
+            </div>
+          </div>
+        );
+      case "appointments":
+        return <AdminAppointmentsList appointments={appointments} />;
+      case "calendar":
+        return <AppointmentCalendar appointments={appointments} />;
+      case "doctors":
+        return <DoctorsManager />;
+      case "odontogram":
+        return <Odontogram patientId="demo-patient" />;
+      case "interactive-odontogram":
+        return <InteractiveOdontogram patientId="demo-patient" />;
+      case "orthodontics":
+        return <OrthodonticsModule patientId="demo-patient" />;
+      case "aesthetics":
+        return <FacialAestheticsModule />;
+      case "lab":
+        return <LabOrdersManager />;
+      case "cash":
+        return <CashRegisterModule />;
+      case "invoicing":
+        return <InvoicingModule />;
+      case "expenses":
+        return <ExpensesManager />;
+      case "inventory":
+        return <InventoryManager />;
+      case "xray":
+        return <XRayAnalysis />;
+      case "ai-reports":
+        return <AIReportsModule />;
+      case "smile":
+        return <SmileSimulator />;
+      case "contact-center":
+        return <ContactCenterModule />;
+      case "chat":
+        return <InternalChatModule />;
+      case "telemedicine":
+        return <TelemedicineModule />;
+      case "reviews":
+        return <ReviewsManager />;
+      case "files":
+        return <AdvancedFileManager patientId="demo-patient" />;
+      case "gallery":
+        return <FileGallery />;
+      case "prescriptions":
+        return <PrescriptionManager />;
+      case "templates":
+        return <DocumentTemplates />;
+      case "template-editor":
+        return <TemplateEditor />;
+      case "signature":
+        return <DigitalSignature />;
+      case "dicom":
+        return <DICOMViewer />;
+      case "3d-viewer":
+        return <Model3DViewer />;
+      case "referrals":
+        return <ReferralsManager />;
+      case "loyalty":
+        return <LoyaltyModule />;
+      case "analytics":
+        return <AnalyticsDashboard />;
+      case "advanced":
+        return <AdvancedAnalytics />;
+      case "profiles":
+        return <ProfilePhotoUpload userId={user?.id || ""} userType="admin" />;
+      case "qr":
+        return <PatientQRCode patientId="demo-patient" patientName="Paciente Demo" patientEmail="demo@email.com" />;
+      case "cms":
+        return <CMSBuilder />;
+      case "backup":
+        return <BackupManager />;
+      default:
+        return <div className="text-center py-12 text-muted-foreground">Selecciona una sección</div>;
+    }
   };
 
-  // Group appointments by date
-  const groupedAppointments = filteredAppointments.reduce((acc, apt) => {
-    const date = apt.appointment_date;
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(apt);
-    return acc;
-  }, {} as Record<string, Appointment[]>);
-
-  const sortedDates = Object.keys(groupedAppointments).sort();
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="container-wide py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <img src={logo} alt="NovellDent" className="h-10" />
-              <div>
-                <h1 className="text-xl font-serif font-bold text-foreground">
-                  Panel de Administración
-                </h1>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
-              </div>
-            </div>
-            <Button variant="ghost" onClick={signOut} className="text-muted-foreground">
-              <LogOut className="w-5 h-5 mr-2" />
-              Cerrar Sesión
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="container-wide py-8">
-        {/* Tabs Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex flex-wrap h-auto gap-1 w-full">
-            <TabsTrigger value="appointments" className="flex items-center gap-2">
-              <CalendarDays className="w-4 h-4" />
-              <span className="hidden sm:inline">Citas</span>
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span className="hidden sm:inline">Calendario</span>
-            </TabsTrigger>
-            <TabsTrigger value="doctors" className="flex items-center gap-2">
-              <Stethoscope className="w-4 h-4" />
-              <span className="hidden sm:inline">Doctores</span>
-            </TabsTrigger>
-            <TabsTrigger value="inventory" className="flex items-center gap-2">
-              <Package className="w-4 h-4" />
-              <span className="hidden sm:inline">Inventario</span>
-            </TabsTrigger>
-            <TabsTrigger value="lab" className="flex items-center gap-2">
-              <FlaskConical className="w-4 h-4" />
-              <span className="hidden sm:inline">Laboratorio</span>
-            </TabsTrigger>
-            <TabsTrigger value="cash" className="flex items-center gap-2">
-              <Wallet className="w-4 h-4" />
-              <span className="hidden sm:inline">Caja</span>
-            </TabsTrigger>
-            <TabsTrigger value="invoicing" className="flex items-center gap-2">
-              <Receipt className="w-4 h-4" />
-              <span className="hidden sm:inline">Facturación</span>
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              <span className="hidden sm:inline">Gastos</span>
-            </TabsTrigger>
-            <TabsTrigger value="odontogram" className="flex items-center gap-2">
-              <Activity className="w-4 h-4" />
-              <span className="hidden sm:inline">Odontograma</span>
-            </TabsTrigger>
-            <TabsTrigger value="orthodontics" className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              <span className="hidden sm:inline">Ortodoncia</span>
-            </TabsTrigger>
-            <TabsTrigger value="aesthetics" className="flex items-center gap-2">
-              <Smile className="w-4 h-4" />
-              <span className="hidden sm:inline">Estética</span>
-            </TabsTrigger>
-            <TabsTrigger value="loyalty" className="flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              <span className="hidden sm:inline">Fidelización</span>
-            </TabsTrigger>
-            <TabsTrigger value="analytics" className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              <span className="hidden sm:inline">Métricas</span>
-            </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Reseñas</span>
-            </TabsTrigger>
-            <TabsTrigger value="files" className="flex items-center gap-2">
-              <FolderOpen className="w-4 h-4" />
-              <span className="hidden sm:inline">Archivos</span>
-            </TabsTrigger>
-            <TabsTrigger value="prescriptions" className="flex items-center gap-2">
-              <Pill className="w-4 h-4" />
-              <span className="hidden sm:inline">Recetas</span>
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="flex items-center gap-2">
-              <FileStack className="w-4 h-4" />
-              <span className="hidden sm:inline">Documentos</span>
-            </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              <span className="hidden sm:inline">Referidos</span>
-            </TabsTrigger>
-            <TabsTrigger value="xray" className="flex items-center gap-2">
-              <Scan className="w-4 h-4" />
-              <span className="hidden sm:inline">RX IA</span>
-            </TabsTrigger>
-            <TabsTrigger value="ai-reports" className="flex items-center gap-2">
-              <Brain className="w-4 h-4" />
-              <span className="hidden sm:inline">Reportes IA</span>
-            </TabsTrigger>
-            <TabsTrigger value="smile" className="flex items-center gap-2">
-              <Smile className="w-4 h-4" />
-              <span className="hidden sm:inline">Simulador</span>
-            </TabsTrigger>
-            <TabsTrigger value="contact-center" className="flex items-center gap-2">
-              <Headphones className="w-4 h-4" />
-              <span className="hidden sm:inline">Contact Center</span>
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessagesSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Chat Interno</span>
-            </TabsTrigger>
-            <TabsTrigger value="telemedicine" className="flex items-center gap-2">
-              <Video className="w-4 h-4" />
-              <span className="hidden sm:inline">Telemedicina</span>
-            </TabsTrigger>
-            <TabsTrigger value="signature" className="flex items-center gap-2">
-              <PenTool className="w-4 h-4" />
-              <span className="hidden sm:inline">Firma Digital</span>
-            </TabsTrigger>
-            <TabsTrigger value="backup" className="flex items-center gap-2">
-              <HardDrive className="w-4 h-4" />
-              <span className="hidden sm:inline">Backups</span>
-            </TabsTrigger>
-            <TabsTrigger value="dicom" className="flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              <span className="hidden sm:inline">DICOM</span>
-            </TabsTrigger>
-            <TabsTrigger value="template-editor" className="flex items-center gap-2">
-              <FileEdit className="w-4 h-4" />
-              <span className="hidden sm:inline">Editor Plantillas</span>
-            </TabsTrigger>
-            <TabsTrigger value="interactive-odontogram" className="flex items-center gap-2">
-              <Cpu className="w-4 h-4" />
-              <span className="hidden sm:inline">Odontograma SVG</span>
-            </TabsTrigger>
-            <TabsTrigger value="3d-viewer" className="flex items-center gap-2">
-              <Box className="w-4 h-4" />
-              <span className="hidden sm:inline">Visor 3D</span>
-            </TabsTrigger>
-            <TabsTrigger value="gallery" className="flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" />
-              <span className="hidden sm:inline">Galería</span>
-            </TabsTrigger>
-            <TabsTrigger value="profiles" className="flex items-center gap-2">
-              <Camera className="w-4 h-4" />
-              <span className="hidden sm:inline">Fotos Perfil</span>
-            </TabsTrigger>
-            <TabsTrigger value="qr" className="flex items-center gap-2">
-              <QrCode className="w-4 h-4" />
-              <span className="hidden sm:inline">QR Pacientes</span>
-            </TabsTrigger>
-            <TabsTrigger value="cms" className="flex items-center gap-2">
-              <Layout className="w-4 h-4" />
-              <span className="hidden sm:inline">CMS Builder</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Appointments Tab */}
-          <TabsContent value="appointments" className="space-y-6">
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: "Total Citas", value: appointments.length, icon: CalendarDays, color: "text-primary" },
-                { label: "Pendientes", value: appointments.filter((a) => a.status === "pending").length, icon: Clock4, color: "text-yellow-500" },
-                { label: "Confirmadas", value: appointments.filter((a) => a.status === "confirmed").length, icon: CheckCircle2, color: "text-green-500" },
-                { label: "Hoy", value: appointments.filter((a) => isToday(parseISO(a.appointment_date))).length, icon: Calendar, color: "text-blue-500" },
-              ].map((stat) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-card rounded-2xl p-6 border border-border/50"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <stat.icon className={cn("w-5 h-5", stat.color)} />
-                    <span className="text-sm text-muted-foreground">{stat.label}</span>
-                  </div>
-                  <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Filters */}
-            <div className="bg-card rounded-2xl border border-border/50 p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Buscar por nombre, email o teléfono..."
-                    className="pl-12 h-12 rounded-xl"
-                  />
-                </div>
-                <div className="flex gap-4 flex-wrap">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[160px] h-12 rounded-xl">
-                      <Filter className="w-4 h-4 mr-2" />
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="pending">Pendientes</SelectItem>
-                      <SelectItem value="confirmed">Confirmadas</SelectItem>
-                      <SelectItem value="completed">Completadas</SelectItem>
-                      <SelectItem value="cancelled">Canceladas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Select value={locationFilter} onValueChange={setLocationFilter}>
-                    <SelectTrigger className="w-[160px] h-12 rounded-xl">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      <SelectValue placeholder="Sucursal" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas</SelectItem>
-                      {locations.map((loc) => (
-                        <SelectItem key={loc} value={loc}>
-                          {loc.charAt(0).toUpperCase() + loc.slice(1).replace(/-/g, " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <ExportData appointments={appointments} filteredAppointments={filteredAppointments} />
-                </div>
-              </div>
-            </div>
-
-            {/* Appointments List */}
-            {isLoading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                <span className="ml-3 text-muted-foreground">Cargando citas...</span>
-              </div>
-            ) : filteredAppointments.length === 0 ? (
-              <div className="text-center py-20">
-                <CalendarDays className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">No hay citas</h3>
-                <p className="text-muted-foreground">
-                  {searchTerm || statusFilter !== "all" || locationFilter !== "all"
-                    ? "No se encontraron citas con los filtros seleccionados."
-                    : "Aún no hay citas agendadas."}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {sortedDates.map((date) => (
-                  <motion.div
-                    key={date}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
-                    <div className="flex items-center gap-4 mb-4">
-                      <h2 className="text-lg font-semibold text-foreground">
-                        {getDateLabel(date)}
-                      </h2>
-                      <div className="flex-1 h-px bg-border" />
-                      <Badge variant="secondary" className="rounded-full">
-                        {groupedAppointments[date].length} citas
-                      </Badge>
-                    </div>
-
-                    <div className="grid gap-4">
-                      <AnimatePresence>
-                        {groupedAppointments[date]
-                          .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time))
-                          .map((appointment) => {
-                            const status = statusConfig[appointment.status];
-                            const StatusIcon = status.icon;
-
-                            return (
-                              <motion.div
-                                key={appointment.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className={cn(
-                                  "bg-card rounded-2xl border border-border/50 p-6 transition-all hover:shadow-lg",
-                                  isPast(parseISO(appointment.appointment_date)) &&
-                                    appointment.status !== "completed" &&
-                                    "opacity-70"
-                                )}
-                              >
-                                <div className="flex flex-col md:flex-row md:items-center gap-6">
-                                  {/* Time */}
-                                  <div className="flex items-center gap-4 md:w-32">
-                                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                                      <Clock className="w-6 h-6 text-primary" />
-                                    </div>
-                                    <span className="text-2xl font-bold text-foreground">
-                                      {appointment.appointment_time}
-                                    </span>
-                                  </div>
-
-                                  {/* Patient Info */}
-                                  <div className="flex-1 grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-2">
-                                        <User className="w-4 h-4 text-muted-foreground" />
-                                        <span className="font-semibold text-foreground">
-                                          {appointment.patient_name}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Phone className="w-4 h-4" />
-                                        <a href={`tel:${appointment.patient_phone}`} className="hover:text-primary">
-                                          {appointment.patient_phone}
-                                        </a>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Mail className="w-4 h-4" />
-                                        <a href={`mailto:${appointment.patient_email}`} className="hover:text-primary">
-                                          {appointment.patient_email}
-                                        </a>
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <MapPin className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-foreground">{appointment.location_name}</span>
-                                      </div>
-                                      <div className="flex items-center gap-2 text-sm">
-                                        <Stethoscope className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-foreground">{appointment.service_name}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Status & Actions */}
-                                  <div className="flex items-center gap-3">
-                                    <Badge className={cn("rounded-full px-4 py-1.5", status.color)}>
-                                      <StatusIcon className="w-4 h-4 mr-1.5" />
-                                      {status.label}
-                                    </Badge>
-
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="rounded-full">
-                                          <MoreVertical className="w-5 h-5" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            updateStatus.mutate({ id: appointment.id, status: "confirmed" })
-                                          }
-                                          disabled={appointment.status === "confirmed"}
-                                        >
-                                          <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
-                                          Confirmar
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            updateStatus.mutate({ id: appointment.id, status: "completed" })
-                                          }
-                                          disabled={appointment.status === "completed"}
-                                        >
-                                          <CheckCircle2 className="w-4 h-4 mr-2 text-blue-500" />
-                                          Completar
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                          onClick={() =>
-                                            updateStatus.mutate({ id: appointment.id, status: "cancelled" })
-                                          }
-                                          disabled={appointment.status === "cancelled"}
-                                        >
-                                          <XCircle className="w-4 h-4 mr-2 text-red-500" />
-                                          Cancelar
-                                        </DropdownMenuItem>
-                                        <AlertDialog>
-                                          <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem
-                                              onSelect={(e) => e.preventDefault()}
-                                              className="text-destructive"
-                                            >
-                                              <Trash2 className="w-4 h-4 mr-2" />
-                                              Eliminar
-                                            </DropdownMenuItem>
-                                          </AlertDialogTrigger>
-                                          <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                              <AlertDialogTitle>¿Eliminar cita?</AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                Esta acción no se puede deshacer. La cita de{" "}
-                                                <strong>{appointment.patient_name}</strong> será eliminada
-                                                permanentemente.
-                                              </AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                              <AlertDialogAction
-                                                onClick={() => deleteAppointment.mutate(appointment.id)}
-                                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                              >
-                                                Eliminar
-                                              </AlertDialogAction>
-                                            </AlertDialogFooter>
-                                          </AlertDialogContent>
-                                        </AlertDialog>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            );
-                          })}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Calendar Tab */}
-          <TabsContent value="calendar">
-            <AppointmentCalendar appointments={appointments} />
-          </TabsContent>
-
-          {/* Doctors Tab */}
-          <TabsContent value="doctors">
-            <DoctorsManager />
-          </TabsContent>
-
-          {/* Inventory Tab */}
-          <TabsContent value="inventory">
-            <InventoryManager />
-          </TabsContent>
-
-          {/* Lab Orders Tab */}
-          <TabsContent value="lab">
-            <LabOrdersManager />
-          </TabsContent>
-
-          {/* Cash Register Tab */}
-          <TabsContent value="cash">
-            <CashRegisterModule />
-          </TabsContent>
-
-          {/* Invoicing Tab */}
-          <TabsContent value="invoicing">
-            <InvoicingModule />
-          </TabsContent>
-
-          {/* Expenses Tab */}
-          <TabsContent value="expenses">
-            <ExpensesManager />
-          </TabsContent>
-
-          {/* Odontogram Tab */}
-          <TabsContent value="odontogram">
-            <Odontogram patientId="demo-patient" />
-          </TabsContent>
-
-          {/* Orthodontics Tab */}
-          <TabsContent value="orthodontics">
-            <OrthodonticsModule />
-          </TabsContent>
-
-          {/* Facial Aesthetics Tab */}
-          <TabsContent value="aesthetics">
-            <FacialAestheticsModule />
-          </TabsContent>
-
-          {/* Loyalty Tab */}
-          <TabsContent value="loyalty">
-            <LoyaltyModule />
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics">
-            <AnalyticsDashboard />
-          </TabsContent>
-
-          {/* Advanced Analytics Tab */}
-          <TabsContent value="advanced">
-            <AdvancedAnalytics />
-          </TabsContent>
-
-          {/* Reviews Tab */}
-          <TabsContent value="reviews">
-            <ReviewsManager />
-          </TabsContent>
-
-          {/* Files Tab */}
-          <TabsContent value="files">
-            <AdvancedFileManager patientId="" patientName="Todos los pacientes" />
-          </TabsContent>
-
-          {/* Prescriptions Tab */}
-          <TabsContent value="prescriptions">
-            <PrescriptionManager />
-          </TabsContent>
-
-          {/* Documents Tab */}
-          <TabsContent value="templates">
-            <DocumentTemplates />
-          </TabsContent>
-
-          {/* Referrals Tab */}
-          <TabsContent value="referrals">
-            <ReferralsManager />
-          </TabsContent>
-
-          {/* X-Ray Analysis Tab */}
-          <TabsContent value="xray">
-            <XRayAnalysis />
-          </TabsContent>
-
-          {/* AI Reports Tab */}
-          <TabsContent value="ai-reports">
-            <AIReportsModule />
-          </TabsContent>
-
-          {/* Smile Simulator Tab */}
-          <TabsContent value="smile">
-            <SmileSimulator />
-          </TabsContent>
-
-          {/* Contact Center Tab */}
-          <TabsContent value="contact-center">
-            <ContactCenterModule />
-          </TabsContent>
-
-          {/* Internal Chat Tab */}
-          <TabsContent value="chat">
-            <InternalChatModule />
-          </TabsContent>
-
-          {/* Telemedicine Tab */}
-          <TabsContent value="telemedicine">
-            <TelemedicineModule userRole="admin" />
-          </TabsContent>
-
-          {/* Digital Signature Tab */}
-          <TabsContent value="signature">
-            <DigitalSignature patientId="demo-patient" patientName="Paciente Demo" />
-          </TabsContent>
-
-          {/* Backup Manager Tab */}
-          <TabsContent value="backup">
-            <BackupManager />
-          </TabsContent>
-
-          {/* DICOM Viewer Tab */}
-          <TabsContent value="dicom">
-            <DICOMViewer />
-          </TabsContent>
-
-          {/* Template Editor Tab */}
-          <TabsContent value="template-editor">
-            <TemplateEditor />
-          </TabsContent>
-
-          {/* Interactive Odontogram Tab */}
-          <TabsContent value="interactive-odontogram">
-            <InteractiveOdontogram patientId="demo-patient" />
-          </TabsContent>
-
-          {/* 3D Viewer Tab */}
-          <TabsContent value="3d-viewer">
-            <Model3DViewer />
-          </TabsContent>
-
-          {/* File Gallery Tab */}
-          <TabsContent value="gallery">
-            <FileGallery patientId="demo-patient" patientName="Todos los Archivos" />
-          </TabsContent>
-
-          {/* Profile Photos Tab */}
-          <TabsContent value="profiles">
-            <ProfilePhotoUpload userId={user?.id || ''} userType="admin" currentPhotoUrl={null} />
-          </TabsContent>
-
-          {/* Patient QR Codes Tab */}
-          <TabsContent value="qr">
-            <PatientQRCode patientId="demo-patient" patientName="Paciente Demo" patientEmail="demo@example.com" />
-          </TabsContent>
-
-          {/* CMS Builder Tab */}
-          <TabsContent value="cms">
-            <CMSBuilder />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+    <DashboardLayout
+      navGroups={navGroups}
+      activeItem={activeSection}
+      onNavigate={setActiveSection}
+      title="Panel de Administración"
+      subtitle="NovellDent Sistema Dental"
+      userRole="admin"
+      notifications={appointments.filter(a => a.status === "pending").length}
+    >
+      {renderContent()}
+    </DashboardLayout>
   );
 };
