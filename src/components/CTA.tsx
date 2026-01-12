@@ -2,10 +2,12 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Calendar, ArrowRight } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const CTA = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const { t } = useLanguage();
 
   return (
     <section className="py-20" ref={ref}>
@@ -32,21 +34,20 @@ export const CTA = () => {
             </motion.div>
 
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-white mb-6">
-              Tu nueva sonrisa te espera
+              {t('cta.title')}
             </h2>
             <p className="text-lg text-white/80 mb-10 max-w-xl mx-auto">
-              Agenda tu cita de valoración sin costo y descubre cómo podemos transformar tu sonrisa 
-              con la mejor tecnología dental.
+              {t('cta.subtitle')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.a
-                href="#cita"
+                href="#reservar"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium text-primary bg-white rounded-full hover:bg-white/90 transition-colors"
               >
-                Agendar Cita Gratis
+                {t('cta.button')}
                 <ArrowRight className="w-5 h-5" />
               </motion.a>
               <motion.a
@@ -55,7 +56,7 @@ export const CTA = () => {
                 whileTap={{ scale: 0.95 }}
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium text-white border-2 border-white/30 rounded-full hover:bg-white/10 transition-colors"
               >
-                Llamar Ahora
+                {t('cta.call')}
               </motion.a>
             </div>
           </div>
