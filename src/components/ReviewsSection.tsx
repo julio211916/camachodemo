@@ -1,16 +1,20 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Star, Quote } from "lucide-react";
+import { Quote } from "lucide-react";
 import { usePublishedReviews } from "@/hooks/useReviews";
 import { StarRating } from "./StarRating";
 import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, enUS, pt, ru } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const locales = { es, en: enUS, pt, ru };
 
 export const ReviewsSection = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { data: reviews = [], isLoading } = usePublishedReviews();
+  const { t, language } = useLanguage();
 
   // Calculate average rating
   const avgRating = reviews.length > 0
@@ -31,15 +35,15 @@ export const ReviewsSection = () => {
           className="text-center max-w-3xl mx-auto mb-12"
         >
           <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
-            Opiniones de Pacientes
+            {t('reviews.badge')}
           </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground mb-6">
-            Lo que dicen <span className="gradient-text">nuestros pacientes</span>
+            {t('reviews.title')} <span className="gradient-text">{t('reviews.titleHighlight')}</span>
           </h2>
           <div className="flex items-center justify-center gap-3 mb-4">
             <StarRating rating={Math.round(avgRating)} readonly size="lg" />
             <span className="text-2xl font-bold text-foreground">{avgRating.toFixed(1)}</span>
-            <span className="text-muted-foreground">({reviews.length} reseñas)</span>
+            <span className="text-muted-foreground">({reviews.length} {t('reviews.reviews')})</span>
           </div>
         </motion.div>
 
@@ -76,7 +80,7 @@ export const ReviewsSection = () => {
 
               <div className="mt-4 pt-4 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{review.location_name}</span>
-                <span>{format(parseISO(review.created_at), "d MMM yyyy", { locale: es })}</span>
+                <span>{format(parseISO(review.created_at), "d MMM yyyy", { locale: locales[language] || es })}</span>
               </div>
             </motion.div>
           ))}
