@@ -71,7 +71,7 @@ Datos actuales de la clínica:
 - Citas completadas: ${clinicData.appointments.filter(a => a.status === 'completed').length}
 - Tratamientos activos: ${clinicData.treatments.filter(t => t.status === 'in_progress').length}
 - Pacientes registrados: ${clinicData.patients.length}
-- Ingresos estimados: ${clinicData.treatments.reduce((acc, t) => acc + (t.total_cost || 0), 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
+- Ingresos estimados: ${clinicData.treatments.reduce((acc, t) => acc + (t.cost || 0), 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
 ` : '';
 
     const queryPrompts: Record<string, string> = {
