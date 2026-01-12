@@ -5,7 +5,8 @@ import {
   Calendar, Clock, Users, FileText, Stethoscope, Activity, TrendingUp,
   FolderOpen, Pill, FileStack, Brain, Scan, Smile, Package, FlaskConical,
   Receipt, DollarSign, Sparkles, Video, PenTool, HardDrive, Eye, FileEdit,
-  Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList, Layers
+  Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList, Layers,
+  CalendarDays, Wallet, Target, MessageSquare
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -41,6 +42,11 @@ import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
 import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 
+// Portal Modules
+import { AgendaModule } from "@/components/portal/AgendaModule";
+import { CRMModule } from "@/components/portal/CRMModule";
+import { CajasModule } from "@/components/portal/CajasModule";
+
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -64,38 +70,69 @@ export const DoctorDashboard = () => {
   const todayAppointments = appointments.filter(apt => isSameDay(new Date(apt.appointment_date), new Date()));
 
   const navGroups: NavGroup[] = useMemo(() => [
-    { title: "Principal", items: [
-      { id: "dashboard", label: "Dashboard", icon: <Calendar className="w-5 h-5" /> },
-      { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
-      { id: "today", label: "Citas Hoy", icon: <Clock className="w-5 h-5" />, badge: todayAppointments.length },
-      { id: "patients", label: "Pacientes", icon: <Users className="w-5 h-5" /> },
-      { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
-    ]},
-    { title: "Clínica", items: [
-      { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
-      { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
-      { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
-    ]},
-    { title: "IA & Diagnóstico", items: [
-      { id: "xray", label: "Análisis RX", icon: <Scan className="w-5 h-5" /> },
-      { id: "ai-reports", label: "Reportes IA", icon: <Brain className="w-5 h-5" /> },
-      { id: "smile", label: "Diseño Sonrisa", icon: <Smile className="w-5 h-5" /> },
-    ]},
-    { title: "Documentos", items: [
-      { id: "files", label: "Archivos", icon: <FolderOpen className="w-5 h-5" /> },
-      { id: "gallery", label: "Galería", icon: <ImageIcon className="w-5 h-5" /> },
-      { id: "prescriptions", label: "Recetas", icon: <Pill className="w-5 h-5" /> },
-      { id: "templates", label: "Plantillas", icon: <FileStack className="w-5 h-5" /> },
-      { id: "signature", label: "Firma Digital", icon: <PenTool className="w-5 h-5" /> },
-    ]},
-    { title: "Imagenología", items: [
-      { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
-      { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Layers className="w-5 h-5" /> },
-      { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
-    ]},
-    { title: "Cuenta", items: [
-      { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
-    ]},
+    { 
+      title: "Principal", 
+      items: [
+        { id: "dashboard", label: "Dashboard", icon: <Calendar className="w-5 h-5" /> },
+        { id: "agenda", label: "Agenda", icon: <CalendarDays className="w-5 h-5" />, badge: todayAppointments.length },
+        { id: "patients", label: "Pacientes", icon: <Users className="w-5 h-5" /> },
+        { id: "cajas", label: "Cajas", icon: <Wallet className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "CRM & Seguimiento", 
+      items: [
+        { id: "crm", label: "CRM", icon: <Target className="w-5 h-5" /> },
+        { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
+        { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "Clínica", 
+      items: [
+        { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
+        { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
+        { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "IA & Diagnóstico", 
+      items: [
+        { id: "xray", label: "Análisis RX", icon: <Scan className="w-5 h-5" /> },
+        { id: "ai-reports", label: "Reportes IA", icon: <Brain className="w-5 h-5" /> },
+        { id: "smile", label: "Diseño Sonrisa", icon: <Smile className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "Comunicación", 
+      items: [
+        { id: "telemedicine", label: "Telemedicina", icon: <Video className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "Documentos", 
+      items: [
+        { id: "files", label: "Archivos", icon: <FolderOpen className="w-5 h-5" /> },
+        { id: "gallery", label: "Galería", icon: <ImageIcon className="w-5 h-5" /> },
+        { id: "prescriptions", label: "Recetas", icon: <Pill className="w-5 h-5" /> },
+        { id: "templates", label: "Plantillas", icon: <FileStack className="w-5 h-5" /> },
+        { id: "signature", label: "Firma Digital", icon: <PenTool className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "Imagenología", 
+      items: [
+        { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
+        { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Layers className="w-5 h-5" /> },
+        { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "Cuenta", 
+      items: [
+        { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
+      ]
+    },
   ], [todayAppointments.length]);
 
   const stats = [
@@ -107,25 +144,53 @@ export const DoctorDashboard = () => {
 
   const renderContent = () => {
     switch (activeSection) {
-      case "dashboard": return <><PageHeader title="Dashboard" subtitle={`Dr. ${profile?.full_name || 'Doctor'}`} /><StatsGrid stats={stats} /></>;
-      case "kanban": return <ClinicKanbanBoard />;
-      case "patients": return <PatientManager />;
-      case "orthodontics": return <OrthodonticsModule patientId="demo" />;
-      case "inventory": return <InventoryManager />;
-      case "lab": return <LabOrdersManager />;
-      case "xray": return <XRayAnalysis />;
-      case "ai-reports": return <AIReportsModule />;
-      case "smile": return <SmileSimulator />;
-      case "files": return <AdvancedFileManager patientId="demo" />;
-      case "gallery": return <FileGallery />;
-      case "prescriptions": return <PrescriptionManager />;
-      case "templates": return <DocumentTemplates />;
-      case "signature": return <DigitalSignature />;
-      case "dicom": return <DICOMViewer />;
-      case "cbct-panoramic": return <CBCTPanoramicGenerator patientId="demo" patientName="Paciente Demo" />;
-      case "3d-viewer": return <Model3DViewerCloud patientId="demo" patientName="Paciente Demo" />;
-      case "profile": return <MyProfile />;
-      default: return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
+      case "dashboard": 
+        return <><PageHeader title="Dashboard" subtitle={`Dr. ${profile?.full_name || 'Doctor'}`} /><StatsGrid stats={stats} /></>;
+      // Portal Modules
+      case "agenda":
+        return <AgendaModule />;
+      case "cajas":
+        return <CajasModule />;
+      case "crm":
+        return <CRMModule />;
+      case "kanban": 
+        return <ClinicKanbanBoard />;
+      case "patients": 
+        return <PatientManager />;
+      case "orthodontics": 
+        return <OrthodonticsModule patientId="demo" />;
+      case "inventory": 
+        return <InventoryManager />;
+      case "lab": 
+        return <LabOrdersManager />;
+      case "xray": 
+        return <XRayAnalysis />;
+      case "ai-reports": 
+        return <AIReportsModule />;
+      case "smile": 
+        return <SmileSimulator />;
+      case "telemedicine":
+        return <TelemedicineModule />;
+      case "files": 
+        return <AdvancedFileManager patientId="demo" />;
+      case "gallery": 
+        return <FileGallery />;
+      case "prescriptions": 
+        return <PrescriptionManager />;
+      case "templates": 
+        return <DocumentTemplates />;
+      case "signature": 
+        return <DigitalSignature />;
+      case "dicom": 
+        return <DICOMViewer />;
+      case "cbct-panoramic": 
+        return <CBCTPanoramicGenerator patientId="demo" patientName="Paciente Demo" />;
+      case "3d-viewer": 
+        return <Model3DViewerCloud patientId="demo" patientName="Paciente Demo" />;
+      case "profile": 
+        return <MyProfile />;
+      default: 
+        return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }
   };
 

@@ -43,7 +43,11 @@ import {
   Building2,
   Shield,
   FileText,
-  User
+  User,
+  Target,
+  Megaphone,
+  Mail,
+  Zap
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -97,6 +101,11 @@ import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
 import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 
+// Portal Modules
+import { AgendaModule } from "@/components/portal/AgendaModule";
+import { CRMModule } from "@/components/portal/CRMModule";
+import { CajasModule } from "@/components/portal/CajasModule";
+
 export const AdminDashboard = () => {
   const { user } = useAuth();
   const { data: appointments = [] } = useAppointments();
@@ -105,16 +114,25 @@ export const AdminDashboard = () => {
   useRealtimeAppointments(true);
   useRealtimeReviews(true);
 
-  // Navigation groups
+  // Navigation groups - Complete system navigation
   const navGroups: NavGroup[] = useMemo(() => [
     {
       title: "Principal",
       items: [
         { id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" /> },
-        { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
-        { id: "appointments", label: "Citas", icon: <CalendarDays className="w-5 h-5" />, badge: appointments.filter(a => a.status === "pending").length },
-        { id: "calendar", label: "Calendario", icon: <Calendar className="w-5 h-5" /> },
+        { id: "agenda", label: "Agenda", icon: <CalendarDays className="w-5 h-5" />, badge: appointments.filter(a => a.status === "pending").length },
         { id: "patients", label: "Pacientes", icon: <Users className="w-5 h-5" /> },
+        { id: "cajas", label: "Cajas", icon: <Wallet className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "CRM & Marketing",
+      items: [
+        { id: "crm", label: "CRM", icon: <Target className="w-5 h-5" /> },
+        { id: "campaigns", label: "Campañas", icon: <Megaphone className="w-5 h-5" /> },
+        { id: "email-marketing", label: "Email Marketing", icon: <Mail className="w-5 h-5" /> },
+        { id: "referrals", label: "Referidos", icon: <Gift className="w-5 h-5" /> },
+        { id: "loyalty", label: "Fidelización", icon: <Zap className="w-5 h-5" /> },
       ]
     },
     {
@@ -124,12 +142,13 @@ export const AdminDashboard = () => {
         { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
         { id: "aesthetics", label: "Estética Facial", icon: <Smile className="w-5 h-5" /> },
         { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
+        { id: "kanban", label: "Kanban Clínica", icon: <ClipboardList className="w-5 h-5" /> },
       ]
     },
     {
       title: "Finanzas",
       items: [
-        { id: "cash", label: "Caja", icon: <Wallet className="w-5 h-5" /> },
+        { id: "cash", label: "Caja Registradora", icon: <Wallet className="w-5 h-5" /> },
         { id: "invoicing", label: "Facturación", icon: <Receipt className="w-5 h-5" /> },
         { id: "expenses", label: "Gastos", icon: <DollarSign className="w-5 h-5" /> },
         { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
@@ -172,18 +191,11 @@ export const AdminDashboard = () => {
       ]
     },
     {
-      title: "Marketing",
+      title: "Reportes",
       items: [
-        { id: "referrals", label: "Referidos", icon: <Gift className="w-5 h-5" /> },
-        { id: "loyalty", label: "Fidelización", icon: <Gift className="w-5 h-5" /> },
-        { id: "blog", label: "Blog", icon: <FileText className="w-5 h-5" /> },
-      ]
-    },
-    {
-      title: "Análisis",
-      items: [
-        { id: "analytics", label: "Analytics", icon: <BarChart3 className="w-5 h-5" /> },
+        { id: "analytics", label: "Panel Desempeño", icon: <BarChart3 className="w-5 h-5" /> },
         { id: "advanced", label: "Métricas Avanzadas", icon: <TrendingUp className="w-5 h-5" /> },
+        { id: "blog", label: "Blog", icon: <FileText className="w-5 h-5" /> },
       ]
     },
     {
@@ -249,6 +261,15 @@ export const AdminDashboard = () => {
             </div>
           </div>
         );
+      // Portal Modules
+      case "agenda":
+        return <AgendaModule />;
+      case "cajas":
+        return <CajasModule />;
+      case "crm":
+      case "campaigns":
+      case "email-marketing":
+        return <CRMModule />;
       case "kanban":
         return <ClinicKanbanBoard />;
       case "appointments":
