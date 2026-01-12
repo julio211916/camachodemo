@@ -13,7 +13,7 @@ interface ProfilePhotoUploadProps {
   currentPhotoUrl?: string;
   userName?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  userType: 'patient' | 'doctor';
+  userType: 'patient' | 'doctor' | 'admin';
   onPhotoChange?: (url: string | null) => void;
 }
 

@@ -42,6 +42,16 @@ import {
   Sparkles,
   Wallet,
   Video,
+  PenTool,
+  HardDrive,
+  Eye,
+  FileEdit,
+  Box,
+  Camera,
+  QrCode,
+  Layout,
+  Image as ImageIcon,
+  Cpu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,6 +103,17 @@ import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
 import { FacialAestheticsModule } from "@/components/clinic/FacialAestheticsModule";
 import { LoyaltyModule } from "@/components/clinic/LoyaltyModule";
 import { TelemedicineModule } from "@/components/clinic/TelemedicineModule";
+import { DigitalSignature } from "@/components/clinic/DigitalSignature";
+import { BackupManager } from "@/components/clinic/BackupManager";
+import { DICOMViewer } from "@/components/clinic/DICOMViewer";
+import { TemplateEditor } from "@/components/clinic/TemplateEditor";
+import { InteractiveOdontogram } from "@/components/clinic/InteractiveOdontogram";
+import { Model3DViewer } from "@/components/clinic/Model3DViewer";
+import { STLViewer } from "@/components/clinic/STLViewer";
+import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
+import { PatientQRCode } from "@/components/clinic/PatientQRCode";
+import { CMSBuilder } from "@/components/admin/CMSBuilder";
+import { FileGallery } from "@/components/clinic/FileGallery";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo-novelldent.png";
 
@@ -293,6 +314,46 @@ export const AdminDashboard = () => {
             <TabsTrigger value="telemedicine" className="flex items-center gap-2">
               <Video className="w-4 h-4" />
               <span className="hidden sm:inline">Telemedicina</span>
+            </TabsTrigger>
+            <TabsTrigger value="signature" className="flex items-center gap-2">
+              <PenTool className="w-4 h-4" />
+              <span className="hidden sm:inline">Firma Digital</span>
+            </TabsTrigger>
+            <TabsTrigger value="backup" className="flex items-center gap-2">
+              <HardDrive className="w-4 h-4" />
+              <span className="hidden sm:inline">Backups</span>
+            </TabsTrigger>
+            <TabsTrigger value="dicom" className="flex items-center gap-2">
+              <Eye className="w-4 h-4" />
+              <span className="hidden sm:inline">DICOM</span>
+            </TabsTrigger>
+            <TabsTrigger value="template-editor" className="flex items-center gap-2">
+              <FileEdit className="w-4 h-4" />
+              <span className="hidden sm:inline">Editor Plantillas</span>
+            </TabsTrigger>
+            <TabsTrigger value="interactive-odontogram" className="flex items-center gap-2">
+              <Cpu className="w-4 h-4" />
+              <span className="hidden sm:inline">Odontograma SVG</span>
+            </TabsTrigger>
+            <TabsTrigger value="3d-viewer" className="flex items-center gap-2">
+              <Box className="w-4 h-4" />
+              <span className="hidden sm:inline">Visor 3D</span>
+            </TabsTrigger>
+            <TabsTrigger value="gallery" className="flex items-center gap-2">
+              <ImageIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">Galería</span>
+            </TabsTrigger>
+            <TabsTrigger value="profiles" className="flex items-center gap-2">
+              <Camera className="w-4 h-4" />
+              <span className="hidden sm:inline">Fotos Perfil</span>
+            </TabsTrigger>
+            <TabsTrigger value="qr" className="flex items-center gap-2">
+              <QrCode className="w-4 h-4" />
+              <span className="hidden sm:inline">QR Pacientes</span>
+            </TabsTrigger>
+            <TabsTrigger value="cms" className="flex items-center gap-2">
+              <Layout className="w-4 h-4" />
+              <span className="hidden sm:inline">CMS Builder</span>
             </TabsTrigger>
           </TabsList>
 
@@ -672,6 +733,56 @@ export const AdminDashboard = () => {
           {/* Telemedicine Tab */}
           <TabsContent value="telemedicine">
             <TelemedicineModule userRole="admin" />
+          </TabsContent>
+
+          {/* Digital Signature Tab */}
+          <TabsContent value="signature">
+            <DigitalSignature patientId="demo-patient" patientName="Paciente Demo" />
+          </TabsContent>
+
+          {/* Backup Manager Tab */}
+          <TabsContent value="backup">
+            <BackupManager />
+          </TabsContent>
+
+          {/* DICOM Viewer Tab */}
+          <TabsContent value="dicom">
+            <DICOMViewer />
+          </TabsContent>
+
+          {/* Template Editor Tab */}
+          <TabsContent value="template-editor">
+            <TemplateEditor />
+          </TabsContent>
+
+          {/* Interactive Odontogram Tab */}
+          <TabsContent value="interactive-odontogram">
+            <InteractiveOdontogram patientId="demo-patient" />
+          </TabsContent>
+
+          {/* 3D Viewer Tab */}
+          <TabsContent value="3d-viewer">
+            <Model3DViewer />
+          </TabsContent>
+
+          {/* File Gallery Tab */}
+          <TabsContent value="gallery">
+            <FileGallery patientId="demo-patient" patientName="Todos los Archivos" />
+          </TabsContent>
+
+          {/* Profile Photos Tab */}
+          <TabsContent value="profiles">
+            <ProfilePhotoUpload userId={user?.id || ''} userType="admin" currentPhotoUrl={null} />
+          </TabsContent>
+
+          {/* Patient QR Codes Tab */}
+          <TabsContent value="qr">
+            <PatientQRCode patientId="demo-patient" patientName="Paciente Demo" patientEmail="demo@example.com" />
+          </TabsContent>
+
+          {/* CMS Builder Tab */}
+          <TabsContent value="cms">
+            <CMSBuilder />
           </TabsContent>
         </Tabs>
       </main>
