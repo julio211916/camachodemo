@@ -149,24 +149,27 @@ export const DashboardLayout = ({
           initial={false}
           animate={{ width: collapsed ? 80 : 280 }}
           className={cn(
-            "fixed top-0 left-0 h-screen z-50 bg-sidebar-background border-r border-sidebar-border",
-            "flex flex-col transition-all duration-300",
+            "fixed top-0 left-0 h-screen z-50 border-r",
+            "bg-card dark:bg-sidebar-background",
+            "border-border dark:border-sidebar-border",
+            "flex flex-col transition-all duration-300 shadow-sm",
             mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           )}
         >
           {/* Logo Section */}
           <div className={cn(
-            "flex items-center h-16 px-4 border-b border-sidebar-border",
+            "flex items-center h-16 px-4 border-b",
+            "border-border dark:border-sidebar-border",
             collapsed ? "justify-center" : "justify-between"
           )}>
             {!collapsed && (
               <div className="flex items-center gap-3">
                 <img src={logo} alt="NovellDent" className="h-8" />
                 <div className="flex flex-col">
-                  <span className="font-serif font-bold text-sidebar-foreground text-sm">
+                  <span className="font-serif font-bold text-foreground dark:text-sidebar-foreground text-sm">
                     NovellDent
                   </span>
-                  <span className="text-[10px] text-sidebar-foreground/60">
+                  <span className="text-[10px] text-muted-foreground dark:text-sidebar-foreground/60">
                     Sistema Dental
                   </span>
                 </div>
@@ -178,7 +181,7 @@ export const DashboardLayout = ({
             <Button
               variant="ghost"
               size="icon"
-              className="hidden lg:flex h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground"
+              className="hidden lg:flex h-8 w-8 text-muted-foreground dark:text-sidebar-foreground/60 hover:text-foreground dark:hover:text-sidebar-foreground"
               onClick={() => setCollapsed(!collapsed)}
             >
               {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -186,7 +189,7 @@ export const DashboardLayout = ({
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden h-8 w-8 text-sidebar-foreground/60"
+              className="lg:hidden h-8 w-8 text-muted-foreground dark:text-sidebar-foreground/60"
               onClick={() => setMobileOpen(false)}
             >
               <X className="h-4 w-4" />
@@ -195,7 +198,7 @@ export const DashboardLayout = ({
 
           {/* User Profile Section */}
           <div className={cn(
-            "p-4 border-b border-sidebar-border",
+            "p-4 border-b border-border dark:border-sidebar-border",
             collapsed && "flex justify-center"
           )}>
             {collapsed ? (
@@ -222,7 +225,7 @@ export const DashboardLayout = ({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  <p className="text-sm font-medium text-foreground dark:text-sidebar-foreground truncate">
                     {profile?.full_name || "Usuario"}
                   </p>
                   <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0", getRoleColor())}>
@@ -241,7 +244,7 @@ export const DashboardLayout = ({
                   {!collapsed && (
                     <button
                       onClick={() => toggleGroup(group.title)}
-                      className="flex items-center justify-between w-full text-[11px] font-semibold text-sidebar-foreground/50 uppercase tracking-wider mb-2 px-2 hover:text-sidebar-foreground/70 transition-colors"
+                      className="flex items-center justify-between w-full text-[11px] font-semibold text-muted-foreground dark:text-sidebar-foreground/50 uppercase tracking-wider mb-2 px-2 hover:text-foreground dark:hover:text-sidebar-foreground/70 transition-colors"
                     >
                       {group.title}
                       <ChevronRight className={cn(
@@ -273,8 +276,8 @@ export const DashboardLayout = ({
                                   className={cn(
                                     "w-full flex items-center justify-center h-10 rounded-lg transition-all relative",
                                     isActive
-                                      ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
-                                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                                      ? "bg-primary text-primary-foreground shadow-sm"
+                                      : "text-muted-foreground dark:text-sidebar-foreground/70 hover:bg-muted dark:hover:bg-sidebar-accent hover:text-foreground dark:hover:text-sidebar-foreground"
                                   )}
                                 >
                                   <div className="w-5 h-5">{item.icon}</div>
@@ -297,8 +300,8 @@ export const DashboardLayout = ({
                               className={cn(
                                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm",
                                 isActive
-                                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm font-medium"
-                                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                                  ? "bg-primary text-primary-foreground shadow-sm font-medium"
+                                  : "text-muted-foreground dark:text-sidebar-foreground/70 hover:bg-muted dark:hover:bg-sidebar-accent hover:text-foreground dark:hover:text-sidebar-foreground"
                               )}
                             >
                               <div className="w-5 h-5 flex-shrink-0">{item.icon}</div>
@@ -320,7 +323,7 @@ export const DashboardLayout = ({
           </ScrollArea>
 
           {/* Bottom Actions */}
-          <div className="p-3 border-t border-sidebar-border space-y-1">
+          <div className="p-3 border-t border-border dark:border-sidebar-border space-y-1">
             {collapsed ? (
               <>
                 <Tooltip>
@@ -328,7 +331,7 @@ export const DashboardLayout = ({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="w-full h-10 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                      className="w-full h-10 text-muted-foreground dark:text-sidebar-foreground/70 hover:text-foreground dark:hover:text-sidebar-foreground"
                       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                     >
                       {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -354,7 +357,7 @@ export const DashboardLayout = ({
               <>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+                  className="w-full justify-start gap-3 text-muted-foreground dark:text-sidebar-foreground/70 hover:text-foreground dark:hover:text-sidebar-foreground"
                   onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 >
                   {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}

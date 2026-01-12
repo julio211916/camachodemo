@@ -5,7 +5,7 @@ import {
   Calendar, Clock, Users, FileText, Stethoscope, Activity, TrendingUp,
   FolderOpen, Pill, FileStack, Brain, Scan, Smile, Package, FlaskConical,
   Receipt, DollarSign, Sparkles, Video, PenTool, HardDrive, Eye, FileEdit,
-  Box, Camera, QrCode, Cpu, Image as ImageIcon
+  Box, Camera, QrCode, Cpu, Image as ImageIcon, User
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -35,6 +35,7 @@ import { Model3DViewer } from "@/components/clinic/Model3DViewer";
 import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
 import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { FileGallery } from "@/components/clinic/FileGallery";
+import { MyProfile } from "@/components/dashboard/MyProfile";
 
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
@@ -88,6 +89,9 @@ export const DoctorDashboard = () => {
       { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
       { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
     ]},
+    { title: "Cuenta", items: [
+      { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
+    ]},
   ], [todayAppointments.length]);
 
   const stats = [
@@ -115,6 +119,7 @@ export const DoctorDashboard = () => {
       case "signature": return <DigitalSignature />;
       case "dicom": return <DICOMViewer />;
       case "3d-viewer": return <Model3DViewer />;
+      case "profile": return <MyProfile />;
       default: return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }
   };

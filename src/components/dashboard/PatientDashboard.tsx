@@ -17,6 +17,7 @@ import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
 import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { Model3DViewer } from "@/components/clinic/Model3DViewer";
+import { MyProfile } from "@/components/dashboard/MyProfile";
 
 export const PatientDashboard = () => {
   const { user, profile } = useAuth();
@@ -60,6 +61,7 @@ export const PatientDashboard = () => {
       { id: "3d", label: "Modelos 3D", icon: <Box className="w-5 h-5" /> },
     ]},
     { title: "Cuenta", items: [
+      { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
       { id: "referrals", label: "Referidos", icon: <Gift className="w-5 h-5" /> },
       { id: "photo", label: "Mi Foto", icon: <Camera className="w-5 h-5" /> },
       { id: "qr", label: "Mi QR", icon: <QrCode className="w-5 h-5" /> },
@@ -81,6 +83,7 @@ export const PatientDashboard = () => {
       case "files": return <AdvancedFileManager patientId={user?.id || ''} />;
       case "gallery": return <FileGallery />;
       case "3d": return <Model3DViewer />;
+      case "profile": return <MyProfile />;
       case "referrals": return <ReferralSystem />;
       case "photo": return <ProfilePhotoUpload userId={user?.id || ''} userType="patient" />;
       case "qr": return <PatientQRCode patientId={user?.id || ''} patientName={profile?.full_name || ''} patientEmail={user?.email || ''} />;
