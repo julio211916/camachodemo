@@ -92,6 +92,7 @@ import { AdminAppointmentsList } from "./AdminAppointmentsList";
 import { MyProfile } from "@/components/dashboard/MyProfile";
 import { LocationsManager } from "./LocationsManager";
 import { BlogManager } from "./BlogManager";
+import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -107,6 +108,7 @@ export const AdminDashboard = () => {
       title: "Principal",
       items: [
         { id: "dashboard", label: "Dashboard", icon: <BarChart3 className="w-5 h-5" /> },
+        { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
         { id: "appointments", label: "Citas", icon: <CalendarDays className="w-5 h-5" />, badge: appointments.filter(a => a.status === "pending").length },
         { id: "calendar", label: "Calendario", icon: <Calendar className="w-5 h-5" /> },
         { id: "patients", label: "Pacientes", icon: <Users className="w-5 h-5" /> },
@@ -245,6 +247,8 @@ export const AdminDashboard = () => {
             </div>
           </div>
         );
+      case "kanban":
+        return <ClinicKanbanBoard />;
       case "appointments":
         return <AdminAppointmentsList appointments={appointments} />;
       case "calendar":
