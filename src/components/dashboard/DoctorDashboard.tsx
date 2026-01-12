@@ -19,6 +19,9 @@ import {
   FolderOpen,
   Pill,
   FileStack,
+  Brain,
+  Scan,
+  Smile,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +36,9 @@ import { TreatmentForm } from "./TreatmentForm";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
+import { XRayAnalysis } from "@/components/clinic/XRayAnalysis";
+import { AIReportsModule } from "@/components/clinic/AIReportsModule";
+import { SmileSimulator } from "@/components/clinic/SmileSimulator";
 import logo from "@/assets/logo-novelldent.png";
 
 export const DoctorDashboard = () => {
@@ -280,6 +286,18 @@ export const DoctorDashboard = () => {
             <TabsTrigger value="templates" className="gap-2">
               <FileStack className="w-4 h-4" />
               Documentos
+            </TabsTrigger>
+            <TabsTrigger value="xray" className="gap-2">
+              <Scan className="w-4 h-4" />
+              RX IA
+            </TabsTrigger>
+            <TabsTrigger value="ai-reports" className="gap-2">
+              <Brain className="w-4 h-4" />
+              Reportes IA
+            </TabsTrigger>
+            <TabsTrigger value="smile" className="gap-2">
+              <Smile className="w-4 h-4" />
+              Simulador
             </TabsTrigger>
           </TabsList>
 
@@ -590,6 +608,21 @@ export const DoctorDashboard = () => {
           {/* Documents Tab */}
           <TabsContent value="templates">
             <DocumentTemplates />
+          </TabsContent>
+
+          {/* X-Ray Analysis Tab */}
+          <TabsContent value="xray">
+            <XRayAnalysis />
+          </TabsContent>
+
+          {/* AI Reports Tab */}
+          <TabsContent value="ai-reports">
+            <AIReportsModule />
+          </TabsContent>
+
+          {/* Smile Simulator Tab */}
+          <TabsContent value="smile">
+            <SmileSimulator />
           </TabsContent>
         </Tabs>
       </main>

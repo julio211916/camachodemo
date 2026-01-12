@@ -28,6 +28,11 @@ import {
   Pill,
   FileStack,
   Gift,
+  Brain,
+  Scan,
+  Smile,
+  Headphones,
+  MessagesSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +69,11 @@ import { FileGallery } from "@/components/clinic/FileGallery";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
 import { ReferralsManager } from "./ReferralsManager";
+import { XRayAnalysis } from "@/components/clinic/XRayAnalysis";
+import { AIReportsModule } from "@/components/clinic/AIReportsModule";
+import { SmileSimulator } from "@/components/clinic/SmileSimulator";
+import { ContactCenterModule } from "@/components/clinic/ContactCenterModule";
+import { InternalChatModule } from "@/components/clinic/InternalChatModule";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logo-novelldent.png";
 
@@ -204,6 +214,26 @@ export const AdminDashboard = () => {
             <TabsTrigger value="referrals" className="flex items-center gap-2">
               <Gift className="w-4 h-4" />
               <span className="hidden sm:inline">Referidos</span>
+            </TabsTrigger>
+            <TabsTrigger value="xray" className="flex items-center gap-2">
+              <Scan className="w-4 h-4" />
+              <span className="hidden sm:inline">RX IA</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-reports" className="flex items-center gap-2">
+              <Brain className="w-4 h-4" />
+              <span className="hidden sm:inline">Reportes IA</span>
+            </TabsTrigger>
+            <TabsTrigger value="smile" className="flex items-center gap-2">
+              <Smile className="w-4 h-4" />
+              <span className="hidden sm:inline">Simulador</span>
+            </TabsTrigger>
+            <TabsTrigger value="contact-center" className="flex items-center gap-2">
+              <Headphones className="w-4 h-4" />
+              <span className="hidden sm:inline">Contact Center</span>
+            </TabsTrigger>
+            <TabsTrigger value="chat" className="flex items-center gap-2">
+              <MessagesSquare className="w-4 h-4" />
+              <span className="hidden sm:inline">Chat Interno</span>
             </TabsTrigger>
           </TabsList>
 
@@ -508,6 +538,31 @@ export const AdminDashboard = () => {
           {/* Referrals Tab */}
           <TabsContent value="referrals">
             <ReferralsManager />
+          </TabsContent>
+
+          {/* X-Ray Analysis Tab */}
+          <TabsContent value="xray">
+            <XRayAnalysis />
+          </TabsContent>
+
+          {/* AI Reports Tab */}
+          <TabsContent value="ai-reports">
+            <AIReportsModule />
+          </TabsContent>
+
+          {/* Smile Simulator Tab */}
+          <TabsContent value="smile">
+            <SmileSimulator />
+          </TabsContent>
+
+          {/* Contact Center Tab */}
+          <TabsContent value="contact-center">
+            <ContactCenterModule />
+          </TabsContent>
+
+          {/* Internal Chat Tab */}
+          <TabsContent value="chat">
+            <InternalChatModule />
           </TabsContent>
         </Tabs>
       </main>
