@@ -5,7 +5,8 @@ import {
   CreditCard, ListCheck, DollarSign, Building2, FileText, ScrollText,
   Image, CreditCard as PaymentIcon, XCircle, Settings, ChevronRight,
   Plus, Search, Edit2, Trash2, MoreHorizontal, Calendar, Percent,
-  Download, Filter, BarChart3, Users, Eye, Loader2
+  Download, Filter, BarChart3, Users, Eye, Loader2, FileCheck, PenTool,
+  Calculator, Save, Send, FileSignature, Printer, Check, X, Copy, Clock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { es } from "date-fns/locale";
 import { InventoryManager } from "@/components/clinic/InventoryManager";
 import { ExpensesManager } from "@/components/clinic/ExpensesManager";
 import { LabOrdersManager } from "@/components/clinic/LabOrdersManager";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 // Types
 interface Convenio {
@@ -128,6 +130,7 @@ const adminSections = [
   { id: 'inventario', label: 'Inventario', icon: Package, description: 'Stock y materiales' },
   { id: 'laboratorios', label: 'Laboratorios', icon: FlaskConical, description: 'Órdenes de laboratorio' },
   { id: 'liquidaciones', label: 'Liquidaciones', icon: Wallet, description: 'Nóminas y comisiones' },
+  { id: 'nominas', label: 'Nóminas', icon: Calculator, description: 'Gestión de nóminas' },
   { id: 'fusion', label: 'Fusión de Fichas', icon: GitMerge, description: 'Combinar expedientes' },
   { id: 'pagos-tpv', label: 'Pagos TPV', icon: CreditCard, description: 'Terminal punto de venta' },
   { id: 'planes', label: 'Planes y Servicios', icon: ListCheck, description: 'Catálogo de servicios' },
@@ -138,6 +141,8 @@ const configSections = [
   { id: 'bancos', label: 'Bancos', icon: Building2, description: 'Entidades financieras' },
   { id: 'documentos', label: 'Documentos Clínicos', icon: FileText, description: 'Plantillas y formatos' },
   { id: 'consentimientos', label: 'Consentimientos', icon: ScrollText, description: 'Consentimientos informados' },
+  { id: 'facturacion', label: 'Facturación Electrónica', icon: FileCheck, description: 'CFDI y timbrado' },
+  { id: 'firma-digital', label: 'Firma Digital', icon: PenTool, description: 'Firma electrónica avanzada' },
   { id: 'logotipo', label: 'Logotipo', icon: Image, description: 'Imagen corporativa' },
   { id: 'medios-pago', label: 'Opciones de Pago', icon: PaymentIcon, description: 'Medios de pago habilitados' },
   { id: 'pagos-anulados', label: 'Pagos Anulados', icon: XCircle, description: 'Gestión de anulaciones' },
@@ -189,6 +194,8 @@ export const AdministrationModule = () => {
             toast({ title: "Liquidación finalizada" });
           }}
         />;
+      case 'nominas':
+        return <NominasSection />;
       case 'fusion':
         return <FusionFichasSection onFusion={() => setShowFusion(true)} />;
       case 'pagos-tpv':
@@ -211,6 +218,10 @@ export const AdministrationModule = () => {
         return <DocumentosClinicosSection />;
       case 'consentimientos':
         return <ConsentimientosSection />;
+      case 'facturacion':
+        return <FacturacionElectronicaSection />;
+      case 'firma-digital':
+        return <FirmaDigitalSection />;
       case 'logotipo':
         return <LogotipoSection />;
       case 'medios-pago':
@@ -891,15 +902,102 @@ const BancosSection = () => (
 );
 
 const DocumentosClinicosSection = () => {
-  const documentos = [
-    { id: '1', nombre: 'Ficha General Dental', estado: 'Habilitada' },
-    { id: '2', nombre: 'Expediente Clínico NOM-004-SSA3-2012', estado: 'Habilitada' },
-    { id: '3', nombre: 'Historia Clínica', estado: 'Habilitada' },
-    { id: '4', nombre: 'Aviso de Privacidad', estado: 'Habilitada' },
-    { id: '5', nombre: 'Informed Consent', estado: 'Habilitada' },
-    { id: '6', nombre: 'Cuidados postoperatorios exodoncia', estado: 'Habilitada' },
-    { id: '7', nombre: 'Recomendaciones pacientes ortodoncia', estado: 'Habilitada' },
-  ];
+  const [documentos, setDocumentos] = useState([
+    { id: '1', nombre: 'Ficha General Dental', estado: 'Habilitada', contenido: '<h2>Ficha General Dental</h2><p>Información del paciente...</p>' },
+    { id: '2', nombre: 'Expediente Clínico NOM-004-SSA3-2012', estado: 'Habilitada', contenido: '<h2>Expediente Clínico</h2><p>Conforme a la norma...</p>' },
+    { id: '3', nombre: 'Historia Clínica', estado: 'Habilitada', contenido: '<h2>Historia Clínica</h2><p>Antecedentes médicos...</p>' },
+    { id: '4', nombre: 'Aviso de Privacidad', estado: 'Habilitada', contenido: '<h2>Aviso de Privacidad</h2><p>Sus datos personales...</p>' },
+    { id: '5', nombre: 'Informed Consent', estado: 'Habilitada', contenido: '<h2>Consentimiento Informado</h2><p>Por medio del presente...</p>' },
+    { id: '6', nombre: 'Cuidados postoperatorios exodoncia', estado: 'Habilitada', contenido: '<h2>Cuidados Postoperatorios</h2><ul><li>No escupir...</li></ul>' },
+    { id: '7', nombre: 'Recomendaciones pacientes ortodoncia', estado: 'Habilitada', contenido: '<h2>Recomendaciones</h2><ul><li>Cepillado...</li></ul>' },
+  ]);
+  const [editingDoc, setEditingDoc] = useState<string | null>(null);
+  const [editorContent, setEditorContent] = useState('');
+  const [showNewDoc, setShowNewDoc] = useState(false);
+  const [newDocName, setNewDocName] = useState('');
+
+  const handleEditDocument = (doc: typeof documentos[0]) => {
+    setEditingDoc(doc.id);
+    setEditorContent(doc.contenido);
+  };
+
+  const handleSaveDocument = () => {
+    if (editingDoc) {
+      setDocumentos(documentos.map(d => 
+        d.id === editingDoc ? { ...d, contenido: editorContent } : d
+      ));
+      setEditingDoc(null);
+      setEditorContent('');
+    }
+  };
+
+  const handleCreateDocument = () => {
+    if (newDocName.trim()) {
+      const newDoc = {
+        id: crypto.randomUUID(),
+        nombre: newDocName,
+        estado: 'Habilitada',
+        contenido: '<h2>' + newDocName + '</h2><p>Contenido del documento...</p>'
+      };
+      setDocumentos([...documentos, newDoc]);
+      setNewDocName('');
+      setShowNewDoc(false);
+      handleEditDocument(newDoc);
+    }
+  };
+
+  if (editingDoc) {
+    const doc = documentos.find(d => d.id === editingDoc);
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Edit2 className="w-6 h-6" />
+              Editando: {doc?.nombre}
+            </h2>
+            <p className="text-muted-foreground">Editor WYSIWYG con formato enriquecido</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => { setEditingDoc(null); setEditorContent(''); }}>
+              <X className="w-4 h-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveDocument}>
+              <Save className="w-4 h-4 mr-2" />
+              Guardar
+            </Button>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-muted-foreground">Editor de Documento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RichTextEditor
+              content={editorContent}
+              onChange={setEditorContent}
+              placeholder="Escribe el contenido del documento aquí..."
+              className="min-h-[400px]"
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Vista Previa</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div 
+              className="prose prose-sm dark:prose-invert max-w-none p-4 border rounded-lg bg-muted/30"
+              dangerouslySetInnerHTML={{ __html: editorContent }}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -909,13 +1007,38 @@ const DocumentosClinicosSection = () => {
             <FileText className="w-6 h-6" />
             Documentos Clínicos
           </h2>
-          <p className="text-muted-foreground">Plantillas y formatos para expedientes</p>
+          <p className="text-muted-foreground">Plantillas y formatos para expedientes con editor WYSIWYG</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline">Ver Video</Button>
-          <Button><Plus className="w-4 h-4 mr-2" />Nuevo Documento</Button>
+          <Button onClick={() => setShowNewDoc(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Documento
+          </Button>
         </div>
       </div>
+
+      {showNewDoc && (
+        <Card className="border-primary">
+          <CardContent className="pt-6">
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <Label>Nombre del Documento</Label>
+                <Input
+                  value={newDocName}
+                  onChange={(e) => setNewDocName(e.target.value)}
+                  placeholder="Ej: Consentimiento para Implantes"
+                  className="mt-1"
+                />
+              </div>
+              <div className="flex gap-2 items-end">
+                <Button variant="outline" onClick={() => setShowNewDoc(false)}>Cancelar</Button>
+                <Button onClick={handleCreateDocument}>Crear y Editar</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <Table>
@@ -932,16 +1055,24 @@ const DocumentosClinicosSection = () => {
                 <TableCell className="font-medium">{doc.nombre}</TableCell>
                 <TableCell><Badge className="bg-green-500">{doc.estado}</Badge></TableCell>
                 <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">Acciones <ChevronRight className="w-4 h-4 ml-1" /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem><Edit2 className="w-4 h-4 mr-2" />Editar</DropdownMenuItem>
-                      <DropdownMenuItem><Eye className="w-4 h-4 mr-2" />Duplicar documento</DropdownMenuItem>
-                      <DropdownMenuItem><XCircle className="w-4 h-4 mr-2" />Deshabilitar</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleEditDocument(doc)}>
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      Editar
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm"><MoreHorizontal className="w-4 h-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem><Copy className="w-4 h-4 mr-2" />Duplicar</DropdownMenuItem>
+                        <DropdownMenuItem><Printer className="w-4 h-4 mr-2" />Imprimir</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          <XCircle className="w-4 h-4 mr-2" />Deshabilitar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
@@ -1101,5 +1232,180 @@ const PagosAnuladosSection = () => (
         </Card>
       </TabsContent>
     </Tabs>
+  </div>
+);
+
+// Nóminas Section
+const NominasSection = () => {
+  const nominas = [
+    { id: '1', empleado: 'Dr. Roberto García', periodo: 'Enero 2026', salarioBase: 25000, comisiones: 13500, deducciones: 3850, neto: 34650, status: 'pendiente' },
+    { id: '2', empleado: 'Dra. María López', periodo: 'Enero 2026', salarioBase: 25000, comisiones: 11400, deducciones: 3640, neto: 32760, status: 'pendiente' },
+    { id: '3', empleado: 'Recepcionista Ana', periodo: 'Enero 2026', salarioBase: 12000, comisiones: 0, deducciones: 1200, neto: 10800, status: 'pagada' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Calculator className="w-6 h-6" />
+            Gestión de Nóminas
+          </h2>
+          <p className="text-muted-foreground">Cálculo y pago de salarios</p>
+        </div>
+        <Button><Plus className="w-4 h-4 mr-2" />Nueva Nómina</Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-green-600">$78,210</p><p className="text-sm text-muted-foreground">Total Nómina Mes</p></CardContent></Card>
+        <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold">3</p><p className="text-sm text-muted-foreground">Empleados Activos</p></CardContent></Card>
+        <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-orange-500">2</p><p className="text-sm text-muted-foreground">Pendientes de Pago</p></CardContent></Card>
+      </div>
+
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Empleado</TableHead>
+              <TableHead>Periodo</TableHead>
+              <TableHead>Salario Base</TableHead>
+              <TableHead>Comisiones</TableHead>
+              <TableHead>Deducciones</TableHead>
+              <TableHead>Neto</TableHead>
+              <TableHead>Estado</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {nominas.map(n => (
+              <TableRow key={n.id}>
+                <TableCell className="font-medium">{n.empleado}</TableCell>
+                <TableCell>{n.periodo}</TableCell>
+                <TableCell>${n.salarioBase.toLocaleString()}</TableCell>
+                <TableCell className="text-green-600">${n.comisiones.toLocaleString()}</TableCell>
+                <TableCell className="text-red-500">-${n.deducciones.toLocaleString()}</TableCell>
+                <TableCell className="font-bold">${n.neto.toLocaleString()}</TableCell>
+                <TableCell><Badge variant={n.status === 'pagada' ? 'default' : 'secondary'}>{n.status}</Badge></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
+  );
+};
+
+// Facturación Electrónica Section
+const FacturacionElectronicaSection = () => (
+  <div className="space-y-6">
+    <div>
+      <h2 className="text-2xl font-bold flex items-center gap-2">
+        <FileCheck className="w-6 h-6" />
+        Facturación Electrónica (CFDI)
+      </h2>
+      <p className="text-muted-foreground">Emisión y timbrado de comprobantes fiscales</p>
+    </div>
+
+    <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+      <CardContent className="py-6">
+        <div className="flex items-center gap-4">
+          <FileCheck className="w-12 h-12 text-blue-600" />
+          <div>
+            <h3 className="font-semibold">Configura tu Facturación Electrónica</h3>
+            <p className="text-sm text-muted-foreground">Conecta tu certificado de sello digital (CSD) para emitir CFDI 4.0</p>
+          </div>
+          <Button className="ml-auto">Configurar</Button>
+        </div>
+      </CardContent>
+    </Card>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Datos Fiscales</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div><Label>RFC</Label><Input placeholder="XAXX010101000" className="mt-1" /></div>
+          <div><Label>Razón Social</Label><Input placeholder="Clínica Dental S.A. de C.V." className="mt-1" /></div>
+          <div><Label>Régimen Fiscal</Label><Select><SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger><SelectContent><SelectItem value="601">General de Ley</SelectItem><SelectItem value="612">Persona Física</SelectItem></SelectContent></Select></div>
+          <div><Label>Código Postal</Label><Input placeholder="06600" className="mt-1" /></div>
+          <Button className="w-full"><Save className="w-4 h-4 mr-2" />Guardar Datos</Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Certificados</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-4 border-2 border-dashed rounded-lg text-center">
+            <p className="text-muted-foreground">Sube tu archivo .cer</p>
+            <Button variant="outline" className="mt-2">Seleccionar Certificado</Button>
+          </div>
+          <div className="p-4 border-2 border-dashed rounded-lg text-center">
+            <p className="text-muted-foreground">Sube tu archivo .key</p>
+            <Button variant="outline" className="mt-2">Seleccionar Llave</Button>
+          </div>
+          <div><Label>Contraseña de la Llave</Label><Input type="password" className="mt-1" /></div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+// Firma Digital Section
+const FirmaDigitalSection = () => (
+  <div className="space-y-6">
+    <div>
+      <h2 className="text-2xl font-bold flex items-center gap-2">
+        <PenTool className="w-6 h-6" />
+        Firma Digital Avanzada
+      </h2>
+      <p className="text-muted-foreground">Firma electrónica para documentos y consentimientos</p>
+    </div>
+
+    <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+      <CardContent className="py-6">
+        <div className="flex items-center gap-4">
+          <FileSignature className="w-12 h-12 text-green-600" />
+          <div>
+            <h3 className="font-semibold">Firma Electrónica Avanzada</h3>
+            <p className="text-sm text-muted-foreground">Tus pacientes pueden firmar documentos desde cualquier dispositivo</p>
+          </div>
+          <Badge className="ml-auto bg-green-500">Activo</Badge>
+        </div>
+      </CardContent>
+    </Card>
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold">156</p><p className="text-sm text-muted-foreground">Documentos Firmados</p></CardContent></Card>
+      <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-orange-500">8</p><p className="text-sm text-muted-foreground">Pendientes de Firma</p></CardContent></Card>
+      <Card><CardContent className="pt-6 text-center"><p className="text-3xl font-bold text-green-600">100%</p><p className="text-sm text-muted-foreground">Tasa de Completado</p></CardContent></Card>
+    </div>
+
+    <Card>
+      <CardHeader><CardTitle className="text-lg">Documentos Recientes</CardTitle></CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Documento</TableHead>
+              <TableHead>Paciente</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Estado</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>Consentimiento Implante</TableCell>
+              <TableCell>Juan Pérez</TableCell>
+              <TableCell>12 Ene 2026</TableCell>
+              <TableCell><Badge className="bg-green-500">Firmado</Badge></TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>Historia Clínica</TableCell>
+              <TableCell>María López</TableCell>
+              <TableCell>11 Ene 2026</TableCell>
+              <TableCell><Badge variant="secondary">Pendiente</Badge></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   </div>
 );
