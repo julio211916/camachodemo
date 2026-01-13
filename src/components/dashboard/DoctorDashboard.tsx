@@ -6,7 +6,7 @@ import {
   FolderOpen, Pill, FileStack, Brain, Scan, Smile, Package, FlaskConical,
   Receipt, DollarSign, Sparkles, Video, PenTool, HardDrive, Eye, FileEdit,
   Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList, Layers,
-  CalendarDays, Wallet, Target, MessageSquare
+  CalendarDays, Wallet, Target, MessageSquare, Settings
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -46,6 +46,7 @@ import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerat
 import { AgendaModule } from "@/components/portal/AgendaModule";
 import { CRMModule } from "@/components/portal/CRMModule";
 import { CajasModule } from "@/components/portal/CajasModule";
+import { AdministrationModule } from "@/components/portal/AdministrationModule";
 
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
@@ -131,6 +132,7 @@ export const DoctorDashboard = () => {
       title: "Cuenta", 
       items: [
         { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
+        { id: "administration", label: "Administración", icon: <Settings className="w-5 h-5" /> },
       ]
     },
   ], [todayAppointments.length]);
@@ -189,6 +191,8 @@ export const DoctorDashboard = () => {
         return <Model3DViewerCloud patientId="demo" patientName="Paciente Demo" />;
       case "profile": 
         return <MyProfile />;
+      case "administration":
+        return <AdministrationModule />;
       default: 
         return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }

@@ -105,6 +105,7 @@ import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerat
 import { AgendaModule } from "@/components/portal/AgendaModule";
 import { CRMModule } from "@/components/portal/CRMModule";
 import { CajasModule } from "@/components/portal/CajasModule";
+import { AdministrationModule } from "@/components/portal/AdministrationModule";
 
 export const AdminDashboard = () => {
   const { user } = useAuth();
@@ -201,6 +202,7 @@ export const AdminDashboard = () => {
     {
       title: "Administración",
       items: [
+        { id: "administration", label: "Administración", icon: <Shield className="w-5 h-5" /> },
         { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
         { id: "locations", label: "Sucursales", icon: <Building2 className="w-5 h-5" /> },
         { id: "profiles", label: "Fotos Perfil", icon: <Camera className="w-5 h-5" /> },
@@ -348,6 +350,8 @@ export const AdminDashboard = () => {
         return <CMSBuilder />;
       case "backup":
         return <BackupManager />;
+      case "administration":
+        return <AdministrationModule />;
       default:
         return <div className="text-center py-12 text-muted-foreground">Selecciona una sección</div>;
     }
