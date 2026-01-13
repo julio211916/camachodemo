@@ -6,7 +6,7 @@ import {
   FolderOpen, Pill, FileStack, Brain, Scan, Smile, Package, FlaskConical,
   Receipt, DollarSign, Sparkles, Video, PenTool, HardDrive, Eye, FileEdit,
   Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList, Layers,
-  CalendarDays, Wallet, Target, MessageSquare, Settings
+  CalendarDays, Wallet, Target, MessageSquare, Settings, Bell
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -223,6 +223,12 @@ export const DoctorDashboard = () => {
         return <MyProfile />;
       case "administration":
         return <AdministrationModule />;
+      case "reminders":
+        return <AppointmentReminderSystem />;
+      case "treatment-progress":
+        return <TreatmentProgressDashboard />;
+      case "payment-plans":
+        return <PaymentPlanCalculator treatmentTotal={0} />;
       default: 
         return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }
