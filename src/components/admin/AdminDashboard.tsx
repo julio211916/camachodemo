@@ -98,6 +98,7 @@ import { MyProfile } from "@/components/dashboard/MyProfile";
 import { LocationsManager } from "./LocationsManager";
 import { BlogManager } from "./BlogManager";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
+import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerator";
 import { PatientManager } from "@/components/clinic/PatientManager";
 import { Dental3DViewer } from "@/components/clinic/Dental3DViewer";
 import { EnhancedOdontogram } from "@/components/clinic/EnhancedOdontogram";
@@ -151,6 +152,7 @@ export const AdminDashboard = () => {
         { id: "aesthetics", label: "Estética Facial", icon: <Smile className="w-5 h-5" /> },
         { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
         { id: "kanban", label: "Kanban Clínica", icon: <ClipboardList className="w-5 h-5" /> },
+        { id: "treatment-plan", label: "Plan Tratamiento", icon: <Target className="w-5 h-5" /> },
       ]
     },
     {
@@ -337,6 +339,8 @@ export const AdminDashboard = () => {
         return <DocumentTemplates />;
       case "clinical-docs":
         return <ClinicalDocumentsEditor />;
+      case "treatment-plan":
+        return <TreatmentPlanGenerator />;
       case "template-editor":
         return <TemplateEditor />;
       case "signature":

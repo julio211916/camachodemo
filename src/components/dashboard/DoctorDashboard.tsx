@@ -46,6 +46,7 @@ import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerat
 import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
 import { MedicationManager } from "@/components/clinic/MedicationManager";
 import { ComprehensivePatientProfile } from "@/components/clinic/ComprehensivePatientProfile";
+import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerator";
 
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
@@ -91,6 +92,7 @@ export const DoctorDashboard = () => {
         { id: "crm", label: "CRM", icon: <Target className="w-5 h-5" /> },
         { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
         { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
+        { id: "treatment-plan", label: "Plan Tratamiento", icon: <Target className="w-5 h-5" /> },
       ]
     },
     { 
@@ -201,7 +203,9 @@ export const DoctorDashboard = () => {
         return <DocumentTemplates />;
       case "clinical-docs":
         return <ClinicalDocumentsEditor />;
-      case "signature": 
+      case "treatment-plan":
+        return <TreatmentPlanGenerator doctorName={profile?.full_name || "Doctor"} />;
+      case "signature":
         return <DigitalSignature />;
       case "dicom": 
         return <DICOMViewer />;
