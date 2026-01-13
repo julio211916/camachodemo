@@ -106,6 +106,8 @@ import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerat
 import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
 import { MedicationManager } from "@/components/clinic/MedicationManager";
 import { ComprehensivePatientProfile } from "@/components/clinic/ComprehensivePatientProfile";
+import { PaymentPlanCalculator } from "@/components/clinic/PaymentPlanCalculator";
+import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgressDashboard";
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
 import { CRMModule } from "@/components/portal/CRMModule";
@@ -153,6 +155,8 @@ export const AdminDashboard = () => {
         { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
         { id: "kanban", label: "Kanban Clínica", icon: <ClipboardList className="w-5 h-5" /> },
         { id: "treatment-plan", label: "Plan Tratamiento", icon: <Target className="w-5 h-5" /> },
+        { id: "treatment-progress", label: "Progreso Tratamientos", icon: <Activity className="w-5 h-5" /> },
+        { id: "payment-plans", label: "Planes de Pago", icon: <Wallet className="w-5 h-5" /> },
       ]
     },
     {

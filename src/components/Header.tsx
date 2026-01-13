@@ -57,20 +57,10 @@ export const Header = () => {
             : "bg-transparent"
         }`}
       >
-        {/* Top bar */}
+        {/* Top bar - unified controls */}
         <div className={`border-b transition-all duration-300 ${isScrolled ? "border-border/50 py-2" : "border-white/10 py-3"}`}>
-          <div className="container-wide flex items-center justify-between text-sm">
-            <div className={`hidden md:flex items-center gap-6 transition-colors ${isScrolled ? "text-muted-foreground" : "text-white/70"}`}>
-              <a href="tel:+523221837666" className="flex items-center gap-2 hover:text-primary transition-colors">
-                <Phone className="w-4 h-4" />
-                <span>+52 322 183 7666</span>
-              </a>
-              <span className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>Nayarit & Jalisco, México</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+          <div className="container-wide flex items-center justify-end text-sm">
+            <div className="flex items-center gap-2 sm:gap-4">
               <LanguageSelector />
               <ThemeToggle />
               {user ? (

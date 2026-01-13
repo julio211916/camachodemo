@@ -46,6 +46,8 @@ import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerat
 import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
 import { MedicationManager } from "@/components/clinic/MedicationManager";
 import { ComprehensivePatientProfile } from "@/components/clinic/ComprehensivePatientProfile";
+import { PaymentPlanCalculator } from "@/components/clinic/PaymentPlanCalculator";
+import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgressDashboard";
 import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerator";
 
 // Portal Modules
@@ -93,6 +95,8 @@ export const DoctorDashboard = () => {
         { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
         { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
         { id: "treatment-plan", label: "Plan Tratamiento", icon: <Target className="w-5 h-5" /> },
+        { id: "treatment-progress", label: "Progreso", icon: <Activity className="w-5 h-5" /> },
+        { id: "payment-plans", label: "Planes Pago", icon: <Wallet className="w-5 h-5" /> },
       ]
     },
     { 
