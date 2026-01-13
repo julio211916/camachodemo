@@ -57,37 +57,6 @@ export const Header = () => {
             : "bg-transparent"
         }`}
       >
-        {/* Top bar - unified controls */}
-        <div className={`border-b transition-all duration-300 ${isScrolled ? "border-border/50 py-2" : "border-white/10 py-3"}`}>
-          <div className="container-wide flex items-center justify-end text-sm">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <LanguageSelector />
-              <ThemeToggle />
-              {user ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePortalClick}
-                  className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
-                >
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('nav.portal')}</span>
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePortalClick}
-                  className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t('nav.login')}</span>
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* Main nav */}
         <div className={`transition-all duration-300 ${isScrolled ? "py-3" : "py-4"}`}>
           <div className="container-wide flex items-center justify-between">
@@ -139,6 +108,30 @@ export const Header = () => {
               >
                 {t('nav.bookNow')}
               </motion.a>
+              
+              <div className="flex items-center gap-2">
+                <LanguageSelector />
+                <ThemeToggle />
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePortalClick}
+                    className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
+                  >
+                    <User className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePortalClick}
+                    className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
+                  >
+                    <LogIn className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </nav>
 
             {/* Mobile menu button */}
