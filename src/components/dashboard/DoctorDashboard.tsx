@@ -49,6 +49,7 @@ import { ComprehensivePatientProfile } from "@/components/clinic/ComprehensivePa
 import { PaymentPlanCalculator } from "@/components/clinic/PaymentPlanCalculator";
 import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgressDashboard";
 import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerator";
+import { AppointmentReminderSystem } from "@/components/clinic/AppointmentReminderSystem";
 
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
@@ -122,6 +123,7 @@ export const DoctorDashboard = () => {
     { 
       title: "Comunicación", 
       items: [
+        { id: "reminders", label: "Recordatorios", icon: <Bell className="w-5 h-5" /> },
         { id: "telemedicine", label: "Telemedicina", icon: <Video className="w-5 h-5" /> },
       ]
     },
