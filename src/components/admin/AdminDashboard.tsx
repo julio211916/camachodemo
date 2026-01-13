@@ -103,7 +103,8 @@ import { Dental3DViewer } from "@/components/clinic/Dental3DViewer";
 import { EnhancedOdontogram } from "@/components/clinic/EnhancedOdontogram";
 import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
-
+import { MedicationManager } from "@/components/clinic/MedicationManager";
+import { ComprehensivePatientProfile } from "@/components/clinic/ComprehensivePatientProfile";
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
 import { CRMModule } from "@/components/portal/CRMModule";
@@ -143,6 +144,9 @@ export const AdminDashboard = () => {
       title: "Clínica",
       items: [
         { id: "doctors", label: "Doctores", icon: <Stethoscope className="w-5 h-5" /> },
+        { id: "enhanced-odontogram", label: "Odontograma", icon: <Stethoscope className="w-5 h-5" /> },
+        { id: "dental-3d", label: "Visor 3D Dental", icon: <Box className="w-5 h-5" /> },
+        { id: "patient-profile", label: "Perfil Paciente", icon: <User className="w-5 h-5" /> },
         { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
         { id: "aesthetics", label: "Estética Facial", icon: <Smile className="w-5 h-5" /> },
         { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
@@ -156,6 +160,7 @@ export const AdminDashboard = () => {
         { id: "invoicing", label: "Facturación", icon: <Receipt className="w-5 h-5" /> },
         { id: "expenses", label: "Gastos", icon: <DollarSign className="w-5 h-5" /> },
         { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
+        { id: "medications", label: "Medicamentos", icon: <Pill className="w-5 h-5" /> },
       ]
     },
     {
@@ -300,6 +305,14 @@ export const AdminDashboard = () => {
         return <ExpensesManager />;
       case "inventory":
         return <InventoryManager />;
+      case "medications":
+        return <MedicationManager />;
+      case "enhanced-odontogram":
+        return <EnhancedOdontogram patientId="demo-patient" />;
+      case "dental-3d":
+        return <Dental3DViewer />;
+      case "patient-profile":
+        return <ComprehensivePatientProfile patientId="demo-patient" />;
       case "xray":
         return <XRayAnalysis />;
       case "ai-reports":
