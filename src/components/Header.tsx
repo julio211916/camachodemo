@@ -48,9 +48,9 @@ export const Header = () => {
   return (
     <>
       <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
             ? "bg-background/95 backdrop-blur-md shadow-lg"
@@ -187,11 +187,50 @@ export const Header = () => {
                     </motion.a>
                   )
                 ))}
+                
+                {/* Mobile controls */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex items-center justify-center gap-4 mt-4"
+                >
+                  <LanguageSelector />
+                  <ThemeToggle />
+                  {user ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        handlePortalClick();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="gap-2"
+                    >
+                      <User className="w-4 h-4" />
+                      {t('nav.portal')}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        handlePortalClick();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="gap-2"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      {t('nav.login')}
+                    </Button>
+                  )}
+                </motion.div>
+
                 <motion.a
                   href="#reservar"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
+                  transition={{ delay: 0.7 }}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="btn-primary mt-4 text-center"
                 >
