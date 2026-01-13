@@ -108,6 +108,7 @@ import { MedicationManager } from "@/components/clinic/MedicationManager";
 import { ComprehensivePatientProfile } from "@/components/clinic/ComprehensivePatientProfile";
 import { PaymentPlanCalculator } from "@/components/clinic/PaymentPlanCalculator";
 import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgressDashboard";
+import { AppointmentReminderSystem } from "@/components/clinic/AppointmentReminderSystem";
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
 import { CRMModule } from "@/components/portal/CRMModule";
@@ -181,6 +182,7 @@ export const AdminDashboard = () => {
       title: "Comunicación",
       items: [
         { id: "contact-center", label: "Contact Center", icon: <Headphones className="w-5 h-5" /> },
+        { id: "reminders", label: "Recordatorios", icon: <Bell className="w-5 h-5" /> },
         { id: "chat", label: "Chat Interno", icon: <MessagesSquare className="w-5 h-5" /> },
         { id: "telemedicine", label: "Telemedicina", icon: <Video className="w-5 h-5" /> },
         { id: "reviews", label: "Reseñas", icon: <MessageSquare className="w-5 h-5" /> },
@@ -327,6 +329,8 @@ export const AdminDashboard = () => {
         return <SmileSimulator />;
       case "contact-center":
         return <ContactCenterModule />;
+      case "reminders":
+        return <AppointmentReminderSystem />;
       case "chat":
         return <InternalChatModule />;
       case "telemedicine":

@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, FileText, DollarSign, CreditCard, Printer, Download, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Loader2, Plus, FileText, DollarSign, CreditCard, Printer, Download, CheckCircle, Clock, AlertCircle, Mail, Send } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -273,6 +273,36 @@ export const InvoicingModule = () => {
     }
   };
 
+  const sendInvoiceEmail = async (invoice: Invoice) => {
+    if (!invoice.patient_email) {
+      toast({ title: "Error", description: "El paciente no tiene email registrado", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('send-invoice-email', {
+        body: {
+          invoiceId: invoice.id,
+          patientEmail: invoice.patient_email,
+          patientName: invoice.patient_name,
+          invoiceNumber: invoice.invoice_number,
+          total: invoice.total,
+          subtotal: invoice.subtotal,
+          taxAmount: invoice.tax_amount,
+          discountAmount: invoice.discount_amount || 0,
+          dueDate: invoice.due_date ? format(new Date(invoice.due_date), "d 'de' MMMM, yyyy", { locale: es }) : null,
+          items: [],
+        },
+      });
+
+      if (error) throw error;
+      toast({ title: "Email enviado", description: `Factura enviada a ${invoice.patient_email}` });
+    } catch (error: any) {
+      console.error('Error sending invoice email:', error);
+      toast({ title: "Error", description: "No se pudo enviar el email", variant: "destructive" });
+    }
+  };
+
   const generatePDF = async (invoice: Invoice) => {
     // Create printable content
     const printWindow = window.open('', '_blank');
@@ -495,9 +525,21 @@ export const InvoicingModule = () => {
                           variant="ghost"
                           className="h-8 w-8"
                           onClick={() => generatePDF(invoice)}
+                          title="Imprimir"
                         >
                           <Printer className="w-4 h-4" />
                         </Button>
+                        {invoice.patient_email && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={() => sendInvoiceEmail(invoice)}
+                            title="Enviar por email"
+                          >
+                            <Mail className="w-4 h-4 text-blue-600" />
+                          </Button>
+                        )}
                         {invoice.status !== 'paid' && invoice.status !== 'cancelled' && (
                           <Button
                             size="icon"
