@@ -99,6 +99,8 @@ import { LocationsManager } from "./LocationsManager";
 import { BlogManager } from "./BlogManager";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
+import { Dental3DViewer } from "@/components/clinic/Dental3DViewer";
+import { EnhancedOdontogram } from "@/components/clinic/EnhancedOdontogram";
 import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
 
