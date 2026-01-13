@@ -100,6 +100,7 @@ import { BlogManager } from "./BlogManager";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
 import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
+import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
 
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
@@ -179,6 +180,7 @@ export const AdminDashboard = () => {
         { id: "gallery", label: "Galería", icon: <ImageIcon className="w-5 h-5" /> },
         { id: "prescriptions", label: "Recetas", icon: <Pill className="w-5 h-5" /> },
         { id: "templates", label: "Plantillas Doc", icon: <FileStack className="w-5 h-5" /> },
+        { id: "clinical-docs", label: "Docs Clínicos", icon: <ClipboardList className="w-5 h-5" /> },
         { id: "template-editor", label: "Editor Plantillas", icon: <FileEdit className="w-5 h-5" /> },
         { id: "signature", label: "Firma Digital", icon: <PenTool className="w-5 h-5" /> },
       ]
@@ -318,6 +320,8 @@ export const AdminDashboard = () => {
         return <PrescriptionManager />;
       case "templates":
         return <DocumentTemplates />;
+      case "clinical-docs":
+        return <ClinicalDocumentsEditor />;
       case "template-editor":
         return <TemplateEditor />;
       case "signature":
