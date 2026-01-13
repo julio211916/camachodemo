@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Calendar, Clock, FileText, User, Activity, Heart, Gift, FolderOpen, Box, Camera, QrCode, Image as ImageIcon, Stethoscope } from "lucide-react";
+import { Calendar, Clock, FileText, User, Activity, Heart, Gift, FolderOpen, Box, Camera, QrCode, Image as ImageIcon, Stethoscope, Receipt, CreditCard } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
 import { ContentCard, PageHeader } from "@/components/layout/ContentCard";
@@ -18,6 +18,7 @@ import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { Model3DViewer } from "@/components/clinic/Model3DViewer";
 import { MyProfile } from "@/components/dashboard/MyProfile";
+import { PatientPortalView } from "@/components/portal/PatientPortalView";
 
 export const PatientDashboard = () => {
   const { user, profile } = useAuth();
@@ -47,9 +48,10 @@ export const PatientDashboard = () => {
   const navGroups: NavGroup[] = useMemo(() => [
     { title: "Principal", items: [
       { id: "dashboard", label: "Resumen", icon: <Calendar className="w-5 h-5" /> },
+      { id: "portal", label: "Mi Portal", icon: <User className="w-5 h-5" /> },
       { id: "appointments", label: "Mis Citas", icon: <Clock className="w-5 h-5" />, badge: upcomingAppointments.length },
       { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
-      { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
+      { id: "invoices", label: "Facturas", icon: <Receipt className="w-5 h-5" /> },
     ]},
     { title: "Clínico", items: [
       { id: "odontogram", label: "Odontograma", icon: <Stethoscope className="w-5 h-5" /> },
@@ -78,6 +80,8 @@ export const PatientDashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case "dashboard": return <><PageHeader title="Mi Portal" subtitle={`Bienvenido, ${profile?.full_name || 'Paciente'}`} /><StatsGrid stats={stats} /></>;
+      case "portal": return <PatientPortalView />;
+      case "invoices": return <PatientPortalView />;
       case "odontogram": return <Odontogram patientId={user?.id || ''} />;
       case "medical": return <MedicalHistory patientId={user?.id || ''} />;
       case "files": return <AdvancedFileManager patientId={user?.id || ''} />;
