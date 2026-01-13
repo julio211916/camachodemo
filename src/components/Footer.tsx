@@ -92,7 +92,7 @@ export const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-background/70 dark:text-muted-foreground">
                 <MapPin className="w-5 h-5 mt-0.5 text-primary flex-shrink-0" />
-                <span>Nayarit & Jalisco, México</span>
+                <span>Jalisco, México</span>
               </li>
               <li>
                 <a
