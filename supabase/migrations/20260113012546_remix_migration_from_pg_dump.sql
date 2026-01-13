@@ -196,6 +196,28 @@ CREATE TABLE public.appointments (
 
 
 --
+-- Name: blog_posts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.blog_posts (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    title text NOT NULL,
+    slug text NOT NULL,
+    excerpt text,
+    content text NOT NULL,
+    cover_image text,
+    author_id uuid,
+    author_name text,
+    is_published boolean DEFAULT false,
+    published_at timestamp with time zone,
+    display_order integer DEFAULT 0,
+    tags text[],
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: cash_register; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -417,6 +439,26 @@ CREATE TABLE public.lab_orders (
 
 
 --
+-- Name: locations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.locations (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    address text NOT NULL,
+    phone text NOT NULL,
+    map_url text,
+    directions_url text,
+    city text,
+    state text,
+    is_active boolean DEFAULT true,
+    display_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: medical_history; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -514,6 +556,20 @@ CREATE TABLE public.patient_documents (
 
 
 --
+-- Name: patient_notes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.patient_notes (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    patient_id uuid NOT NULL,
+    note text NOT NULL,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: payments; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -566,7 +622,12 @@ CREATE TABLE public.profiles (
     date_of_birth date,
     address text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    gender text,
+    birth_year integer,
+    tags text[] DEFAULT '{}'::text[],
+    is_archived boolean DEFAULT false,
+    notes text
 );
 
 
@@ -702,6 +763,22 @@ ALTER TABLE ONLY public.appointments
 
 
 --
+-- Name: blog_posts blog_posts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blog_posts
+    ADD CONSTRAINT blog_posts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: blog_posts blog_posts_slug_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blog_posts
+    ADD CONSTRAINT blog_posts_slug_key UNIQUE (slug);
+
+
+--
 -- Name: cash_register cash_register_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -806,6 +883,14 @@ ALTER TABLE ONLY public.lab_orders
 
 
 --
+-- Name: locations locations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.locations
+    ADD CONSTRAINT locations_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: medical_history medical_history_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -851,6 +936,14 @@ ALTER TABLE ONLY public.orthodontics_visits
 
 ALTER TABLE ONLY public.patient_documents
     ADD CONSTRAINT patient_documents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: patient_notes patient_notes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.patient_notes
+    ADD CONSTRAINT patient_notes_pkey PRIMARY KEY (id);
 
 
 --
@@ -1042,6 +1135,13 @@ CREATE TRIGGER update_appointments_updated_at BEFORE UPDATE ON public.appointmen
 
 
 --
+-- Name: blog_posts update_blog_posts_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_blog_posts_updated_at BEFORE UPDATE ON public.blog_posts FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: doctors update_doctors_updated_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -1074,6 +1174,13 @@ CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON public.invoices FOR E
 --
 
 CREATE TRIGGER update_lab_orders_updated_at BEFORE UPDATE ON public.lab_orders FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: locations update_locations_updated_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_locations_updated_at BEFORE UPDATE ON public.locations FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 
 --
@@ -1124,6 +1231,14 @@ CREATE TRIGGER update_treatments_updated_at BEFORE UPDATE ON public.treatments F
 
 ALTER TABLE ONLY public.appointments
     ADD CONSTRAINT appointments_doctor_id_fkey FOREIGN KEY (doctor_id) REFERENCES public.doctors(id);
+
+
+--
+-- Name: blog_posts blog_posts_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.blog_posts
+    ADD CONSTRAINT blog_posts_author_id_fkey FOREIGN KEY (author_id) REFERENCES auth.users(id);
 
 
 --
@@ -1366,6 +1481,20 @@ CREATE POLICY "Anyone can view active doctors" ON public.doctors FOR SELECT USIN
 
 
 --
+-- Name: locations Anyone can view active locations; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Anyone can view active locations" ON public.locations FOR SELECT USING ((is_active = true));
+
+
+--
+-- Name: blog_posts Anyone can view published posts; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Anyone can view published posts" ON public.blog_posts FOR SELECT USING ((is_published = true));
+
+
+--
 -- Name: patient_documents Clinical staff can manage documents; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1464,6 +1593,13 @@ CREATE POLICY "Patients can view their own medical history" ON public.medical_hi
 
 
 --
+-- Name: patient_notes Patients can view their own notes; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Patients can view their own notes" ON public.patient_notes FOR SELECT USING ((patient_id = auth.uid()));
+
+
+--
 -- Name: treatments Patients can view their own treatments; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1548,6 +1684,13 @@ CREATE POLICY "Staff can manage lab orders" ON public.lab_orders USING ((public.
 
 
 --
+-- Name: locations Staff can manage locations; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage locations" ON public.locations USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
+
+
+--
 -- Name: medical_history Staff can manage medical history; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1555,10 +1698,24 @@ CREATE POLICY "Staff can manage medical history" ON public.medical_history USING
 
 
 --
+-- Name: patient_notes Staff can manage patient notes; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage patient notes" ON public.patient_notes USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role) OR public.has_role(auth.uid(), 'doctor'::public.app_role)));
+
+
+--
 -- Name: payments Staff can manage payments; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Staff can manage payments" ON public.payments USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
+
+
+--
+-- Name: blog_posts Staff can manage posts; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage posts" ON public.blog_posts USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
 
 
 --
@@ -1608,6 +1765,13 @@ CREATE POLICY "Staff can view all appointments" ON public.appointments FOR SELEC
 --
 
 CREATE POLICY "Staff can view all medical history" ON public.medical_history FOR SELECT USING ((public.has_role(auth.uid(), 'doctor'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
+
+
+--
+-- Name: blog_posts Staff can view all posts; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can view all posts" ON public.blog_posts FOR SELECT USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
 
 
 --
@@ -1693,6 +1857,12 @@ ALTER TABLE public.ai_chat_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: blog_posts; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: cash_register; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -1759,6 +1929,12 @@ ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lab_orders ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: locations; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.locations ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: medical_history; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -1787,6 +1963,12 @@ ALTER TABLE public.orthodontics_visits ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.patient_documents ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: patient_notes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.patient_notes ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: payments; Type: ROW SECURITY; Schema: public; Owner: -
