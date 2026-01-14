@@ -3,13 +3,13 @@ import {
   Calendar, Clock, Users, Activity, TrendingUp, 
   CalendarDays, CheckCircle2, Wallet
 } from 'lucide-react';
-import { DraggableGridLayout, GridWidget } from '@/components/layout/DraggableGridLayout';
+import { GridStackLayout, GridWidget } from '@/components/layout/GridStackLayout';
 import { StatsGrid } from '@/components/layout/DashboardStats';
-import { ContentCard, PageHeader } from '@/components/layout/ContentCard';
+import { PageHeader } from '@/components/layout/ContentCard';
 import { AdminAppointmentsList } from '@/components/admin/AdminAppointmentsList';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
-import { useDashboardLayout } from '@/hooks/useDashboardLayout';
-import { isToday, parseISO, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
+import { useGridStackLayout } from '@/hooks/useGridStackLayout';
+import { isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 
 interface DashboardWidgetsProps {
   appointments: any[];
@@ -73,16 +73,20 @@ export const DashboardWidgets = ({
     ];
   }, [appointments, treatments, todayAppointments, weekAppointments, userRole]);
 
-  // Define default widgets
+  // Define default widgets with GridStack positioning
   const defaultWidgets: GridWidget[] = useMemo(() => [
     {
       id: 'stats',
       title: 'Estadísticas',
       icon: <TrendingUp className="w-4 h-4" />,
       component: <StatsGrid stats={stats} />,
-      colSpan: 4,
-      rowSpan: 1,
-      locked: true,
+      x: 0,
+      y: 0,
+      w: 12,
+      h: 2,
+      minW: 6,
+      minH: 2,
+      locked: false,
       visible: true
     },
     {
@@ -90,8 +94,12 @@ export const DashboardWidgets = ({
       title: 'Citas Recientes',
       icon: <CalendarDays className="w-4 h-4" />,
       component: <AdminAppointmentsList appointments={appointments.slice(0, 5)} compact />,
-      colSpan: 2,
-      rowSpan: 2,
+      x: 0,
+      y: 2,
+      w: 6,
+      h: 3,
+      minW: 4,
+      minH: 2,
       visible: true
     },
     {
@@ -99,8 +107,12 @@ export const DashboardWidgets = ({
       title: 'Analytics Rápido',
       icon: <Activity className="w-4 h-4" />,
       component: <AnalyticsDashboard />,
-      colSpan: 2,
-      rowSpan: 2,
+      x: 6,
+      y: 2,
+      w: 6,
+      h: 3,
+      minW: 4,
+      minH: 2,
       visible: true
     },
     {
@@ -123,8 +135,12 @@ export const DashboardWidgets = ({
           </div>
         </div>
       ),
-      colSpan: 1,
-      rowSpan: 1,
+      x: 0,
+      y: 5,
+      w: 4,
+      h: 2,
+      minW: 3,
+      minH: 2,
       visible: true
     },
     {
@@ -150,18 +166,22 @@ export const DashboardWidgets = ({
           </div>
         </div>
       ),
-      colSpan: 1,
-      rowSpan: 1,
+      x: 4,
+      y: 5,
+      w: 4,
+      h: 2,
+      minW: 3,
+      minH: 2,
       visible: true
     }
   ], [stats, appointments, todayAppointments, weekAppointments]);
 
   const { 
     widgets, 
-    columns, 
     isLoaded, 
-    handleWidgetsChange 
-  } = useDashboardLayout(`${userRole}-dashboard`, defaultWidgets);
+    handleWidgetsChange,
+    resetLayout
+  } = useGridStackLayout(`${userRole}-dashboard`, defaultWidgets);
 
   if (!isLoaded) {
     return <div className="animate-pulse h-64 bg-muted rounded-lg" />;
@@ -183,11 +203,14 @@ export const DashboardWidgets = ({
         title="Dashboard" 
         subtitle={userName ? `Bienvenido de vuelta, ${userName}` : undefined}
       />
-      <DraggableGridLayout
+      <GridStackLayout
         widgets={widgetsWithComponents}
         onWidgetsChange={handleWidgetsChange}
-        columns={columns}
+        columns={12}
+        cellHeight={80}
+        gap={10}
         editable={true}
+        onReset={resetLayout}
       />
     </div>
   );
