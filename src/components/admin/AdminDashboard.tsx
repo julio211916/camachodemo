@@ -52,6 +52,7 @@ import {
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
 import { ContentCard, PageHeader } from "@/components/layout/ContentCard";
+import { DashboardWidgets } from "@/components/dashboard/DashboardWidgets";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useRealtimeAppointments, useRealtimeReviews } from "@/hooks/useRealtimeNotifications";
@@ -277,21 +278,11 @@ export const AdminDashboard = () => {
     switch (activeSection) {
       case "dashboard":
         return (
-          <div className="space-y-6">
-            <PageHeader 
-              title="Dashboard" 
-              subtitle={`Bienvenido de vuelta, ${user?.email}`}
-            />
-            <StatsGrid stats={stats} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ContentCard title="Citas Recientes" icon={CalendarDays}>
-                <AdminAppointmentsList appointments={appointments.slice(0, 5)} compact />
-              </ContentCard>
-              <ContentCard title="Analytics Rápido" icon={BarChart3}>
-                <AnalyticsDashboard />
-              </ContentCard>
-            </div>
-          </div>
+          <DashboardWidgets 
+            appointments={appointments} 
+            userRole="admin" 
+            userName={user?.email}
+          />
         );
       // Portal Modules
       case "agenda":

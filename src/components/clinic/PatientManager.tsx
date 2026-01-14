@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Plus, Archive, Download, MoreHorizontal, 
@@ -27,6 +27,7 @@ import { InteractiveOdontogram } from "./InteractiveOdontogram";
 import { PatientQRCode } from "./PatientQRCode";
 import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
 import { Model3DViewerWithAnnotations } from "./Model3DViewerWithAnnotations";
+import { animate } from "animejs";
 
 interface Patient {
   id: string;
@@ -94,6 +95,10 @@ export const PatientManager = () => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState<string | null>(null);
   const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+  
+  // Ref for animated fields
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  const submitButtonRef = useRef<HTMLButtonElement>(null);
   
   // Form state for editing
   const [editForm, setEditForm] = useState({
@@ -333,15 +338,57 @@ export const PatientManager = () => {
     reader.readAsDataURL(file);
   };
 
+  // Animation handlers
+  const handleAddressInputFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
+    animate(e.target, {
+      scale: [1, 1.02, 1],
+      boxShadow: [
+        '0 0 0 0 hsl(var(--primary) / 0)',
+        '0 0 0 3px hsl(var(--primary) / 0.15)',
+        '0 0 0 2px hsl(var(--primary) / 0.1)'
+      ],
+      duration: 300,
+      easing: 'easeOutQuad'
+    });
+  }, []);
+
+  const animateValidationError = useCallback((element: HTMLElement | null) => {
+    if (!element) return;
+    animate(element, {
+      translateX: [0, -6, 6, -4, 4, 0],
+      borderColor: ['hsl(var(--destructive))', 'hsl(var(--border))'],
+      duration: 400,
+      easing: 'easeInOutQuad'
+    });
+  }, []);
+
+  const animateSuccess = useCallback((element: HTMLElement | null) => {
+    if (!element) return;
+    animate(element, {
+      scale: [1, 1.05, 1],
+      duration: 300,
+      easing: 'easeOutBack'
+    });
+  }, []);
+
   const handleCreatePatient = () => {
     if (!newPatientForm.full_name.trim()) {
       toast({ title: "Error", description: "El nombre es requerido", variant: "destructive" });
+      // Animate error on name field
+      const nameInput = document.querySelector('input[placeholder="Nombre del paciente"]') as HTMLElement;
+      animateValidationError(nameInput);
       return;
     }
     if (!newPatientForm.email.trim()) {
       toast({ title: "Error", description: "El email es requerido", variant: "destructive" });
+      // Animate error on email field
+      const emailInput = document.querySelector('input[placeholder="correo@ejemplo.com"]') as HTMLElement;
+      animateValidationError(emailInput);
       return;
     }
+    
+    // Animate submit button on success
+    animateSuccess(submitButtonRef.current);
     createPatientMutation.mutate(newPatientForm);
   };
 
@@ -938,9 +985,12 @@ export const PatientManager = () => {
                 <div>
                   <Label>Dirección</Label>
                   <Input
+                    ref={addressInputRef}
                     value={newPatientForm.address}
                     onChange={(e) => setNewPatientForm({ ...newPatientForm, address: e.target.value })}
+                    onFocus={handleAddressInputFocus}
                     placeholder="Dirección"
+                    className="transition-all duration-200"
                   />
                 </div>
               </div>
@@ -989,9 +1039,10 @@ export const PatientManager = () => {
               Cancelar
             </Button>
             <Button 
+              ref={submitButtonRef}
               onClick={handleCreatePatient}
               disabled={createPatientMutation.isPending}
-              className="gap-2"
+              className="gap-2 transition-all"
             >
               {createPatientMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

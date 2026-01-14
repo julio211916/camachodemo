@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Ruler, PenTool } from "lucide-react";
+import { Settings, Ruler, PenTool, Layers } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,6 +16,7 @@ import { ViewportCanvas } from "./ViewportCanvas";
 import { Toolbar } from "./Toolbar";
 import { UploadDialog, ExportDialog, AboutDialog } from "./Dialogs";
 import { MeasurementTools, MeasurementOverlay, Measurement, Annotation } from "./MeasurementTools";
+import { MultiViewDICOM } from "./MultiViewDICOM";
 
 interface DiagnocatViewerProps {
   patientId?: string;
@@ -58,6 +59,9 @@ export const DiagnocatViewer = ({ patientId, patientName, onClose }: DiagnocatVi
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [activeMeasurementTool, setActiveMeasurementTool] = useState<'select' | 'measure-distance' | 'measure-angle' | 'annotate-point' | 'annotate-text' | null>(null);
   const [sidebarTab, setSidebarTab] = useState<'objects' | 'measurements'>('objects');
+  
+  // View mode state (3D vs DICOM)
+  const [viewMode, setViewMode] = useState<'3d' | 'dicom'>('3d');
 
   // Measurement handlers
   const handleAddMeasurement = (measurement: Omit<Measurement, 'id' | 'createdAt'>) => {
@@ -214,140 +218,170 @@ export const DiagnocatViewer = ({ patientId, patientName, onClose }: DiagnocatVi
 
   return (
     <Card className={`${isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''} flex flex-col`}>
-      <Toolbar
-        patientName={patientName}
-        modelName={modelName}
-        gridEnabled={gridEnabled}
-        crosshairEnabled={crosshairEnabled}
-        lightingIntensity={lightingIntensity}
-        objectsPanelOpen={objectsPanelOpen}
-        wireframe={wireframe}
-        autoRotate={autoRotate}
-        isFullscreen={isFullscreen}
-        onToggleGrid={() => setGridEnabled(!gridEnabled)}
-        onToggleCrosshair={() => setCrosshairEnabled(!crosshairEnabled)}
-        onChangeLighting={setLightingIntensity}
-        onToggleObjectsPanel={() => setObjectsPanelOpen(!objectsPanelOpen)}
-        onToggleWireframe={() => setWireframe(!wireframe)}
-        onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
-        onUpload={() => setShowUploadDialog(true)}
-        onExport={() => setShowExportDialog(true)}
-        onAbout={() => setShowAboutDialog(true)}
-        onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
-      />
+      <div className="flex items-center justify-between p-2 border-b bg-muted/30">
+        <Toolbar
+          patientName={patientName}
+          modelName={modelName}
+          gridEnabled={gridEnabled}
+          crosshairEnabled={crosshairEnabled}
+          lightingIntensity={lightingIntensity}
+          objectsPanelOpen={objectsPanelOpen}
+          wireframe={wireframe}
+          autoRotate={autoRotate}
+          isFullscreen={isFullscreen}
+          onToggleGrid={() => setGridEnabled(!gridEnabled)}
+          onToggleCrosshair={() => setCrosshairEnabled(!crosshairEnabled)}
+          onChangeLighting={setLightingIntensity}
+          onToggleObjectsPanel={() => setObjectsPanelOpen(!objectsPanelOpen)}
+          onToggleWireframe={() => setWireframe(!wireframe)}
+          onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
+          onUpload={() => setShowUploadDialog(true)}
+          onExport={() => setShowExportDialog(true)}
+          onAbout={() => setShowAboutDialog(true)}
+          onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+        />
+        
+        {/* View Mode Toggle */}
+        <div className="flex items-center gap-2 pr-2">
+          <Button
+            variant={viewMode === '3d' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('3d')}
+            className="gap-1.5"
+          >
+            <Settings className="w-4 h-4" />
+            3D
+          </Button>
+          <Button
+            variant={viewMode === 'dicom' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setViewMode('dicom')}
+            className="gap-1.5"
+          >
+            <Layers className="w-4 h-4" />
+            DICOM
+          </Button>
+        </div>
+      </div>
 
       <CardContent className="p-0 flex-1">
-        <div className="flex h-[calc(100vh-16rem)]" style={{ minHeight: '550px' }}>
-          {/* Sidebar */}
-          <AnimatePresence>
-            {objectsPanelOpen && (
-              <motion.div
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 300, opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                className="border-r bg-card flex flex-col overflow-hidden"
-              >
-                <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as any)} className="flex-1 flex flex-col">
-                  <TabsList className="w-full rounded-none border-b justify-start h-10 bg-transparent p-0">
-                    <TabsTrigger value="objects" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary flex gap-1.5 px-4">
-                      <Settings className="w-3.5 h-3.5" />
-                      Objetos
-                    </TabsTrigger>
-                    <TabsTrigger value="measurements" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary flex gap-1.5 px-4">
-                      <Ruler className="w-3.5 h-3.5" />
-                      Medidas
-                      {measurements.length > 0 && (
-                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{measurements.length}</Badge>
-                      )}
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="objects" className="flex-1 mt-0 overflow-hidden flex flex-col">
-                    <ScrollArea className="flex-1">
-                      <ObjectTree
-                        objects={sceneObjects}
-                        selectedId={selectedObjectId}
-                        onSelect={setSelectedObjectId}
-                        onToggleVisibility={toggleVisibility}
-                        onToggleExpand={toggleExpand}
-                        onChangeColor={changeColor}
-                        onChangeOpacity={changeOpacity}
-                      />
-                    </ScrollArea>
+        {viewMode === 'dicom' ? (
+          <MultiViewDICOM patientId={patientId} onClose={() => setViewMode('3d')} />
+        ) : (
+          <div className="flex h-[calc(100vh-16rem)]" style={{ minHeight: '550px' }}>
+            {/* Sidebar */}
+            <AnimatePresence>
+              {objectsPanelOpen && (
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 300, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  className="border-r bg-card flex flex-col overflow-hidden"
+                >
+                  <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as any)} className="flex-1 flex flex-col">
+                    <TabsList className="w-full rounded-none border-b justify-start h-10 bg-transparent p-0">
+                      <TabsTrigger value="objects" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary flex gap-1.5 px-4">
+                        <Settings className="w-3.5 h-3.5" />
+                        Objetos
+                      </TabsTrigger>
+                      <TabsTrigger value="measurements" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary flex gap-1.5 px-4">
+                        <Ruler className="w-3.5 h-3.5" />
+                        Medidas
+                        {measurements.length > 0 && (
+                          <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{measurements.length}</Badge>
+                        )}
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="objects" className="flex-1 mt-0 overflow-hidden flex flex-col">
+                      <ScrollArea className="flex-1">
+                        <ObjectTree
+                          objects={sceneObjects}
+                          selectedId={selectedObjectId}
+                          onSelect={setSelectedObjectId}
+                          onToggleVisibility={toggleVisibility}
+                          onToggleExpand={toggleExpand}
+                          onChangeColor={changeColor}
+                          onChangeOpacity={changeOpacity}
+                        />
+                      </ScrollArea>
 
-                    {cloudModels && cloudModels.length > 0 && (
-                      <div className="border-t p-2">
-                        <span className="text-xs font-medium text-muted-foreground">Modelos del Paciente</span>
-                        <div className="mt-2 space-y-1 max-h-32 overflow-auto">
-                          {cloudModels.map((model: any) => (
-                            <button
-                              key={model.id}
-                              onClick={() => loadCloudModel(model)}
-                              className="w-full text-left text-xs p-1.5 rounded hover:bg-secondary truncate"
-                            >
-                              {model.file_name}
-                            </button>
-                          ))}
+                      {cloudModels && cloudModels.length > 0 && (
+                        <div className="border-t p-2">
+                          <span className="text-xs font-medium text-muted-foreground">Modelos del Paciente</span>
+                          <div className="mt-2 space-y-1 max-h-32 overflow-auto">
+                            {cloudModels.map((model: any) => (
+                              <button
+                                key={model.id}
+                                onClick={() => loadCloudModel(model)}
+                                className="w-full text-left text-xs p-1.5 rounded hover:bg-secondary truncate"
+                              >
+                                {model.file_name}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </TabsContent>
-                  
-                  <TabsContent value="measurements" className="flex-1 mt-0 overflow-hidden">
-                    <MeasurementTools
-                      measurements={measurements}
-                      annotations={annotations}
-                      activeTool={activeMeasurementTool}
-                      onToolChange={setActiveMeasurementTool}
-                      onAddMeasurement={handleAddMeasurement}
-                      onUpdateMeasurement={handleUpdateMeasurement}
-                      onDeleteMeasurement={handleDeleteMeasurement}
-                      onAddAnnotation={handleAddAnnotation}
-                      onUpdateAnnotation={handleUpdateAnnotation}
-                      onDeleteAnnotation={handleDeleteAnnotation}
-                      onClearAll={handleClearAll}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="measurements" className="flex-1 mt-0 overflow-hidden">
+                      <MeasurementTools
+                        measurements={measurements}
+                        annotations={annotations}
+                        activeTool={activeMeasurementTool}
+                        onToolChange={setActiveMeasurementTool}
+                        onAddMeasurement={handleAddMeasurement}
+                        onUpdateMeasurement={handleUpdateMeasurement}
+                        onDeleteMeasurement={handleDeleteMeasurement}
+                        onAddAnnotation={handleAddAnnotation}
+                        onUpdateAnnotation={handleUpdateAnnotation}
+                        onDeleteAnnotation={handleDeleteAnnotation}
+                        onClearAll={handleClearAll}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {/* Viewports Grid */}
-          <div className="flex-1 p-2 grid grid-cols-2 grid-rows-2 gap-2 bg-muted/30">
-            {viewports.map((viewport) => (
-              <ViewportCanvas
-                key={viewport.id}
-                viewport={viewport}
-                isActive={activeViewport === viewport.id}
-                onActivate={() => setActiveViewport(viewport.id)}
-                onFullscreen={() => setFullscreenViewport(viewport.id)}
-                showCrosshair={crosshairEnabled}
-                showGrid={gridEnabled}
-                lightIntensity={lightingIntensity}
-                modelUrl={modelUrl}
-                modelType={modelType}
-                sceneObjects={sceneObjects}
-                wireframe={wireframe}
-                autoRotate={autoRotate}
-              />
-            ))}
+            {/* Viewports Grid */}
+            <div className="flex-1 p-2 grid grid-cols-2 grid-rows-2 gap-2 bg-muted/30">
+              {viewports.map((viewport) => (
+                <ViewportCanvas
+                  key={viewport.id}
+                  viewport={viewport}
+                  isActive={activeViewport === viewport.id}
+                  onActivate={() => setActiveViewport(viewport.id)}
+                  onFullscreen={() => setFullscreenViewport(viewport.id)}
+                  showCrosshair={crosshairEnabled}
+                  showGrid={gridEnabled}
+                  lightIntensity={lightingIntensity}
+                  modelUrl={modelUrl}
+                  modelType={modelType}
+                  sceneObjects={sceneObjects}
+                  wireframe={wireframe}
+                  autoRotate={autoRotate}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Status Bar */}
-        <div className="p-2 border-t bg-muted/30 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span>🖱️ Arrastrar: Rotar</span>
-            <span>Scroll: Zoom</span>
-            <span>Clic derecho: Desplazar</span>
+        {/* Status Bar - only show in 3D mode */}
+        {viewMode === '3d' && (
+          <div className="p-2 border-t bg-muted/30 flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <span>🖱️ Arrastrar: Rotar</span>
+              <span>Scroll: Zoom</span>
+              <span>Clic derecho: Desplazar</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant="outline" className="gap-1"><div className="w-2 h-2 rounded-full bg-purple-500" />Maxila</Badge>
+              <Badge variant="outline" className="gap-1"><div className="w-2 h-2 rounded-full bg-blue-400" />Mandíbula</Badge>
+              <Badge variant="outline" className="gap-1"><div className="w-2 h-2 rounded-full bg-orange-400" />Canal</Badge>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="gap-1"><div className="w-2 h-2 rounded-full bg-purple-500" />Maxila</Badge>
-            <Badge variant="outline" className="gap-1"><div className="w-2 h-2 rounded-full bg-blue-400" />Mandíbula</Badge>
-            <Badge variant="outline" className="gap-1"><div className="w-2 h-2 rounded-full bg-orange-400" />Canal</Badge>
-          </div>
-        </div>
+        )}
       </CardContent>
 
       {/* Dialogs */}
