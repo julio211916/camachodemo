@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 
 // Import clinic modules
 import { EnhancedOdontogram } from "./EnhancedOdontogram";
-import { Dental3DViewer } from "./Dental3DViewer";
+import { DiagnocatViewer } from "./DiagnocatViewer";
 import { MedicalHistory } from "./MedicalHistory";
 import { InteractiveOdontogram } from "./InteractiveOdontogram";
 
