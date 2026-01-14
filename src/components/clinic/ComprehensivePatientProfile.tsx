@@ -500,7 +500,7 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
               </TabsContent>
 
               <TabsContent value="3d-viewer" className="mt-0">
-                <Dental3DViewer />
+                <DiagnocatViewer patientId={patient.id} patientName={patient.fullName} />
               </TabsContent>
 
               <TabsContent value="medical" className="mt-0">

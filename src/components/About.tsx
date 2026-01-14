@@ -3,7 +3,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Shield, Cpu, Award, Users } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import heroDental from "@/assets/hero-dental.jpg";
+import aboutClinic from "@/assets/about-clinic.jpg";
 
 export const About = () => {
   const ref = useRef(null);
@@ -46,7 +46,7 @@ export const About = () => {
           >
             <div className="relative rounded-3xl overflow-hidden">
               <img
-                src={heroDental}
+                src={aboutClinic}
                 alt="NovellDent Clínica Dental"
                 className="w-full h-auto object-cover aspect-[4/3]"
               />
