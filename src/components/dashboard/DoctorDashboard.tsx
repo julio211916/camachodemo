@@ -50,6 +50,8 @@ import { PaymentPlanCalculator } from "@/components/clinic/PaymentPlanCalculator
 import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgressDashboard";
 import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerator";
 import { AppointmentReminderSystem } from "@/components/clinic/AppointmentReminderSystem";
+import { CephalometryModule } from "@/components/clinic/CephalometryModule";
+import { DataExportImport } from "@/components/clinic/DataExportImport";
 
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";

@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings } from "lucide-react";
+import { Settings, Ruler, PenTool } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +15,7 @@ import { ObjectTree } from "./ObjectTree";
 import { ViewportCanvas } from "./ViewportCanvas";
 import { Toolbar } from "./Toolbar";
 import { UploadDialog, ExportDialog, AboutDialog } from "./Dialogs";
+import { MeasurementTools, MeasurementOverlay, Measurement, Annotation } from "./MeasurementTools";
 
 interface DiagnocatViewerProps {
   patientId?: string;
@@ -50,6 +52,52 @@ export const DiagnocatViewer = ({ patientId, patientName, onClose }: DiagnocatVi
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [showAboutDialog, setShowAboutDialog] = useState(false);
+
+  // Measurement & Annotation state
+  const [measurements, setMeasurements] = useState<Measurement[]>([]);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [activeMeasurementTool, setActiveMeasurementTool] = useState<'select' | 'measure-distance' | 'measure-angle' | 'annotate-point' | 'annotate-text' | null>(null);
+  const [sidebarTab, setSidebarTab] = useState<'objects' | 'measurements'>('objects');
+
+  // Measurement handlers
+  const handleAddMeasurement = (measurement: Omit<Measurement, 'id' | 'createdAt'>) => {
+    const newMeasurement: Measurement = {
+      ...measurement,
+      id: `m-${Date.now()}`,
+      createdAt: new Date()
+    };
+    setMeasurements(prev => [...prev, newMeasurement]);
+  };
+
+  const handleUpdateMeasurement = (id: string, updates: Partial<Measurement>) => {
+    setMeasurements(prev => prev.map(m => m.id === id ? { ...m, ...updates } : m));
+  };
+
+  const handleDeleteMeasurement = (id: string) => {
+    setMeasurements(prev => prev.filter(m => m.id !== id));
+  };
+
+  const handleAddAnnotation = (annotation: Omit<Annotation, 'id' | 'createdAt'>) => {
+    const newAnnotation: Annotation = {
+      ...annotation,
+      id: `a-${Date.now()}`,
+      createdAt: new Date()
+    };
+    setAnnotations(prev => [...prev, newAnnotation]);
+  };
+
+  const handleUpdateAnnotation = (id: string, updates: Partial<Annotation>) => {
+    setAnnotations(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
+  };
+
+  const handleDeleteAnnotation = (id: string) => {
+    setAnnotations(prev => prev.filter(a => a.id !== id));
+  };
+
+  const handleClearAll = () => {
+    setMeasurements([]);
+    setAnnotations([]);
+  };
 
   // Fetch patient models
   const { data: cloudModels, refetch: refetchModels } = useQuery({
@@ -195,45 +243,72 @@ export const DiagnocatViewer = ({ patientId, patientName, onClose }: DiagnocatVi
             {objectsPanelOpen && (
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 280, opacity: 1 }}
+                animate={{ width: 300, opacity: 1 }}
                 exit={{ width: 0, opacity: 0 }}
                 className="border-r bg-card flex flex-col overflow-hidden"
               >
-                <div className="p-2 border-b flex items-center justify-between">
-                  <span className="text-sm font-semibold">Objects</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6">
-                    <Settings className="w-3 h-3" />
-                  </Button>
-                </div>
+                <Tabs value={sidebarTab} onValueChange={(v) => setSidebarTab(v as any)} className="flex-1 flex flex-col">
+                  <TabsList className="w-full rounded-none border-b justify-start h-10 bg-transparent p-0">
+                    <TabsTrigger value="objects" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary flex gap-1.5 px-4">
+                      <Settings className="w-3.5 h-3.5" />
+                      Objetos
+                    </TabsTrigger>
+                    <TabsTrigger value="measurements" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary flex gap-1.5 px-4">
+                      <Ruler className="w-3.5 h-3.5" />
+                      Medidas
+                      {measurements.length > 0 && (
+                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">{measurements.length}</Badge>
+                      )}
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="objects" className="flex-1 mt-0 overflow-hidden flex flex-col">
+                    <ScrollArea className="flex-1">
+                      <ObjectTree
+                        objects={sceneObjects}
+                        selectedId={selectedObjectId}
+                        onSelect={setSelectedObjectId}
+                        onToggleVisibility={toggleVisibility}
+                        onToggleExpand={toggleExpand}
+                        onChangeColor={changeColor}
+                        onChangeOpacity={changeOpacity}
+                      />
+                    </ScrollArea>
 
-                <ScrollArea className="flex-1">
-                  <ObjectTree
-                    objects={sceneObjects}
-                    selectedId={selectedObjectId}
-                    onSelect={setSelectedObjectId}
-                    onToggleVisibility={toggleVisibility}
-                    onToggleExpand={toggleExpand}
-                    onChangeColor={changeColor}
-                    onChangeOpacity={changeOpacity}
-                  />
-                </ScrollArea>
-
-                {cloudModels && cloudModels.length > 0 && (
-                  <div className="border-t p-2">
-                    <span className="text-xs font-medium text-muted-foreground">Modelos del Paciente</span>
-                    <div className="mt-2 space-y-1 max-h-32 overflow-auto">
-                      {cloudModels.map((model: any) => (
-                        <button
-                          key={model.id}
-                          onClick={() => loadCloudModel(model)}
-                          className="w-full text-left text-xs p-1.5 rounded hover:bg-secondary truncate"
-                        >
-                          {model.file_name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    {cloudModels && cloudModels.length > 0 && (
+                      <div className="border-t p-2">
+                        <span className="text-xs font-medium text-muted-foreground">Modelos del Paciente</span>
+                        <div className="mt-2 space-y-1 max-h-32 overflow-auto">
+                          {cloudModels.map((model: any) => (
+                            <button
+                              key={model.id}
+                              onClick={() => loadCloudModel(model)}
+                              className="w-full text-left text-xs p-1.5 rounded hover:bg-secondary truncate"
+                            >
+                              {model.file_name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="measurements" className="flex-1 mt-0 overflow-hidden">
+                    <MeasurementTools
+                      measurements={measurements}
+                      annotations={annotations}
+                      activeTool={activeMeasurementTool}
+                      onToolChange={setActiveMeasurementTool}
+                      onAddMeasurement={handleAddMeasurement}
+                      onUpdateMeasurement={handleUpdateMeasurement}
+                      onDeleteMeasurement={handleDeleteMeasurement}
+                      onAddAnnotation={handleAddAnnotation}
+                      onUpdateAnnotation={handleUpdateAnnotation}
+                      onDeleteAnnotation={handleDeleteAnnotation}
+                      onClearAll={handleClearAll}
+                    />
+                  </TabsContent>
+                </Tabs>
               </motion.div>
             )}
           </AnimatePresence>
