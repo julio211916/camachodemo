@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { 
   User, Mail, Phone, MapPin, Calendar, Camera, Save, Edit2, 
-  Shield, Clock, CheckCircle 
+  Shield, Clock, CheckCircle, Lock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,9 +16,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { PasswordChange } from "@/components/profile/PasswordChange";
 
 export const MyProfile = () => {
   const { user, profile, userRole, updateProfile } = useAuth();
@@ -133,7 +135,16 @@ export const MyProfile = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <Tabs defaultValue="profile" className="space-y-6">
+      <TabsList>
+        <TabsTrigger value="profile">Mi Perfil</TabsTrigger>
+        <TabsTrigger value="security">
+          <Lock className="w-4 h-4 mr-2" />
+          Seguridad
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="profile" className="space-y-6">
       {/* Header Card with Avatar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -375,6 +386,11 @@ export const MyProfile = () => {
           </CardContent>
         </Card>
       </motion.div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="security">
+        <PasswordChange />
+      </TabsContent>
+    </Tabs>
   );
 };

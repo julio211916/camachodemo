@@ -689,6 +689,41 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_interactions: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_type: string
+          lead_id: string
+          notes: string | null
+          performed_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_type: string
+          lead_id: string
+          notes?: string | null
+          performed_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_type?: string
+          lead_id?: string
+          notes?: string | null
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_interactions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -700,6 +735,7 @@ export type Database = {
           id: string
           interest: string | null
           last_contact_at: string | null
+          location_id: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -720,6 +756,7 @@ export type Database = {
           id?: string
           interest?: string | null
           last_contact_at?: string | null
+          location_id?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -740,6 +777,7 @@ export type Database = {
           id?: string
           interest?: string | null
           last_contact_at?: string | null
+          location_id?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
@@ -1223,6 +1261,7 @@ export type Database = {
           gender: string | null
           id: string
           is_archived: boolean | null
+          location_id: string | null
           notes: string | null
           phone: string | null
           tags: string[] | null
@@ -1240,6 +1279,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_archived?: boolean | null
+          location_id?: string | null
           notes?: string | null
           phone?: string | null
           tags?: string[] | null
@@ -1257,6 +1297,7 @@ export type Database = {
           gender?: string | null
           id?: string
           is_archived?: boolean | null
+          location_id?: string | null
           notes?: string | null
           phone?: string | null
           tags?: string[] | null
@@ -1457,6 +1498,7 @@ export type Database = {
           base_price: number
           category: string
           code: string
+          commission_rate: number | null
           convention_price: number | null
           cost: number | null
           created_at: string
@@ -1466,6 +1508,8 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          iva_rate: number | null
+          lab_cost: number | null
           name: string
           requires_lab: boolean
           updated_at: string
@@ -1474,6 +1518,7 @@ export type Database = {
           base_price: number
           category?: string
           code: string
+          commission_rate?: number | null
           convention_price?: number | null
           cost?: number | null
           created_at?: string
@@ -1483,6 +1528,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          iva_rate?: number | null
+          lab_cost?: number | null
           name: string
           requires_lab?: boolean
           updated_at?: string
@@ -1491,6 +1538,7 @@ export type Database = {
           base_price?: number
           category?: string
           code?: string
+          commission_rate?: number | null
           convention_price?: number | null
           cost?: number | null
           created_at?: string
@@ -1500,6 +1548,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          iva_rate?: number | null
+          lab_cost?: number | null
           name?: string
           requires_lab?: boolean
           updated_at?: string
@@ -1687,6 +1737,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_lead_as_won: { Args: { p_lead_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "staff" | "user" | "patient" | "doctor"
