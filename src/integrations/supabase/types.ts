@@ -689,6 +689,69 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          converted_at: string | null
+          converted_patient_id: string | null
+          created_at: string
+          email: string | null
+          follow_up_date: string | null
+          id: string
+          interest: string | null
+          last_contact_at: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          score: number | null
+          source: string
+          source_detail: string | null
+          status: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          converted_at?: string | null
+          converted_patient_id?: string | null
+          created_at?: string
+          email?: string | null
+          follow_up_date?: string | null
+          id?: string
+          interest?: string | null
+          last_contact_at?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          score?: number | null
+          source?: string
+          source_detail?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          converted_at?: string | null
+          converted_patient_id?: string | null
+          created_at?: string
+          email?: string | null
+          follow_up_date?: string | null
+          id?: string
+          interest?: string | null
+          last_contact_at?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          score?: number | null
+          source?: string
+          source_detail?: string | null
+          status?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           address: string
@@ -1029,6 +1092,77 @@ export type Database = {
           },
         ]
       }
+      payroll: {
+        Row: {
+          base_salary: number
+          bonus: number | null
+          commission_amount: number | null
+          commission_rate: number | null
+          created_at: string
+          created_by: string | null
+          deductions: number | null
+          id: string
+          net_payment: number
+          notes: string | null
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          professional_id: string
+          services_amount: number | null
+          status: string
+          total_services: number | null
+          updated_at: string
+        }
+        Insert: {
+          base_salary?: number
+          bonus?: number | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          created_by?: string | null
+          deductions?: number | null
+          id?: string
+          net_payment: number
+          notes?: string | null
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          professional_id: string
+          services_amount?: number | null
+          status?: string
+          total_services?: number | null
+          updated_at?: string
+        }
+        Update: {
+          base_salary?: number
+          bonus?: number | null
+          commission_amount?: number | null
+          commission_rate?: number | null
+          created_at?: string
+          created_by?: string | null
+          deductions?: number | null
+          id?: string
+          net_payment?: number
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          professional_id?: string
+          services_amount?: number | null
+          status?: string
+          total_services?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       periodontogram: {
         Row: {
           bleeding: boolean | null
@@ -1314,6 +1448,134 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services_catalog: {
+        Row: {
+          base_price: number
+          category: string
+          code: string
+          convention_price: number | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          duration_minutes: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          requires_lab: boolean
+          updated_at: string
+        }
+        Insert: {
+          base_price: number
+          category?: string
+          code: string
+          convention_price?: number | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          requires_lab?: boolean
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          code?: string
+          convention_price?: number | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          requires_lab?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          cash_register_id: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string
+          doctor_id: string | null
+          id: string
+          location_id: string | null
+          notes: string | null
+          patient_id: string | null
+          patient_name: string | null
+          payment_method: string
+          reference_id: string | null
+          reference_type: string | null
+          status: string
+          transaction_date: string
+          transaction_type: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          cash_register_id?: string | null
+          category: string
+          created_at?: string
+          created_by?: string | null
+          description: string
+          doctor_id?: string | null
+          id?: string
+          location_id?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          payment_method?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_date?: string
+          transaction_type: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cash_register_id?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          doctor_id?: string | null
+          id?: string
+          location_id?: string | null
+          notes?: string | null
+          patient_id?: string | null
+          patient_name?: string | null
+          payment_method?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          status?: string
+          transaction_date?: string
+          transaction_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_cash_register_id_fkey"
+            columns: ["cash_register_id"]
+            isOneToOne: false
+            referencedRelation: "cash_register"
             referencedColumns: ["id"]
           },
         ]

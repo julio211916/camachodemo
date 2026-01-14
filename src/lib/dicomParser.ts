@@ -245,13 +245,16 @@ export const sortDicomSlices = (slices: DicomImageData[]): DicomImageData[] => {
 };
 
 /**
- * Create coronal and sagittal views from axial slices (MPR)
+ * Create coronal and sagittal views from axial slices (Full MPR implementation)
+ * This reconstructs orthogonal views from a volume of axial slices
  */
 export const createMPRViews = (
-  axialSlices: DicomImageData[]
-): { coronal: ImageData | null; sagittal: ImageData | null } => {
-  if (axialSlices.length === 0) {
-    return { coronal: null, sagittal: null };
+  axialSlices: DicomImageData[],
+  windowCenter?: number,
+  windowWidth?: number
+): { coronal: ImageData[]; sagittal: ImageData[] } => {
+  if (axialSlices.length < 2) {
+    return { coronal: [], sagittal: [] };
   }
   
   const sortedSlices = sortDicomSlices(axialSlices);
@@ -259,7 +262,191 @@ export const createMPRViews = (
   const height = sortedSlices[0].height;
   const depth = sortedSlices.length;
   
-  // For now, return null - full MPR requires 3D volume reconstruction
-  // This would need to be implemented with proper interpolation
-  return { coronal: null, sagittal: null };
+  // Create 3D volume from axial slices
+  const volume = createVolumeFromSlices(sortedSlices);
+  
+  // Get window/level values
+  const wc = windowCenter ?? sortedSlices[0].windowCenter ?? calculateDefaultWindowCenter(sortedSlices[0].pixelData, sortedSlices[0].rescaleSlope ?? 1, sortedSlices[0].rescaleIntercept ?? 0);
+  const ww = windowWidth ?? sortedSlices[0].windowWidth ?? calculateDefaultWindowWidth(sortedSlices[0].pixelData, sortedSlices[0].rescaleSlope ?? 1, sortedSlices[0].rescaleIntercept ?? 0);
+  const rescaleSlope = sortedSlices[0].rescaleSlope ?? 1;
+  const rescaleIntercept = sortedSlices[0].rescaleIntercept ?? 0;
+  const photometricInterpretation = sortedSlices[0].photometricInterpretation;
+  
+  // Generate coronal views (one for each row of the axial image)
+  const coronalViews: ImageData[] = [];
+  for (let coronalY = 0; coronalY < height; coronalY++) {
+    const coronalImage = new ImageData(width, depth);
+    
+    for (let z = 0; z < depth; z++) {
+      for (let x = 0; x < width; x++) {
+        const volumeIndex = z * (width * height) + coronalY * width + x;
+        const value = volume[volumeIndex] * rescaleSlope + rescaleIntercept;
+        
+        // Apply window/level
+        let normalized = applyWindowLevel(value, wc, ww, photometricInterpretation);
+        
+        const pixelIndex = (z * width + x) * 4;
+        coronalImage.data[pixelIndex] = normalized;
+        coronalImage.data[pixelIndex + 1] = normalized;
+        coronalImage.data[pixelIndex + 2] = normalized;
+        coronalImage.data[pixelIndex + 3] = 255;
+      }
+    }
+    
+    coronalViews.push(coronalImage);
+  }
+  
+  // Generate sagittal views (one for each column of the axial image)
+  const sagittalViews: ImageData[] = [];
+  for (let sagittalX = 0; sagittalX < width; sagittalX++) {
+    const sagittalImage = new ImageData(height, depth);
+    
+    for (let z = 0; z < depth; z++) {
+      for (let y = 0; y < height; y++) {
+        const volumeIndex = z * (width * height) + y * width + sagittalX;
+        const value = volume[volumeIndex] * rescaleSlope + rescaleIntercept;
+        
+        // Apply window/level
+        let normalized = applyWindowLevel(value, wc, ww, photometricInterpretation);
+        
+        const pixelIndex = (z * height + y) * 4;
+        sagittalImage.data[pixelIndex] = normalized;
+        sagittalImage.data[pixelIndex + 1] = normalized;
+        sagittalImage.data[pixelIndex + 2] = normalized;
+        sagittalImage.data[pixelIndex + 3] = 255;
+      }
+    }
+    
+    sagittalViews.push(sagittalImage);
+  }
+  
+  return { coronal: coronalViews, sagittal: sagittalViews };
+};
+
+/**
+ * Helper to apply window/level transformation
+ */
+const applyWindowLevel = (
+  value: number,
+  windowCenter: number,
+  windowWidth: number,
+  photometricInterpretation: string
+): number => {
+  const minValue = windowCenter - windowWidth / 2;
+  const maxValue = windowCenter + windowWidth / 2;
+  const range = maxValue - minValue;
+  
+  let normalized: number;
+  if (value <= minValue) {
+    normalized = 0;
+  } else if (value >= maxValue) {
+    normalized = 255;
+  } else {
+    normalized = ((value - minValue) / range) * 255;
+  }
+  
+  if (photometricInterpretation === 'MONOCHROME1') {
+    normalized = 255 - normalized;
+  }
+  
+  return normalized;
+};
+
+/**
+ * Create a 3D volume array from sorted axial slices
+ */
+const createVolumeFromSlices = (slices: DicomImageData[]): Float32Array => {
+  const width = slices[0].width;
+  const height = slices[0].height;
+  const depth = slices.length;
+  
+  const volume = new Float32Array(width * height * depth);
+  
+  for (let z = 0; z < depth; z++) {
+    const slice = slices[z];
+    const offset = z * width * height;
+    
+    for (let i = 0; i < slice.pixelData.length; i++) {
+      volume[offset + i] = slice.pixelData[i];
+    }
+  }
+  
+  return volume;
+};
+
+/**
+ * Get a specific slice from MPR views at given position
+ */
+export const getMPRSlice = (
+  axialSlices: DicomImageData[],
+  plane: 'axial' | 'coronal' | 'sagittal',
+  sliceIndex: number,
+  windowCenter?: number,
+  windowWidth?: number
+): ImageData | null => {
+  if (axialSlices.length === 0) return null;
+  
+  const sortedSlices = sortDicomSlices(axialSlices);
+  const width = sortedSlices[0].width;
+  const height = sortedSlices[0].height;
+  const depth = sortedSlices.length;
+  
+  // For axial, just return the rendered slice
+  if (plane === 'axial') {
+    const validIndex = Math.max(0, Math.min(sliceIndex, depth - 1));
+    return renderDicomToImageData(sortedSlices[validIndex], windowCenter, windowWidth);
+  }
+  
+  // For coronal/sagittal, we need to reconstruct
+  const volume = createVolumeFromSlices(sortedSlices);
+  
+  const wc = windowCenter ?? sortedSlices[0].windowCenter ?? 40;
+  const ww = windowWidth ?? sortedSlices[0].windowWidth ?? 400;
+  const rescaleSlope = sortedSlices[0].rescaleSlope ?? 1;
+  const rescaleIntercept = sortedSlices[0].rescaleIntercept ?? 0;
+  const photometricInterpretation = sortedSlices[0].photometricInterpretation;
+  
+  if (plane === 'coronal') {
+    const validY = Math.max(0, Math.min(sliceIndex, height - 1));
+    const coronalImage = new ImageData(width, depth);
+    
+    for (let z = 0; z < depth; z++) {
+      for (let x = 0; x < width; x++) {
+        const volumeIndex = z * (width * height) + validY * width + x;
+        const value = volume[volumeIndex] * rescaleSlope + rescaleIntercept;
+        const normalized = applyWindowLevel(value, wc, ww, photometricInterpretation);
+        
+        const pixelIndex = (z * width + x) * 4;
+        coronalImage.data[pixelIndex] = normalized;
+        coronalImage.data[pixelIndex + 1] = normalized;
+        coronalImage.data[pixelIndex + 2] = normalized;
+        coronalImage.data[pixelIndex + 3] = 255;
+      }
+    }
+    
+    return coronalImage;
+  }
+  
+  if (plane === 'sagittal') {
+    const validX = Math.max(0, Math.min(sliceIndex, width - 1));
+    const sagittalImage = new ImageData(height, depth);
+    
+    for (let z = 0; z < depth; z++) {
+      for (let y = 0; y < height; y++) {
+        const volumeIndex = z * (width * height) + y * width + validX;
+        const value = volume[volumeIndex] * rescaleSlope + rescaleIntercept;
+        const normalized = applyWindowLevel(value, wc, ww, photometricInterpretation);
+        
+        const pixelIndex = (z * height + y) * 4;
+        sagittalImage.data[pixelIndex] = normalized;
+        sagittalImage.data[pixelIndex + 1] = normalized;
+        sagittalImage.data[pixelIndex + 2] = normalized;
+        sagittalImage.data[pixelIndex + 3] = 255;
+      }
+    }
+    
+    return sagittalImage;
+  }
+  
+  return null;
 };
