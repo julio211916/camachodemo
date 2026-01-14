@@ -203,11 +203,13 @@ export const AdminDashboard = () => {
       ]
     },
     {
-      title: "Imagenología",
+      title: "Imagenología & IA",
       items: [
         { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
+        { id: "cephalometry", label: "Cefalometría", icon: <Cpu className="w-5 h-5" /> },
         { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Cpu className="w-5 h-5" /> },
         { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
+        { id: "export-import", label: "Exportar/Importar", icon: <FileText className="w-5 h-5" /> },
       ]
     },
     {
@@ -357,8 +359,12 @@ export const AdminDashboard = () => {
         return <DigitalSignature />;
       case "dicom":
         return <DICOMViewer />;
+      case "cephalometry":
+        return <CephalometryModule />;
       case "cbct-panoramic":
         return <CBCTPanoramicGenerator patientId="demo" patientName="Paciente Demo" />;
+      case "export-import":
+        return <DataExportImport />;
       case "3d-viewer":
         return <Model3DViewerCloud patientId="demo" patientName="Paciente Demo" />;
       case "referrals":
