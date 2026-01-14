@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
+import { sanitizeHTML } from "@/lib/sanitize";
 import Image from "@tiptap/extension-image";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
@@ -1768,7 +1769,7 @@ export const ClinicalDocumentsEditor = () => {
                 <ScrollArea className="h-full">
                   <div
                     className="prose prose-sm dark:prose-invert max-w-none p-4 border rounded-lg bg-muted/30"
-                    dangerouslySetInnerHTML={{ __html: editorContent }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(editorContent) }}
                   />
                 </ScrollArea>
               </CardContent>

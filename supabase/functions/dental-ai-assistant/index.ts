@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,20 +34,87 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No authorization header provided' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error("Auth error:", authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Verify user has appropriate role (doctor, admin, or staff only)
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (roleError || !roleData) {
+      console.error("Role check error:", roleError);
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - No role assigned' }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const allowedRoles = ['admin', 'doctor', 'staff'];
+    if (!allowedRoles.includes(roleData.role)) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - Requires admin, doctor, or staff role' }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Parse and validate request body
     const { messages, patientContext, patientName } = await req.json();
+    
+    if (!messages || !Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: 'Bad Request - messages array is required' }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Build context-aware system prompt
+    // Build context-aware system prompt (sanitize patient context to prevent prompt injection)
     let systemContent = SYSTEM_PROMPT;
     if (patientName || patientContext) {
       systemContent += "\n\n**Contexto del paciente:**";
-      if (patientName) systemContent += `\n- Nombre: ${patientName}`;
-      if (patientContext) systemContent += `\n- ${patientContext}`;
+      // Sanitize inputs - remove any potential prompt injection patterns
+      if (patientName) {
+        const safeName = String(patientName).slice(0, 100).replace(/[<>{}]/g, '');
+        systemContent += `\n- Nombre: ${safeName}`;
+      }
+      if (patientContext) {
+        const safeContext = String(patientContext).slice(0, 1000).replace(/[<>{}]/g, '');
+        systemContent += `\n- ${safeContext}`;
+      }
     }
+
+    console.log(`AI Assistant request from user ${user.id} with role ${roleData.role}`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
