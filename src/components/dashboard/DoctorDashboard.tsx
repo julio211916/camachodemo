@@ -40,7 +40,7 @@ import { FileGallery } from "@/components/clinic/FileGallery";
 import { MyProfile } from "@/components/dashboard/MyProfile";
 import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
-import { Dental3DViewer } from "@/components/clinic/Dental3DViewer";
+import { DiagnocatViewer } from "@/components/clinic/DiagnocatViewer";
 import { EnhancedOdontogram } from "@/components/clinic/EnhancedOdontogram";
 import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
@@ -186,7 +186,7 @@ export const DoctorDashboard = () => {
       case "enhanced-odontogram":
         return <EnhancedOdontogram patientId="demo-patient" />;
       case "dental-3d":
-        return <Dental3DViewer />;
+        return <DiagnocatViewer patientId="demo-patient" patientName="Paciente Demo" />;
       case "patient-profile":
         return <ComprehensivePatientProfile patientId="demo-patient" />;
       case "lab": 
