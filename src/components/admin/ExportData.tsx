@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import * as XLSX from "xlsx";
 import { Download, FileSpreadsheet, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { Appointment } from "@/hooks/useAppointments";
+import { exportToExcel, exportToCSV } from "@/lib/excelExport";
 
 interface ExportDataProps {
   appointments: Appointment[];
@@ -44,35 +44,17 @@ export const ExportData = ({ appointments, filteredAppointments }: ExportDataPro
     }));
   };
 
-  const exportToExcel = async () => {
+  const handleExportToExcel = async () => {
     setIsExporting(true);
     try {
       const data = formatAppointmentsForExport();
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const workbook = XLSX.utils.book_new();
-      
-      // Set column widths
-      const colWidths = [
-        { wch: 36 }, // ID
-        { wch: 25 }, // Paciente
-        { wch: 30 }, // Email
-        { wch: 15 }, // Teléfono
-        { wch: 12 }, // Fecha
-        { wch: 8 },  // Hora
-        { wch: 20 }, // Sucursal
-        { wch: 25 }, // Servicio
-        { wch: 12 }, // Estado
-        { wch: 18 }, // Confirmada
-        { wch: 20 }, // Recordatorio
-        { wch: 30 }, // Notas
-        { wch: 18 }, // Creado
-      ];
-      worksheet["!cols"] = colWidths;
-
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Citas");
-      
       const fileName = `citas_novelldent_${format(new Date(), "yyyy-MM-dd_HHmm")}.xlsx`;
-      XLSX.writeFile(workbook, fileName);
+      
+      await exportToExcel(data, {
+        filename: fileName,
+        sheetName: 'Citas',
+        columnWidths: [36, 25, 30, 15, 12, 8, 20, 25, 12, 18, 20, 30, 18]
+      });
       
       toast.success(`Exportado ${data.length} citas a Excel`);
     } catch (error) {
@@ -83,22 +65,13 @@ export const ExportData = ({ appointments, filteredAppointments }: ExportDataPro
     }
   };
 
-  const exportToCSV = async () => {
+  const handleExportToCSV = async () => {
     setIsExporting(true);
     try {
       const data = formatAppointmentsForExport();
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const csv = XLSX.utils.sheet_to_csv(worksheet);
+      const fileName = `citas_novelldent_${format(new Date(), "yyyy-MM-dd_HHmm")}.csv`;
       
-      const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `citas_novelldent_${format(new Date(), "yyyy-MM-dd_HHmm")}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      exportToCSV(data, fileName);
       
       toast.success(`Exportado ${data.length} citas a CSV`);
     } catch (error) {
@@ -122,11 +95,11 @@ export const ExportData = ({ appointments, filteredAppointments }: ExportDataPro
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={exportToExcel} className="gap-2">
+        <DropdownMenuItem onClick={handleExportToExcel} className="gap-2">
           <FileSpreadsheet className="w-4 h-4 text-green-600" />
           Exportar a Excel (.xlsx)
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={exportToCSV} className="gap-2">
+        <DropdownMenuItem onClick={handleExportToCSV} className="gap-2">
           <FileText className="w-4 h-4 text-blue-600" />
           Exportar a CSV
         </DropdownMenuItem>
