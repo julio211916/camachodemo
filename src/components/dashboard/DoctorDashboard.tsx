@@ -52,6 +52,8 @@ import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerat
 import { AppointmentReminderSystem } from "@/components/clinic/AppointmentReminderSystem";
 import { CephalometryModule } from "@/components/clinic/CephalometryModule";
 import { DataExportImport } from "@/components/clinic/DataExportImport";
+import { AIDashboardAssistant } from "@/components/clinic/AIDashboardAssistant";
+import { DemoPatientGenerator } from "@/components/clinic/DemoPatientGenerator";
 
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
@@ -142,6 +144,14 @@ export const DoctorDashboard = () => {
         { id: "clinical-docs", label: "Docs Clínicos", icon: <ClipboardList className="w-5 h-5" /> },
         { id: "signature", label: "Firma Digital", icon: <PenTool className="w-5 h-5" /> },
         { id: "export-import", label: "Exportar/Importar", icon: <HardDrive className="w-5 h-5" /> },
+      ]
+    },
+    { 
+      title: "Sistema & IA", 
+      items: [
+        { id: "ai-assistant", label: "Asistente IA", icon: <Sparkles className="w-5 h-5" /> },
+        { id: "backup", label: "Backup/Restaurar", icon: <HardDrive className="w-5 h-5" /> },
+        { id: "demo-patients", label: "Pacientes Demo", icon: <Users className="w-5 h-5" /> },
       ]
     },
     { 
@@ -246,6 +256,12 @@ export const DoctorDashboard = () => {
         return <PaymentPlanCalculator treatmentTotal={0} />;
       case "export-import":
         return <DataExportImport />;
+      case "ai-assistant":
+        return <AIDashboardAssistant onNavigate={setActiveSection} />;
+      case "backup":
+        return <BackupManager />;
+      case "demo-patients":
+        return <DemoPatientGenerator />;
       default: 
         return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }

@@ -111,6 +111,8 @@ import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgres
 import { AppointmentReminderSystem } from "@/components/clinic/AppointmentReminderSystem";
 import { CephalometryModule } from "@/components/clinic/CephalometryModule";
 import { DataExportImport } from "@/components/clinic/DataExportImport";
+import { AIDashboardAssistant } from "@/components/clinic/AIDashboardAssistant";
+import { DemoPatientGenerator } from "@/components/clinic/DemoPatientGenerator";
 // Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
 import { CRMModule } from "@/components/portal/CRMModule";
@@ -218,6 +220,13 @@ export const AdminDashboard = () => {
         { id: "analytics", label: "Panel Desempeño", icon: <BarChart3 className="w-5 h-5" /> },
         { id: "advanced", label: "Métricas Avanzadas", icon: <TrendingUp className="w-5 h-5" /> },
         { id: "blog", label: "Blog", icon: <FileText className="w-5 h-5" /> },
+      ]
+    },
+    {
+      title: "Sistema & IA",
+      items: [
+        { id: "ai-assistant", label: "Asistente IA", icon: <Brain className="w-5 h-5" /> },
+        { id: "demo-patients", label: "Pacientes Demo", icon: <Users className="w-5 h-5" /> },
       ]
     },
     {
@@ -391,6 +400,10 @@ export const AdminDashboard = () => {
         return <BackupManager />;
       case "administration":
         return <AdministrationModule />;
+      case "ai-assistant":
+        return <AIDashboardAssistant onNavigate={setActiveSection} />;
+      case "demo-patients":
+        return <DemoPatientGenerator />;
       default:
         return <div className="text-center py-12 text-muted-foreground">Selecciona una sección</div>;
     }
