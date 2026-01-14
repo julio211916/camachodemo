@@ -1,10 +1,9 @@
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   User, Calendar, FileText, Stethoscope, Box, Heart, CreditCard,
   Phone, Mail, MapPin, Clock, Activity, TrendingUp, AlertTriangle,
-  ChevronLeft, Printer, Download, Edit2, Save, X, Plus, Camera,
-  QrCode, History, Pill, Layers, Image as ImageIcon, MessageSquare
+  ChevronLeft, Printer, Download, Edit2, Plus, QrCode, History, Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,124 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 
 // Import clinic modules
 import { EnhancedOdontogram } from "./EnhancedOdontogram";
 import { DiagnocatViewer } from "./DiagnocatViewer";
 import { MedicalHistory } from "./MedicalHistory";
-import { InteractiveOdontogram } from "./InteractiveOdontogram";
-
-interface PatientProfile {
-  id: string;
-  userId: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  gender: string;
-  address: string;
-  avatarUrl?: string;
-  bloodType?: string;
-  allergies: string[];
-  conditions: string[];
-  medications: string[];
-  emergencyContact?: {
-    name: string;
-    phone: string;
-    relationship: string;
-  };
-  insuranceInfo?: {
-    provider: string;
-    policyNumber: string;
-    groupNumber: string;
-  };
-  tags: string[];
-  notes: string;
-  createdAt: string;
-  lastVisit?: string;
-}
-
-interface Treatment {
-  id: string;
-  name: string;
-  description: string;
-  status: 'planned' | 'in_progress' | 'completed' | 'cancelled';
-  startDate: string;
-  endDate?: string;
-  cost: number;
-  paidAmount: number;
-  doctorName: string;
-  notes: string;
-}
-
-interface Appointment {
-  id: string;
-  date: string;
-  time: string;
-  service: string;
-  doctor: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
-  notes?: string;
-}
-
-interface Invoice {
-  id: string;
-  number: string;
-  date: string;
-  total: number;
-  status: 'pending' | 'paid' | 'partial' | 'cancelled';
-  items: { description: string; amount: number }[];
-}
-
-// Sample data
-const SAMPLE_PATIENT: PatientProfile = {
-  id: "PAT-001",
-  userId: "user-001",
-  fullName: "María García López",
-  email: "maria.garcia@email.com",
-  phone: "+52 55 1234 5678",
-  dateOfBirth: "1985-03-15",
-  gender: "Femenino",
-  address: "Av. Reforma 123, Col. Centro, CDMX",
-  bloodType: "O+",
-  allergies: ["Penicilina", "Látex"],
-  conditions: ["Hipertensión controlada"],
-  medications: ["Losartán 50mg"],
-  emergencyContact: {
-    name: "Carlos García",
-    phone: "+52 55 9876 5432",
-    relationship: "Esposo"
-  },
-  insuranceInfo: {
-    provider: "Seguros GNP",
-    policyNumber: "POL-123456",
-    groupNumber: "GRP-789"
-  },
-  tags: ["VIP", "Ortodoncia"],
-  notes: "Paciente muy puntual. Prefiere citas por la mañana.",
-  createdAt: "2022-01-15",
-  lastVisit: "2024-01-10"
-};
-
-const SAMPLE_TREATMENTS: Treatment[] = [
-  { id: "TRT-001", name: "Ortodoncia completa", description: "Tratamiento de brackets metálicos", status: "in_progress", startDate: "2023-06-01", cost: 45000, paidAmount: 30000, doctorName: "Dr. Carlos Mendoza", notes: "Progreso satisfactorio" },
-  { id: "TRT-002", name: "Limpieza dental", description: "Profilaxis profunda", status: "completed", startDate: "2024-01-10", endDate: "2024-01-10", cost: 1500, paidAmount: 1500, doctorName: "Dra. Ana Ruiz", notes: "" },
-  { id: "TRT-003", name: "Blanqueamiento", description: "Blanqueamiento láser", status: "planned", startDate: "2024-02-15", cost: 8000, paidAmount: 0, doctorName: "Dr. Carlos Mendoza", notes: "Programado para después de ortodoncia" },
-];
-
-const SAMPLE_APPOINTMENTS: Appointment[] = [
-  { id: "APT-001", date: "2024-01-25", time: "10:00", service: "Control de ortodoncia", doctor: "Dr. Carlos Mendoza", status: "confirmed" },
-  { id: "APT-002", date: "2024-02-15", time: "11:30", service: "Blanqueamiento", doctor: "Dr. Carlos Mendoza", status: "pending" },
-  { id: "APT-003", date: "2024-01-10", time: "09:00", service: "Limpieza dental", doctor: "Dra. Ana Ruiz", status: "completed" },
-];
-
-const SAMPLE_INVOICES: Invoice[] = [
-  { id: "INV-001", number: "F-2024-0125", date: "2024-01-10", total: 1500, status: "paid", items: [{ description: "Limpieza dental profesional", amount: 1500 }] },
-  { id: "INV-002", number: "F-2024-0089", date: "2023-12-15", total: 15000, status: "paid", items: [{ description: "Mensualidad ortodoncia (Dic)", amount: 15000 }] },
-  { id: "INV-003", number: "F-2024-0156", date: "2024-01-25", total: 15000, status: "pending", items: [{ description: "Mensualidad ortodoncia (Ene)", amount: 15000 }] },
-];
+import { usePatientProfile } from "@/hooks/usePatientProfile";
 
 interface ComprehensivePatientProfileProps {
   patientId?: string;
@@ -141,31 +29,12 @@ interface ComprehensivePatientProfileProps {
 export const ComprehensivePatientProfile = ({ patientId, onBack }: ComprehensivePatientProfileProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
-  const [patient] = useState<PatientProfile>(SAMPLE_PATIENT);
-  const [treatments] = useState<Treatment[]>(SAMPLE_TREATMENTS);
-  const [appointments] = useState<Appointment[]>(SAMPLE_APPOINTMENTS);
-  const [invoices] = useState<Invoice[]>(SAMPLE_INVOICES);
+  
+  // Use real data hook
+  const { patient, treatments, appointments, invoices, stats, isLoading } = usePatientProfile(patientId);
 
-  // Calculate stats
-  const stats = useMemo(() => {
-    const totalTreatmentCost = treatments.reduce((sum, t) => sum + t.cost, 0);
-    const totalPaid = treatments.reduce((sum, t) => sum + t.paidAmount, 0);
-    const upcomingAppts = appointments.filter(a => a.status === 'pending' || a.status === 'confirmed').length;
-    const completedAppts = appointments.filter(a => a.status === 'completed').length;
-    const pendingBalance = invoices.filter(i => i.status === 'pending').reduce((sum, i) => sum + i.total, 0);
-
-    return {
-      totalTreatmentCost,
-      totalPaid,
-      balance: totalTreatmentCost - totalPaid,
-      upcomingAppts,
-      completedAppts,
-      pendingBalance,
-      paymentProgress: totalTreatmentCost > 0 ? (totalPaid / totalTreatmentCost) * 100 : 0
-    };
-  }, [treatments, appointments, invoices]);
-
-  const getAge = (dateOfBirth: string) => {
+  const getAge = (dateOfBirth: string | null) => {
+    if (!dateOfBirth) return null;
     const today = new Date();
     const birth = new Date(dateOfBirth);
     let age = today.getFullYear() - birth.getFullYear();
@@ -195,6 +64,35 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
     return labels[status] || status;
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Cargando perfil...</span>
+      </div>
+    );
+  }
+
+  if (!patient) {
+    return (
+      <Card className="p-8 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <User className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Paciente no encontrado</h2>
+          <p className="text-muted-foreground">
+            No se encontró información del paciente. Selecciona un paciente desde la lista.
+          </p>
+          {onBack && (
+            <Button onClick={onBack} className="mt-4">
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Volver a Pacientes
+            </Button>
+          )}
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -207,7 +105,7 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
           )}
           <div className="flex items-center gap-4">
             <Avatar className="w-16 h-16 border-2 border-primary">
-              <AvatarImage src={patient.avatarUrl} />
+              <AvatarImage src={patient.avatarUrl || undefined} />
               <AvatarFallback className="text-xl bg-primary/10">
                 {patient.fullName.split(' ').map(n => n[0]).join('').slice(0, 2)}
               </AvatarFallback>
@@ -215,13 +113,21 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
             <div>
               <h1 className="text-2xl font-bold">{patient.fullName}</h1>
               <div className="flex items-center gap-3 text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {getAge(patient.dateOfBirth)} años
-                </span>
-                <span>•</span>
-                <span>{patient.gender}</span>
-                <span>•</span>
+                {patient.dateOfBirth && (
+                  <>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {getAge(patient.dateOfBirth)} años
+                    </span>
+                    <span>•</span>
+                  </>
+                )}
+                {patient.gender && (
+                  <>
+                    <span>{patient.gender}</span>
+                    <span>•</span>
+                  </>
+                )}
                 <span className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
                   Última visita: {patient.lastVisit ? new Date(patient.lastVisit).toLocaleDateString('es-MX') : 'N/A'}
@@ -396,23 +302,27 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
                       </div>
                       <div className="flex items-center gap-3">
                         <Phone className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm">{patient.phone}</span>
+                        <span className="text-sm">{patient.phone || 'No registrado'}</span>
                       </div>
                       <div className="flex items-start gap-3">
                         <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                        <span className="text-sm">{patient.address}</span>
+                        <span className="text-sm">{patient.address || 'No registrada'}</span>
                       </div>
-                      <Separator />
-                      <div>
-                        <p className="text-sm font-medium mb-2">Contacto de Emergencia</p>
-                        {patient.emergencyContact && (
-                          <div className="space-y-1 text-sm text-muted-foreground">
-                            <p>{patient.emergencyContact.name}</p>
-                            <p>{patient.emergencyContact.phone}</p>
-                            <p>{patient.emergencyContact.relationship}</p>
+                      {patient.emergencyContact && (
+                        <>
+                          <Separator />
+                          <div>
+                            <p className="text-sm font-medium mb-2">Contacto de Emergencia</p>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <p>{patient.emergencyContact.name}</p>
+                              <p>{patient.emergencyContact.phone}</p>
+                              {patient.emergencyContact.relationship && (
+                                <p>{patient.emergencyContact.relationship}</p>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -426,25 +336,31 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
                         <span className="text-sm text-muted-foreground">Tipo de Sangre</span>
                         <Badge variant="outline">{patient.bloodType || 'N/A'}</Badge>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Medicamentos Actuales</p>
-                        <div className="flex flex-wrap gap-1">
-                          {patient.medications.map((m, i) => (
-                            <Badge key={i} variant="secondary">{m}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <Separator />
-                      <div>
-                        <p className="text-sm font-medium mb-2">Seguro Médico</p>
-                        {patient.insuranceInfo && (
-                          <div className="space-y-1 text-sm text-muted-foreground">
-                            <p>{patient.insuranceInfo.provider}</p>
-                            <p>Póliza: {patient.insuranceInfo.policyNumber}</p>
-                            <p>Grupo: {patient.insuranceInfo.groupNumber}</p>
+                      {patient.medications.length > 0 && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Medicamentos Actuales</p>
+                          <div className="flex flex-wrap gap-1">
+                            {patient.medications.map((m, i) => (
+                              <Badge key={i} variant="secondary">{m}</Badge>
+                            ))}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
+                      {patient.insuranceInfo && (
+                        <>
+                          <Separator />
+                          <div>
+                            <p className="text-sm font-medium mb-2">Seguro Médico</p>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <p>{patient.insuranceInfo.provider}</p>
+                              <p>Póliza: {patient.insuranceInfo.policyNumber}</p>
+                              {patient.insuranceInfo.groupNumber && (
+                                <p>Grupo: {patient.insuranceInfo.groupNumber}</p>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -473,24 +389,28 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      {appointments.slice(0, 5).map((apt) => (
-                        <div key={apt.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                              apt.status === 'completed' ? 'bg-green-500/10' : 'bg-primary/10'
-                            }`}>
-                              <Calendar className={`w-5 h-5 ${apt.status === 'completed' ? 'text-green-500' : 'text-primary'}`} />
+                    {appointments.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">No hay actividad reciente</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {appointments.slice(0, 5).map((apt) => (
+                          <div key={apt.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                apt.status === 'completed' ? 'bg-green-500/10' : 'bg-primary/10'
+                              }`}>
+                                <Calendar className={`w-5 h-5 ${apt.status === 'completed' ? 'text-green-500' : 'text-primary'}`} />
+                              </div>
+                              <div>
+                                <p className="font-medium">{apt.service}</p>
+                                <p className="text-sm text-muted-foreground">{apt.doctor} • {new Date(apt.date).toLocaleDateString('es-MX')}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{apt.service}</p>
-                              <p className="text-sm text-muted-foreground">{apt.doctor} • {new Date(apt.date).toLocaleDateString('es-MX')}</p>
-                            </div>
+                            <Badge className={getStatusColor(apt.status)}>{getStatusLabel(apt.status)}</Badge>
                           </div>
-                          <Badge className={getStatusColor(apt.status)}>{getStatusLabel(apt.status)}</Badge>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -515,44 +435,50 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
                     Nuevo Tratamiento
                   </Button>
                 </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Tratamiento</TableHead>
-                        <TableHead>Doctor</TableHead>
-                        <TableHead>Fecha Inicio</TableHead>
-                        <TableHead>Costo</TableHead>
-                        <TableHead>Pagado</TableHead>
-                        <TableHead>Estado</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {treatments.map((t) => (
-                        <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50">
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{t.name}</p>
-                              <p className="text-xs text-muted-foreground">{t.description}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>{t.doctorName}</TableCell>
-                          <TableCell>{new Date(t.startDate).toLocaleDateString('es-MX')}</TableCell>
-                          <TableCell>${t.cost.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <span>${t.paidAmount.toLocaleString()}</span>
-                              <Progress value={(t.paidAmount / t.cost) * 100} className="h-1.5 w-16" />
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(t.status)}>{getStatusLabel(t.status)}</Badge>
-                          </TableCell>
+                {treatments.length === 0 ? (
+                  <Card className="p-8 text-center text-muted-foreground">
+                    No hay tratamientos registrados
+                  </Card>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tratamiento</TableHead>
+                          <TableHead>Doctor</TableHead>
+                          <TableHead>Fecha Inicio</TableHead>
+                          <TableHead>Costo</TableHead>
+                          <TableHead>Pagado</TableHead>
+                          <TableHead>Estado</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {treatments.map((t) => (
+                          <TableRow key={t.id} className="cursor-pointer hover:bg-muted/50">
+                            <TableCell>
+                              <div>
+                                <p className="font-medium">{t.name}</p>
+                                <p className="text-xs text-muted-foreground">{t.description}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>{t.doctorName}</TableCell>
+                            <TableCell>{new Date(t.startDate).toLocaleDateString('es-MX')}</TableCell>
+                            <TableCell>${t.cost.toLocaleString()}</TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <span>${t.paidAmount.toLocaleString()}</span>
+                                <Progress value={t.cost > 0 ? (t.paidAmount / t.cost) * 100 : 0} className="h-1.5 w-16" />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(t.status)}>{getStatusLabel(t.status)}</Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="appointments" className="mt-0 space-y-4">
@@ -563,34 +489,40 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
                     Nueva Cita
                   </Button>
                 </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Hora</TableHead>
-                        <TableHead>Servicio</TableHead>
-                        <TableHead>Doctor</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Notas</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {appointments.map((apt) => (
-                        <TableRow key={apt.id}>
-                          <TableCell>{new Date(apt.date).toLocaleDateString('es-MX')}</TableCell>
-                          <TableCell>{apt.time}</TableCell>
-                          <TableCell>{apt.service}</TableCell>
-                          <TableCell>{apt.doctor}</TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(apt.status)}>{getStatusLabel(apt.status)}</Badge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-sm">{apt.notes || '-'}</TableCell>
+                {appointments.length === 0 ? (
+                  <Card className="p-8 text-center text-muted-foreground">
+                    No hay citas registradas
+                  </Card>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Fecha</TableHead>
+                          <TableHead>Hora</TableHead>
+                          <TableHead>Servicio</TableHead>
+                          <TableHead>Doctor</TableHead>
+                          <TableHead>Estado</TableHead>
+                          <TableHead>Notas</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {appointments.map((apt) => (
+                          <TableRow key={apt.id}>
+                            <TableCell>{new Date(apt.date).toLocaleDateString('es-MX')}</TableCell>
+                            <TableCell>{apt.time}</TableCell>
+                            <TableCell>{apt.service}</TableCell>
+                            <TableCell>{apt.doctor}</TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(apt.status)}>{getStatusLabel(apt.status)}</Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{apt.notes || '-'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="billing" className="mt-0 space-y-4">
@@ -601,47 +533,53 @@ export const ComprehensivePatientProfile = ({ patientId, onBack }: Comprehensive
                     Nueva Factura
                   </Button>
                 </div>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>No. Factura</TableHead>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Concepto</TableHead>
-                        <TableHead>Total</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invoices.map((inv) => (
-                        <TableRow key={inv.id}>
-                          <TableCell className="font-mono">{inv.number}</TableCell>
-                          <TableCell>{new Date(inv.date).toLocaleDateString('es-MX')}</TableCell>
-                          <TableCell>
-                            {inv.items.map((item, i) => (
-                              <span key={i} className="text-sm">{item.description}</span>
-                            ))}
-                          </TableCell>
-                          <TableCell className="font-medium">${inv.total.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <Badge className={getStatusColor(inv.status)}>{getStatusLabel(inv.status)}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button variant="ghost" size="icon">
-                                <Printer className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon">
-                                <Download className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                {invoices.length === 0 ? (
+                  <Card className="p-8 text-center text-muted-foreground">
+                    No hay facturas registradas
+                  </Card>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>No. Factura</TableHead>
+                          <TableHead>Fecha</TableHead>
+                          <TableHead>Concepto</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead>Estado</TableHead>
+                          <TableHead>Acciones</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {invoices.map((inv) => (
+                          <TableRow key={inv.id}>
+                            <TableCell className="font-mono">{inv.number}</TableCell>
+                            <TableCell>{new Date(inv.date).toLocaleDateString('es-MX')}</TableCell>
+                            <TableCell>
+                              {inv.items.map((item, i) => (
+                                <span key={i} className="text-sm">{item.description}</span>
+                              ))}
+                            </TableCell>
+                            <TableCell className="font-medium">${inv.total.toLocaleString()}</TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(inv.status)}>{getStatusLabel(inv.status)}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="icon">
+                                  <Printer className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="documents" className="mt-0 space-y-4">

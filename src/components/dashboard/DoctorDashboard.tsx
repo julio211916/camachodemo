@@ -103,11 +103,11 @@ export const DoctorDashboard = () => {
       ]
     },
     { 
-      title: "Clínica", 
+      title: "Clínica & Paciente", 
       items: [
-        { id: "enhanced-odontogram", label: "Odontograma", icon: <Stethoscope className="w-5 h-5" /> },
-        { id: "dental-3d", label: "Visor 3D Dental", icon: <Box className="w-5 h-5" /> },
         { id: "patient-profile", label: "Perfil Paciente", icon: <User className="w-5 h-5" /> },
+        { id: "enhanced-odontogram", label: "Odontograma", icon: <Stethoscope className="w-5 h-5" /> },
+        { id: "dental-3d", label: "Visor 3D Diagnocat", icon: <Box className="w-5 h-5" /> },
         { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
         { id: "medications", label: "Medicamentos", icon: <Pill className="w-5 h-5" /> },
         { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
@@ -115,9 +115,12 @@ export const DoctorDashboard = () => {
       ]
     },
     { 
-      title: "IA & Diagnóstico", 
+      title: "Imagenología & IA", 
       items: [
         { id: "xray", label: "Análisis RX", icon: <Scan className="w-5 h-5" /> },
+        { id: "cephalometry", label: "Cefalometría", icon: <Layers className="w-5 h-5" /> },
+        { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
+        { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Layers className="w-5 h-5" /> },
         { id: "ai-reports", label: "Reportes IA", icon: <Brain className="w-5 h-5" /> },
         { id: "smile", label: "Diseño Sonrisa", icon: <Smile className="w-5 h-5" /> },
       ]
@@ -130,7 +133,7 @@ export const DoctorDashboard = () => {
       ]
     },
     { 
-      title: "Documentos", 
+      title: "Documentos & Plantillas", 
       items: [
         { id: "files", label: "Archivos", icon: <FolderOpen className="w-5 h-5" /> },
         { id: "gallery", label: "Galería", icon: <ImageIcon className="w-5 h-5" /> },
@@ -138,14 +141,7 @@ export const DoctorDashboard = () => {
         { id: "templates", label: "Plantillas", icon: <FileStack className="w-5 h-5" /> },
         { id: "clinical-docs", label: "Docs Clínicos", icon: <ClipboardList className="w-5 h-5" /> },
         { id: "signature", label: "Firma Digital", icon: <PenTool className="w-5 h-5" /> },
-      ]
-    },
-    { 
-      title: "Imagenología", 
-      items: [
-        { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
-        { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Layers className="w-5 h-5" /> },
-        { id: "3d-viewer", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
+        { id: "export-import", label: "Exportar/Importar", icon: <HardDrive className="w-5 h-5" /> },
       ]
     },
     { 
@@ -164,7 +160,22 @@ export const DoctorDashboard = () => {
     { label: "Esta Semana", value: appointments.filter(a => { const d = new Date(a.appointment_date); return d >= startOfWeek(new Date()) && d <= endOfWeek(new Date()); }).length, icon: TrendingUp, color: "info" as const },
   ];
 
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+
   const renderContent = () => {
+    // If a patient is selected, show their profile
+    if (selectedPatientId && activeSection === "patient-profile") {
+      return (
+        <ComprehensivePatientProfile 
+          patientId={selectedPatientId} 
+          onBack={() => {
+            setSelectedPatientId(null);
+            setActiveSection("patients");
+          }}
+        />
+      );
+    }
+
     switch (activeSection) {
       case "dashboard": 
         return <><PageHeader title="Dashboard" subtitle={`Dr. ${profile?.full_name || 'Doctor'}`} /><StatsGrid stats={stats} /></>;
@@ -190,11 +201,13 @@ export const DoctorDashboard = () => {
       case "dental-3d":
         return <DiagnocatViewer patientId="demo-patient" patientName="Paciente Demo" />;
       case "patient-profile":
-        return <ComprehensivePatientProfile patientId="demo-patient" />;
+        return <ComprehensivePatientProfile patientId={selectedPatientId || undefined} />;
       case "lab": 
         return <LabOrdersManager />;
       case "xray": 
         return <XRayAnalysis />;
+      case "cephalometry":
+        return <CephalometryModule />;
       case "ai-reports": 
         return <AIReportsModule />;
       case "smile": 
@@ -231,6 +244,8 @@ export const DoctorDashboard = () => {
         return <TreatmentProgressDashboard />;
       case "payment-plans":
         return <PaymentPlanCalculator treatmentTotal={0} />;
+      case "export-import":
+        return <DataExportImport />;
       default: 
         return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }
