@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "next-themes";
 import logo from "@/assets/logo-novelldent.png";
+import { PatientSelector } from "@/components/clinic/PatientSelector";
 
 export interface NavItem {
   id: string;
@@ -235,6 +236,14 @@ export const DashboardLayout = ({
               </div>
             )}
           </div>
+
+          {/* Patient Selector - only for staff/doctors */}
+          {(userRole === 'admin' || userRole === 'staff' || userRole === 'doctor') && (
+            <>
+              <PatientSelector collapsed={collapsed} />
+              <Separator className="my-2" />
+            </>
+          )}
 
           {/* Navigation */}
           <ScrollArea className="flex-1 px-3 py-4">

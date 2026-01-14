@@ -3,6 +3,7 @@ import { AuthPage } from "@/components/auth/AuthPage";
 import { PatientDashboard } from "@/components/dashboard/PatientDashboard";
 import { DoctorDashboard } from "@/components/dashboard/DoctorDashboard";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { PatientProvider } from "@/contexts/PatientContext";
 import { Loader2 } from "lucide-react";
 
 const Portal = () => {
@@ -20,17 +21,25 @@ const Portal = () => {
     return <AuthPage />;
   }
 
-  // Redirect based on role
-  switch (userRole) {
-    case 'admin':
-    case 'staff':
-      return <AdminDashboard />;
-    case 'doctor':
-      return <DoctorDashboard />;
-    case 'patient':
-    default:
-      return <PatientDashboard />;
-  }
+  // Wrap dashboards with PatientProvider for global patient selection
+  const renderDashboard = () => {
+    switch (userRole) {
+      case 'admin':
+      case 'staff':
+        return <AdminDashboard />;
+      case 'doctor':
+        return <DoctorDashboard />;
+      case 'patient':
+      default:
+        return <PatientDashboard />;
+    }
+  };
+
+  return (
+    <PatientProvider>
+      {renderDashboard()}
+    </PatientProvider>
+  );
 };
 
 export default Portal;
