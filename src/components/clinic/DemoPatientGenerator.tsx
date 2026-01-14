@@ -165,7 +165,7 @@ export const DemoPatientGenerator = ({ onComplete }: DemoPatientGeneratorProps) 
           }
         }
 
-        // Generate treatments
+        // Generate treatments - use profile.user_id as patient_id for consistency
         if (includeTreatments && profile) {
           const treatmentCount = Math.floor(Math.random() * 3);
           
@@ -176,7 +176,7 @@ export const DemoPatientGenerator = ({ onComplete }: DemoPatientGeneratorProps) 
             const status = ['active', 'completed', 'pending'][Math.floor(Math.random() * 3)];
 
             await supabase.from('treatments').insert({
-              patient_id: profile.id,
+              patient_id: profile.user_id, // Use user_id for consistency with profile lookups
               name: treatmentName,
               description: `${treatmentName} para ${fullName}`,
               cost: cost,
@@ -190,7 +190,7 @@ export const DemoPatientGenerator = ({ onComplete }: DemoPatientGeneratorProps) 
           }
         }
 
-        // Generate invoices
+        // Generate invoices - use profile.user_id as patient_id for consistency
         if (includeInvoices && profile) {
           const invoiceCount = Math.floor(Math.random() * 2);
           
@@ -202,7 +202,7 @@ export const DemoPatientGenerator = ({ onComplete }: DemoPatientGeneratorProps) 
 
             await supabase.from('invoices').insert({
               invoice_number: `INV-DEMO-${Date.now()}-${j}`,
-              patient_id: profile.id,
+              patient_id: profile.user_id, // Use user_id for consistency with profile lookups
               patient_name: fullName,
               patient_email: email,
               subtotal: subtotal,

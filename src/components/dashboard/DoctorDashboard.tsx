@@ -11,6 +11,7 @@ import {
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
 import { ContentCard, PageHeader } from "@/components/layout/ContentCard";
+import { DashboardWidgets } from "@/components/dashboard/DashboardWidgets";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -188,7 +189,14 @@ export const DoctorDashboard = () => {
 
     switch (activeSection) {
       case "dashboard": 
-        return <><PageHeader title="Dashboard" subtitle={`Dr. ${profile?.full_name || 'Doctor'}`} /><StatsGrid stats={stats} /></>;
+        return (
+          <DashboardWidgets 
+            appointments={appointments} 
+            treatments={treatments}
+            userRole="doctor" 
+            userName={profile?.full_name || 'Doctor'}
+          />
+        );
       // Portal Modules
       case "agenda":
         return <AgendaModule />;
