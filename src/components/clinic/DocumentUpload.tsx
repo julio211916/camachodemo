@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,11 +29,15 @@ interface Document {
   patient_id: string;
   document_type: string;
   file_name: string;
-  file_url: string;
+  file_url: string; // This now stores the file path, not a public URL
   file_size: number | null;
   mime_type: string | null;
   description: string | null;
   created_at: string;
+}
+
+interface DocumentWithSignedUrl extends Document {
+  signedUrl?: string;
 }
 
 export const DocumentUpload = ({ patientId, patientName }: DocumentUploadProps) => {
@@ -44,6 +48,7 @@ export const DocumentUpload = ({ patientId, patientName }: DocumentUploadProps) 
   const [description, setDescription] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [documentsWithUrls, setDocumentsWithUrls] = useState<DocumentWithSignedUrl[]>([]);
 
   const { data: documents, isLoading } = useQuery({
     queryKey: ['patient-documents', patientId],
@@ -58,13 +63,55 @@ export const DocumentUpload = ({ patientId, patientName }: DocumentUploadProps) 
     },
   });
 
+  // Generate signed URLs for documents when documents change
+  useEffect(() => {
+    const generateSignedUrls = async () => {
+      if (!documents || documents.length === 0) {
+        setDocumentsWithUrls([]);
+        return;
+      }
+
+      const docsWithUrls = await Promise.all(
+        documents.map(async (doc) => {
+          // Extract file path from stored URL or use as path
+          let filePath = doc.file_url;
+          
+          // If it's a full public URL, extract the path
+          if (doc.file_url.includes('/storage/v1/object/public/')) {
+            const match = doc.file_url.match(/patient-documents\/(.+)/);
+            filePath = match ? match[1] : doc.file_url;
+          }
+          
+          // Generate a signed URL with 1 hour expiration
+          const { data, error } = await supabase.storage
+            .from('patient-documents')
+            .createSignedUrl(filePath, 3600);
+          
+          return {
+            ...doc,
+            signedUrl: error ? undefined : data?.signedUrl,
+          };
+        })
+      );
+
+      setDocumentsWithUrls(docsWithUrls);
+    };
+
+    generateSignedUrls();
+  }, [documents]);
+
   const deleteMutation = useMutation({
     mutationFn: async (doc: Document) => {
-      // Delete from storage
-      const filePath = doc.file_url.split('/').pop();
-      if (filePath) {
-        await supabase.storage.from('patient-documents').remove([`${patientId}/${filePath}`]);
+      // Extract file path
+      let filePath = doc.file_url;
+      if (doc.file_url.includes('/storage/v1/object/public/')) {
+        const match = doc.file_url.match(/patient-documents\/(.+)/);
+        filePath = match ? match[1] : `${patientId}/${doc.file_url.split('/').pop()}`;
       }
+      
+      // Delete from storage
+      await supabase.storage.from('patient-documents').remove([filePath]);
+      
       // Delete from database
       const { error } = await supabase
         .from('patient_documents')
@@ -99,19 +146,15 @@ export const DocumentUpload = ({ patientId, patientName }: DocumentUploadProps) 
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('patient-documents')
-        .getPublicUrl(filePath);
-
-      // Save to database
+      // Store the file path instead of public URL for security
+      // Signed URLs will be generated on-demand when displaying
       const { error: dbError } = await supabase
         .from('patient_documents')
         .insert({
           patient_id: patientId,
           document_type: documentType,
           file_name: file.name,
-          file_url: publicUrl,
+          file_url: filePath, // Store path, not public URL
           file_size: file.size,
           mime_type: file.type,
           description: description || null,
@@ -141,9 +184,21 @@ export const DocumentUpload = ({ patientId, patientName }: DocumentUploadProps) 
 
   const isImage = (mimeType: string | null) => mimeType?.startsWith('image/');
 
-  const handlePreview = (url: string) => {
-    setPreviewUrl(url);
-    setPreviewOpen(true);
+  const handlePreview = async (doc: DocumentWithSignedUrl) => {
+    if (doc.signedUrl) {
+      setPreviewUrl(doc.signedUrl);
+      setPreviewOpen(true);
+    } else {
+      toast({ title: "Error", description: "No se pudo cargar la vista previa", variant: "destructive" });
+    }
+  };
+
+  const handleDownload = async (doc: DocumentWithSignedUrl) => {
+    if (doc.signedUrl) {
+      window.open(doc.signedUrl, '_blank');
+    } else {
+      toast({ title: "Error", description: "No se pudo descargar el archivo", variant: "destructive" });
+    }
   };
 
   if (isLoading) {
@@ -210,12 +265,12 @@ export const DocumentUpload = ({ patientId, patientName }: DocumentUploadProps) 
 
         {/* Documents List */}
         <div className="space-y-3">
-          {documents?.length === 0 ? (
+          {documentsWithUrls?.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
               No hay documentos cargados
             </p>
           ) : (
-            documents?.map(doc => {
+            documentsWithUrls?.map(doc => {
               const docTypeInfo = documentTypes.find(dt => dt.value === doc.document_type);
               return (
                 <div
@@ -241,24 +296,24 @@ export const DocumentUpload = ({ patientId, patientName }: DocumentUploadProps) 
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {isImage(doc.mime_type) && (
+                    {isImage(doc.mime_type) && doc.signedUrl && (
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handlePreview(doc.file_url)}
+                        onClick={() => handlePreview(doc)}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      asChild
-                    >
-                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer" download>
+                    {doc.signedUrl && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDownload(doc)}
+                      >
                         <Download className="w-4 h-4" />
-                      </a>
-                    </Button>
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"

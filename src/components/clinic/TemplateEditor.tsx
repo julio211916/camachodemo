@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { motion, Reorder } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { sanitizeHTML } from "@/lib/sanitize";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -649,7 +650,7 @@ export const TemplateEditor = () => {
           </DialogHeader>
           <div 
             className="bg-white p-8 rounded-lg border"
-            dangerouslySetInnerHTML={{ __html: generateHTML() }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(generateHTML()) }}
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPreview(false)}>

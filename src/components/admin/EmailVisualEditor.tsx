@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { sanitizeEmailHTML } from "@/lib/sanitize";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -1675,7 +1676,7 @@ export const EmailVisualEditor = () => {
             </DialogTitle>
           </DialogHeader>
           <div
-            dangerouslySetInnerHTML={{ __html: generateHTML() }}
+            dangerouslySetInnerHTML={{ __html: sanitizeEmailHTML(generateHTML()) }}
             className="border rounded-lg overflow-hidden"
           />
           <DialogFooter>
