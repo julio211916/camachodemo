@@ -64,6 +64,7 @@
     "dicom-parser": "^1.8.21",
     "dompurify": "^3.3.1",
     "embla-carousel-react": "^8.6.0",
+    "exceljs": "^4.4.0",
     "framer-motion": "^12.25.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
@@ -82,7 +83,6 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.160",
     "vaul": "^0.9.9",
-    "xlsx": "^0.18.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {

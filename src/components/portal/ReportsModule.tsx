@@ -22,7 +22,7 @@ import {
   CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPie,
   Pie, Cell, Legend
 } from "recharts";
-import * as XLSX from "xlsx";
+import { exportToExcel } from "@/lib/excelExport";
 
 // Mock data for charts
 const revenueData = [
@@ -93,12 +93,16 @@ export const ReportsModule = () => {
   const [dateRange, setDateRange] = useState('30d');
   const [selectedLocation, setSelectedLocation] = useState('all');
 
-  const exportToExcel = (reportName: string, data: any[]) => {
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
-    XLSX.writeFile(workbook, `${reportName}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
-    toast({ title: "Reporte exportado", description: `${reportName} descargado exitosamente` });
+  const handleExportToExcel = async (reportName: string, data: any[]) => {
+    try {
+      await exportToExcel(data, {
+        filename: `${reportName}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`,
+        sheetName: 'Reporte'
+      });
+      toast({ title: "Reporte exportado", description: `${reportName} descargado exitosamente` });
+    } catch (error) {
+      toast({ title: "Error", description: "No se pudo exportar el reporte", variant: "destructive" });
+    }
   };
 
   const renderContent = () => {
@@ -106,7 +110,7 @@ export const ReportsModule = () => {
       case 'dashboard':
         return <DashboardSection dateRange={dateRange} />;
       case 'excel':
-        return <ExcelReportsSection onExport={exportToExcel} />;
+        return <ExcelReportsSection onExport={handleExportToExcel} />;
       case 'graficos':
         return <GraphReportsSection />;
       case 'conversion':
@@ -430,7 +434,7 @@ const GraphReportsSection = () => (
                 formatter={(value: number) => `$${value.toLocaleString()}`}
                 contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
               />
-              <Bar dataKey="ingresos" fill="#10B981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="ingresos" fill="#3B82F6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -438,26 +442,20 @@ const GraphReportsSection = () => (
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Distribución de Servicios</CardTitle>
+          <CardTitle className="text-lg">Análisis de Conversión</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <RechartsPie>
-              <Pie
-                data={treatmentData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                dataKey="value"
-              >
-                {treatmentData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
+            <AreaChart data={conversionData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="mes" className="text-xs" />
+              <YAxis className="text-xs" />
+              <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+              <Area type="monotone" dataKey="consultas" stroke="#3B82F6" fill="#3B82F633" name="Consultas" />
+              <Area type="monotone" dataKey="presupuestos" stroke="#F59E0B" fill="#F59E0B33" name="Presupuestos" />
+              <Area type="monotone" dataKey="aceptados" stroke="#10B981" fill="#10B98133" name="Aceptados" />
               <Legend />
-            </RechartsPie>
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
@@ -466,170 +464,100 @@ const GraphReportsSection = () => (
 );
 
 // Conversion Analysis Section
-const ConversionAnalysisSection = () => {
-  const conversionRate = 73;
-  const avgConversion = 68;
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Target className="w-6 h-6" />
-          Análisis de Conversión
-        </h2>
-        <p className="text-muted-foreground">Mide la conversión de citas a presupuestos aceptados</p>
-      </div>
-
-      {/* Conversion KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
-          <CardContent className="pt-6 text-center">
-            <p className="text-4xl font-bold text-green-600">{conversionRate}%</p>
-            <p className="text-sm text-muted-foreground">Conversión Actual</p>
-            <p className="text-xs text-green-600 mt-1">+5% vs promedio</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <p className="text-4xl font-bold">{avgConversion}%</p>
-            <p className="text-sm text-muted-foreground">Promedio Histórico</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <p className="text-4xl font-bold">542</p>
-            <p className="text-sm text-muted-foreground">Presupuestos Aceptados</p>
-            <p className="text-xs text-muted-foreground mt-1">Últimos 6 meses</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Conversion Funnel */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Embudo de Conversión</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={conversionData} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis type="number" className="text-xs" />
-              <YAxis dataKey="mes" type="category" className="text-xs" />
-              <Tooltip 
-                contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-              />
-              <Bar dataKey="consultas" fill="#3B82F6" name="Consultas" radius={[0, 4, 4, 0]} />
-              <Bar dataKey="presupuestos" fill="#F59E0B" name="Presupuestos" radius={[0, 4, 4, 0]} />
-              <Bar dataKey="aceptados" fill="#10B981" name="Aceptados" radius={[0, 4, 4, 0]} />
-              <Legend />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Conversion Trend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Tendencia de Conversión</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={conversionData.map(d => ({
-              ...d,
-              tasaConversion: Math.round((d.aceptados / d.consultas) * 100)
-            }))}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="mes" className="text-xs" />
-              <YAxis className="text-xs" domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-              <Tooltip 
-                formatter={(value: number) => `${value}%`}
-                contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="tasaConversion" 
-                stroke="#10B981" 
-                strokeWidth={2} 
-                dot={{ fill: '#10B981' }}
-                name="Tasa de Conversión"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    </div>
-  );
-};
-
-// Doctor Performance Section
-const DoctorPerformanceSection = ({ data }: { data: typeof doctorPerformance }) => (
+const ConversionAnalysisSection = () => (
   <div className="space-y-6">
-    <div className="flex items-center justify-between">
-      <div>
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Users className="w-6 h-6" />
-          Desempeño por Doctor
-        </h2>
-        <p className="text-muted-foreground">Métricas individuales de profesionales</p>
-      </div>
-      <Button variant="outline">
-        <Download className="w-4 h-4 mr-2" />
-        Exportar
-      </Button>
+    <div>
+      <h2 className="text-2xl font-bold flex items-center gap-2">
+        <Target className="w-6 h-6" />
+        Análisis de Conversión
+      </h2>
+      <p className="text-muted-foreground">Embudo de ventas y conversiones</p>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {data.map(doc => (
-        <Card key={doc.id} className="hover:border-primary transition-colors">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <Users className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="font-semibold text-sm">{doc.nombre}</p>
-                <div className="flex items-center text-yellow-500">
-                  <Star className="w-3 h-3 fill-current" />
-                  <span className="text-xs ml-1">{doc.rating}</span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Pacientes</span>
-                <span className="font-medium">{doc.pacientes}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Ingresos</span>
-                <span className="font-medium text-green-600">${doc.ingresos.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Citas</span>
-                <span className="font-medium">{doc.citas}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <Card>
+        <CardContent className="pt-6 text-center">
+          <div className="text-4xl font-bold text-blue-500">1,275</div>
+          <p className="text-muted-foreground">Consultas Totales</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-6 text-center">
+          <div className="text-4xl font-bold text-amber-500">818</div>
+          <p className="text-muted-foreground">Presupuestos Enviados</p>
+          <Badge variant="outline" className="mt-2">64% de consultas</Badge>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-6 text-center">
+          <div className="text-4xl font-bold text-green-500">638</div>
+          <p className="text-muted-foreground">Tratamientos Aceptados</p>
+          <Badge variant="outline" className="mt-2">78% de presupuestos</Badge>
+        </CardContent>
+      </Card>
     </div>
 
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Comparativa de Ingresos</CardTitle>
+        <CardTitle className="text-lg">Tendencia de Conversión</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data} layout="vertical">
+          <LineChart data={conversionData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis type="number" className="text-xs" tickFormatter={(v) => `$${v/1000}k`} />
-            <YAxis dataKey="nombre" type="category" className="text-xs" width={120} />
-            <Tooltip 
-              formatter={(value: number) => `$${value.toLocaleString()}`}
-              contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-            />
-            <Bar dataKey="ingresos" fill="#3B82F6" radius={[0, 4, 4, 0]} />
-          </BarChart>
+            <XAxis dataKey="mes" className="text-xs" />
+            <YAxis className="text-xs" />
+            <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
+            <Line type="monotone" dataKey="consultas" stroke="#3B82F6" strokeWidth={2} name="Consultas" />
+            <Line type="monotone" dataKey="aceptados" stroke="#10B981" strokeWidth={2} name="Aceptados" />
+            <Legend />
+          </LineChart>
         </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+// Doctor Performance Section
+const DoctorPerformanceSection = ({ data }: { data: typeof doctorPerformance }) => (
+  <div className="space-y-6">
+    <div>
+      <h2 className="text-2xl font-bold flex items-center gap-2">
+        <Users className="w-6 h-6" />
+        Desempeño de Doctores
+      </h2>
+      <p className="text-muted-foreground">Métricas por profesional</p>
+    </div>
+
+    <Card>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Profesional</TableHead>
+              <TableHead className="text-right">Pacientes</TableHead>
+              <TableHead className="text-right">Citas</TableHead>
+              <TableHead className="text-right">Ingresos</TableHead>
+              <TableHead className="text-right">Rating</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map(doctor => (
+              <TableRow key={doctor.id}>
+                <TableCell className="font-medium">{doctor.nombre}</TableCell>
+                <TableCell className="text-right">{doctor.pacientes}</TableCell>
+                <TableCell className="text-right">{doctor.citas}</TableCell>
+                <TableCell className="text-right">${doctor.ingresos.toLocaleString()}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    {doctor.rating}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   </div>
@@ -643,64 +571,33 @@ const LocationAnalysisSection = ({ data }: { data: typeof locationPerformance })
         <Building2 className="w-6 h-6" />
         Análisis por Sucursal
       </h2>
-      <p className="text-muted-foreground">Rendimiento de cada ubicación</p>
+      <p className="text-muted-foreground">Rendimiento por ubicación</p>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {data.map(loc => (
-        <Card key={loc.id}>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Building2 className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="font-semibold">{loc.nombre}</h3>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {data.map(location => (
+        <Card key={location.id}>
+          <CardHeader>
+            <CardTitle className="text-lg">{location.nombre}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Pacientes</span>
+              <span className="font-semibold">{location.pacientes}</span>
             </div>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Ocupación</span>
-                  <span className="font-medium">{loc.ocupacion}%</span>
-                </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary rounded-full h-2 transition-all"
-                    style={{ width: `${loc.ocupacion}%` }}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Pacientes</span>
-                <span className="font-medium">{loc.pacientes}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Ingresos</span>
-                <span className="font-medium text-green-600">${loc.ingresos.toLocaleString()}</span>
-              </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ingresos</span>
+              <span className="font-semibold">${location.ingresos.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Ocupación</span>
+              <Badge variant={location.ocupacion > 80 ? "default" : location.ocupacion > 60 ? "secondary" : "destructive"}>
+                {location.ocupacion}%
+              </Badge>
             </div>
           </CardContent>
         </Card>
       ))}
     </div>
-
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Comparativa de Sucursales</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="nombre" className="text-xs" />
-            <YAxis className="text-xs" tickFormatter={(v) => `$${v/1000}k`} />
-            <Tooltip 
-              formatter={(value: number) => `$${value.toLocaleString()}`}
-              contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-            />
-            <Bar dataKey="ingresos" fill="#10B981" radius={[4, 4, 0, 0]} name="Ingresos" />
-          </BarChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
   </div>
 );

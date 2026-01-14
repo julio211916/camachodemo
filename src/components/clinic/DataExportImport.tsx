@@ -23,7 +23,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import * as XLSX from 'xlsx';
+import { exportToExcel, exportToCSV, exportMultiSheetExcel, parseExcelFile } from "@/lib/excelExport";
 
 interface DataExportImportProps {
   patientId?: string;
@@ -121,7 +121,7 @@ export const DataExportImport = ({ patientId }: DataExportImportProps) => {
     setExportProgress(0);
 
     try {
-      const workbook = XLSX.utils.book_new();
+      const sheets: { name: string; data: Record<string, any>[] }[] = [];
       const totalCategories = selectedCategories.length;
       let processed = 0;
 
@@ -203,34 +203,27 @@ export const DataExportImport = ({ patientId }: DataExportImportProps) => {
         }
 
         if (data.length > 0) {
-          const worksheet = XLSX.utils.json_to_sheet(data);
-          XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+          sheets.push({ name: sheetName, data });
         }
 
         processed++;
         setExportProgress((processed / totalCategories) * 100);
-        await new Promise(r => setTimeout(r, 200)); // Small delay for UI
+        await new Promise(r => setTimeout(r, 200));
       }
 
-      // Generate file
       const fileName = `NovellDent_Export_${new Date().toISOString().split('T')[0]}`;
-      
+
       if (exportFormat === 'xlsx') {
-        XLSX.writeFile(workbook, `${fileName}.xlsx`);
+        await exportMultiSheetExcel(sheets, `${fileName}.xlsx`);
       } else if (exportFormat === 'csv') {
         // Export each sheet as separate CSV
-        for (const sheetName of workbook.SheetNames) {
-          const csv = XLSX.utils.sheet_to_csv(workbook.Sheets[sheetName]);
-          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = `${fileName}_${sheetName}.csv`;
-          link.click();
+        for (const sheet of sheets) {
+          exportToCSV(sheet.data, `${fileName}_${sheet.name}.csv`);
         }
       } else if (exportFormat === 'json') {
         const jsonData: Record<string, any[]> = {};
-        for (const sheetName of workbook.SheetNames) {
-          jsonData[sheetName] = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        for (const sheet of sheets) {
+          jsonData[sheet.name] = sheet.data;
         }
         const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
         const link = document.createElement('a');
@@ -304,12 +297,11 @@ export const DataExportImport = ({ patientId }: DataExportImportProps) => {
 
         // Parse file if it's a spreadsheet
         if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-          const data = await file.arrayBuffer();
-          const workbook = XLSX.read(data);
+          const result = await parseExcelFile(file);
           
           toast({
             title: "Archivo procesado",
-            description: `${workbook.SheetNames.length} hojas encontradas en ${file.name}`,
+            description: `${result.sheetNames.length} hojas encontradas en ${file.name}`,
           });
         }
 
@@ -333,7 +325,7 @@ export const DataExportImport = ({ patientId }: DataExportImportProps) => {
     if (type.includes('image')) return <ImageIcon className="w-5 h-5 text-blue-500" />;
     if (type.includes('video')) return <Video className="w-5 h-5 text-purple-500" />;
     if (type.includes('zip') || type.includes('archive')) return <FileArchive className="w-5 h-5 text-amber-500" />;
-    return <File className="w-5 h-5 text-gray-500" />;
+    return <File className="w-5 h-5 text-muted-foreground" />;
   };
 
   const formatFileSize = (bytes: number) => {
@@ -471,62 +463,40 @@ export const DataExportImport = ({ patientId }: DataExportImportProps) => {
             <div className="text-xs text-muted-foreground text-center">
               Formatos soportados: Excel, CSV, JSON, STL, OBJ, PLY, DICOM, Imágenes, Videos, PDF
             </div>
-            
-            {/* File List */}
+
+            {/* Files List */}
             {files.length > 0 && (
-              <ScrollArea className="h-64 rounded-lg border">
-                <div className="p-3 space-y-2">
-                  {files.map((file, index) => (
-                    <motion.div
-                      key={`${file.name}-${index}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50"
-                    >
-                      {getFileIcon(file.type)}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm truncate">{file.name}</span>
-                          <span className="text-xs text-muted-foreground">{formatFileSize(file.size)}</span>
-                        </div>
-                        {file.status === 'uploading' && (
-                          <Progress value={file.progress} className="h-1 mt-1" />
-                        )}
-                        {file.error && (
-                          <span className="text-xs text-destructive">{file.error}</span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {file.status === 'uploading' && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
-                        {file.status === 'success' && <Check className="w-4 h-4 text-green-500" />}
-                        {file.status === 'error' && <AlertTriangle className="w-4 h-4 text-destructive" />}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => removeFile(index)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Archivos ({files.length})</Label>
+                  <Button variant="ghost" size="sm" onClick={() => setFiles([])}>
+                    Limpiar todo
+                  </Button>
                 </div>
-              </ScrollArea>
-            )}
-            
-            {files.length > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
-                  {files.filter(f => f.status === 'success').length} de {files.length} archivos procesados
-                </span>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setFiles([])}
-                >
-                  Limpiar Todo
-                </Button>
+                <ScrollArea className="h-48">
+                  <div className="space-y-2">
+                    {files.map((file, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                        {getFileIcon(file.type)}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                          {file.status === 'uploading' && (
+                            <Progress value={file.progress} className="h-1 mt-1" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {file.status === 'success' && <Check className="w-4 h-4 text-green-500" />}
+                          {file.status === 'error' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                          {file.status === 'uploading' && <Loader2 className="w-4 h-4 animate-spin" />}
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(idx)}>
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             )}
           </TabsContent>
@@ -535,5 +505,3 @@ export const DataExportImport = ({ patientId }: DataExportImportProps) => {
     </Card>
   );
 };
-
-export default DataExportImport;
