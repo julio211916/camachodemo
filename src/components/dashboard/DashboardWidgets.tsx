@@ -1,7 +1,7 @@
 import { ReactNode, useMemo } from 'react';
 import { 
   Calendar, Clock, Users, Activity, TrendingUp, 
-  CalendarDays, CheckCircle2, Wallet
+  CalendarDays, CheckCircle2, Wallet, DollarSign, Stethoscope
 } from 'lucide-react';
 import { GridStackLayout, GridWidget } from '@/components/layout/GridStackLayout';
 import { StatsGrid } from '@/components/layout/DashboardStats';
@@ -10,6 +10,7 @@ import { AdminAppointmentsList } from '@/components/admin/AdminAppointmentsList'
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { useGridStackLayout } from '@/hooks/useGridStackLayout';
 import { isSameDay, startOfWeek, endOfWeek } from 'date-fns';
+import { RevenueChartWidget, AppointmentCalendarWidget, PendingTreatmentsWidget } from './widgets';
 
 interface DashboardWidgetsProps {
   appointments: any[];
@@ -90,27 +91,53 @@ export const DashboardWidgets = ({
       visible: true
     },
     {
+      id: 'revenue-chart',
+      title: 'Ingresos y Gastos',
+      icon: <DollarSign className="w-4 h-4" />,
+      component: <RevenueChartWidget />,
+      x: 0,
+      y: 2,
+      w: 8,
+      h: 4,
+      minW: 6,
+      minH: 3,
+      visible: true
+    },
+    {
+      id: 'pending-treatments',
+      title: 'Tratamientos',
+      icon: <Stethoscope className="w-4 h-4" />,
+      component: <PendingTreatmentsWidget />,
+      x: 8,
+      y: 2,
+      w: 4,
+      h: 4,
+      minW: 3,
+      minH: 3,
+      visible: true
+    },
+    {
+      id: 'calendar-widget',
+      title: 'Calendario de Citas',
+      icon: <CalendarDays className="w-4 h-4" />,
+      component: <AppointmentCalendarWidget appointments={appointments} />,
+      x: 0,
+      y: 6,
+      w: 6,
+      h: 4,
+      minW: 4,
+      minH: 3,
+      visible: true
+    },
+    {
       id: 'appointments',
       title: 'Citas Recientes',
       icon: <CalendarDays className="w-4 h-4" />,
       component: <AdminAppointmentsList appointments={appointments.slice(0, 5)} compact />,
-      x: 0,
-      y: 2,
-      w: 6,
-      h: 3,
-      minW: 4,
-      minH: 2,
-      visible: true
-    },
-    {
-      id: 'analytics',
-      title: 'Analytics Rápido',
-      icon: <Activity className="w-4 h-4" />,
-      component: <AnalyticsDashboard />,
       x: 6,
-      y: 2,
+      y: 6,
       w: 6,
-      h: 3,
+      h: 4,
       minW: 4,
       minH: 2,
       visible: true
@@ -136,7 +163,7 @@ export const DashboardWidgets = ({
         </div>
       ),
       x: 0,
-      y: 5,
+      y: 10,
       w: 4,
       h: 2,
       minW: 3,
@@ -167,10 +194,23 @@ export const DashboardWidgets = ({
         </div>
       ),
       x: 4,
-      y: 5,
+      y: 10,
       w: 4,
       h: 2,
       minW: 3,
+      minH: 2,
+      visible: true
+    },
+    {
+      id: 'analytics',
+      title: 'Analytics Rápido',
+      icon: <Activity className="w-4 h-4" />,
+      component: <AnalyticsDashboard />,
+      x: 8,
+      y: 10,
+      w: 4,
+      h: 2,
+      minW: 4,
       minH: 2,
       visible: true
     }

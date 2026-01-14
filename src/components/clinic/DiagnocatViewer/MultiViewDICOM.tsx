@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Upload, Loader2, FileImage, Layers, RefreshCw, Folder } from "lucide-react";
+import { Upload, Loader2, FileImage, Layers, RefreshCw, Folder, Maximize2, Grid3X3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -9,17 +9,7 @@ import { cn } from "@/lib/utils";
 import { DICOMViewport } from "./DICOMViewport";
 import { useDicomLoader } from "@/hooks/useDicomLoader";
 import { usePatientContext } from "@/contexts/PatientContext";
-
-interface DICOMSlice {
-  imageData: ImageData;
-  sliceIndex: number;
-}
-
-interface DICOMSeries {
-  axial: DICOMSlice[];
-  coronal: DICOMSlice[];
-  sagittal: DICOMSlice[];
-}
+import { getMPRSlice, DicomImageData } from "@/lib/dicomParser";
 
 interface MultiViewDICOMProps {
   onClose?: () => void;
@@ -43,44 +33,54 @@ export const MultiViewDICOM = ({ onClose, patientId: propPatientId }: MultiViewD
     updateWindowLevel,
   } = useDicomLoader(effectivePatientId);
 
-  const [series, setSeries] = useState<DICOMSeries>({
-    axial: [],
-    coronal: [],
-    sagittal: []
-  });
   const [activeViewport, setActiveViewport] = useState<'axial' | 'coronal' | 'sagittal'>('axial');
   const [showCrosshair, setShowCrosshair] = useState(true);
   const [sliceIndices, setSliceIndices] = useState({ axial: 0, coronal: 0, sagittal: 0 });
   const [linkedViews, setLinkedViews] = useState(true);
   const [zoom, setZoom] = useState(100);
   const [selectedStudyId, setSelectedStudyId] = useState<string>('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // When loaded series changes, update the view
+  // Get dimensions from loaded series
+  const dimensions = useMemo(() => {
+    if (!loadedSeries || loadedSeries.slices.length === 0) {
+      return { width: 0, height: 0, depth: 0 };
+    }
+    return {
+      width: loadedSeries.slices[0].width,
+      height: loadedSeries.slices[0].height,
+      depth: loadedSeries.slices.length,
+    };
+  }, [loadedSeries]);
+
+  // Initialize slice indices when series loads
   useEffect(() => {
-    if (loadedSeries && loadedSeries.renderedImages.length > 0) {
-      const axialSlices: DICOMSlice[] = loadedSeries.renderedImages.map((img, idx) => ({
-        imageData: img,
-        sliceIndex: idx,
-      }));
-
-      // For single slice, duplicate for other views (simplified MPR)
-      const coronalSlices = axialSlices.length > 0 ? [axialSlices[0]] : [];
-      const sagittalSlices = axialSlices.length > 0 ? [axialSlices[0]] : [];
-
-      setSeries({
-        axial: axialSlices,
-        coronal: coronalSlices,
-        sagittal: sagittalSlices,
-      });
-
+    if (loadedSeries && loadedSeries.slices.length > 0) {
       setSliceIndices({
-        axial: Math.floor(axialSlices.length / 2),
-        coronal: 0,
-        sagittal: 0,
+        axial: Math.floor(loadedSeries.slices.length / 2),
+        coronal: Math.floor(loadedSeries.slices[0].height / 2),
+        sagittal: Math.floor(loadedSeries.slices[0].width / 2),
       });
     }
   }, [loadedSeries]);
+
+  // Get MPR images for each view
+  const mprImages = useMemo(() => {
+    if (!loadedSeries || loadedSeries.slices.length === 0) {
+      return { axial: null, coronal: null, sagittal: null };
+    }
+
+    return {
+      axial: getMPRSlice(loadedSeries.slices, 'axial', sliceIndices.axial, windowCenter, windowWidth),
+      coronal: loadedSeries.slices.length > 1 
+        ? getMPRSlice(loadedSeries.slices, 'coronal', sliceIndices.coronal, windowCenter, windowWidth)
+        : null,
+      sagittal: loadedSeries.slices.length > 1
+        ? getMPRSlice(loadedSeries.slices, 'sagittal', sliceIndices.sagittal, windowCenter, windowWidth)
+        : null,
+    };
+  }, [loadedSeries, sliceIndices, windowCenter, windowWidth]);
 
   // Handle file upload from local
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,27 +100,41 @@ export const MultiViewDICOM = ({ onClose, patientId: propPatientId }: MultiViewD
   }, [studies, loadStudy]);
 
   const handleSliceChange = useCallback((view: 'axial' | 'coronal' | 'sagittal', index: number) => {
-    setSliceIndices(prev => ({ ...prev, [view]: index }));
-  }, []);
+    setSliceIndices(prev => {
+      const newIndices = { ...prev, [view]: index };
+      
+      // If linked views, update crosshair position in other views
+      if (linkedViews && loadedSeries) {
+        // Linked navigation logic could be added here
+      }
+      
+      return newIndices;
+    });
+  }, [linkedViews, loadedSeries]);
 
   const handleFullscreen = useCallback((view: 'axial' | 'coronal' | 'sagittal') => {
     setActiveViewport(view);
-  }, []);
+    setIsFullscreen(!isFullscreen);
+  }, [isFullscreen]);
 
   const resetAllViews = () => {
-    setSliceIndices({
-      axial: Math.floor(series.axial.length / 2),
-      coronal: Math.floor(series.coronal.length / 2),
-      sagittal: Math.floor(series.sagittal.length / 2)
-    });
+    if (loadedSeries && loadedSeries.slices.length > 0) {
+      setSliceIndices({
+        axial: Math.floor(loadedSeries.slices.length / 2),
+        coronal: Math.floor(loadedSeries.slices[0].height / 2),
+        sagittal: Math.floor(loadedSeries.slices[0].width / 2),
+      });
+    }
     setZoom(100);
+    setIsFullscreen(false);
   };
 
-  const hasImages = series.axial.length > 0 || series.coronal.length > 0 || series.sagittal.length > 0;
+  const hasImages = loadedSeries && loadedSeries.slices.length > 0;
+  const hasMPR = loadedSeries && loadedSeries.slices.length > 1;
   const isLoading = loadingStudy !== null;
 
-  // Get image URL from ImageData (for viewport)
-  const getImageUrlFromData = (imageData: ImageData | undefined): string | undefined => {
+  // Get image URL from ImageData
+  const getImageUrlFromData = (imageData: ImageData | null): string | undefined => {
     if (!imageData) return undefined;
     
     const canvas = document.createElement('canvas');
@@ -163,14 +177,20 @@ export const MultiViewDICOM = ({ onClose, patientId: propPatientId }: MultiViewD
           {hasImages && (
             <>
               <Badge variant="outline" className="text-white/60">
-                Axial: {series.axial.length} cortes
+                Axial: {dimensions.depth} cortes
               </Badge>
               <Badge variant="outline" className="text-white/60">
-                Coronal: {series.coronal.length} cortes
+                Coronal: {dimensions.height} cortes
               </Badge>
               <Badge variant="outline" className="text-white/60">
-                Sagital: {series.sagittal.length} cortes
+                Sagital: {dimensions.width} cortes
               </Badge>
+              {hasMPR && (
+                <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+                  <Grid3X3 className="w-3 h-3 mr-1" />
+                  MPR Activo
+                </Badge>
+              )}
             </>
           )}
           
@@ -247,54 +267,60 @@ export const MultiViewDICOM = ({ onClose, patientId: propPatientId }: MultiViewD
       </div>
 
       {/* Viewports Grid */}
-      <div className="flex-1 grid grid-cols-3 gap-1 p-1">
+      <div className={cn("flex-1 grid gap-1 p-1", isFullscreen ? "grid-cols-1" : "grid-cols-3")}>
         {/* Axial View */}
-        <div className="relative">
-          <DICOMViewport
-            viewportType="axial"
-            isActive={activeViewport === 'axial'}
-            onActivate={() => setActiveViewport('axial')}
-            onFullscreen={() => handleFullscreen('axial')}
-            showCrosshair={showCrosshair}
-            zoom={zoom}
-            imageUrl={getImageUrlFromData(series.axial[sliceIndices.axial]?.imageData)}
-            sliceIndex={sliceIndices.axial}
-            totalSlices={series.axial.length}
-            onSliceChange={(idx) => handleSliceChange('axial', idx)}
-          />
-        </div>
+        {(!isFullscreen || activeViewport === 'axial') && (
+          <div className="relative">
+            <DICOMViewport
+              viewportType="axial"
+              isActive={activeViewport === 'axial'}
+              onActivate={() => setActiveViewport('axial')}
+              onFullscreen={() => handleFullscreen('axial')}
+              showCrosshair={showCrosshair}
+              zoom={zoom}
+              imageUrl={getImageUrlFromData(mprImages.axial)}
+              sliceIndex={sliceIndices.axial}
+              totalSlices={dimensions.depth}
+              onSliceChange={(idx) => handleSliceChange('axial', idx)}
+            />
+          </div>
+        )}
 
         {/* Coronal View */}
-        <div className="relative">
-          <DICOMViewport
-            viewportType="coronal"
-            isActive={activeViewport === 'coronal'}
-            onActivate={() => setActiveViewport('coronal')}
-            onFullscreen={() => handleFullscreen('coronal')}
-            showCrosshair={showCrosshair}
-            zoom={zoom}
-            imageUrl={getImageUrlFromData(series.coronal[sliceIndices.coronal]?.imageData)}
-            sliceIndex={sliceIndices.coronal}
-            totalSlices={series.coronal.length}
-            onSliceChange={(idx) => handleSliceChange('coronal', idx)}
-          />
-        </div>
+        {(!isFullscreen || activeViewport === 'coronal') && (
+          <div className="relative">
+            <DICOMViewport
+              viewportType="coronal"
+              isActive={activeViewport === 'coronal'}
+              onActivate={() => setActiveViewport('coronal')}
+              onFullscreen={() => handleFullscreen('coronal')}
+              showCrosshair={showCrosshair}
+              zoom={zoom}
+              imageUrl={getImageUrlFromData(mprImages.coronal)}
+              sliceIndex={sliceIndices.coronal}
+              totalSlices={dimensions.height}
+              onSliceChange={(idx) => handleSliceChange('coronal', idx)}
+            />
+          </div>
+        )}
 
         {/* Sagittal View */}
-        <div className="relative">
-          <DICOMViewport
-            viewportType="sagittal"
-            isActive={activeViewport === 'sagittal'}
-            onActivate={() => setActiveViewport('sagittal')}
-            onFullscreen={() => handleFullscreen('sagittal')}
-            showCrosshair={showCrosshair}
-            zoom={zoom}
-            imageUrl={getImageUrlFromData(series.sagittal[sliceIndices.sagittal]?.imageData)}
-            sliceIndex={sliceIndices.sagittal}
-            totalSlices={series.sagittal.length}
-            onSliceChange={(idx) => handleSliceChange('sagittal', idx)}
-          />
-        </div>
+        {(!isFullscreen || activeViewport === 'sagittal') && (
+          <div className="relative">
+            <DICOMViewport
+              viewportType="sagittal"
+              isActive={activeViewport === 'sagittal'}
+              onActivate={() => setActiveViewport('sagittal')}
+              onFullscreen={() => handleFullscreen('sagittal')}
+              showCrosshair={showCrosshair}
+              zoom={zoom}
+              imageUrl={getImageUrlFromData(mprImages.sagittal)}
+              sliceIndex={sliceIndices.sagittal}
+              totalSlices={dimensions.width}
+              onSliceChange={(idx) => handleSliceChange('sagittal', idx)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Global Controls */}
