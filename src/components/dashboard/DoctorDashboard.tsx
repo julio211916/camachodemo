@@ -1,12 +1,10 @@
 import { useState, useMemo } from "react";
-import { format, startOfWeek, endOfWeek, isToday, isSameDay } from "date-fns";
+import { format, isSameDay, startOfWeek, endOfWeek } from "date-fns";
 import { es } from "date-fns/locale";
 import {
   Calendar, Clock, Users, FileText, Stethoscope, Activity, TrendingUp,
-  FolderOpen, Pill, FileStack, Brain, Scan, Smile, Package, FlaskConical,
-  Receipt, DollarSign, Sparkles, Video, PenTool, HardDrive, Eye, FileEdit,
-  Box, Camera, QrCode, Cpu, Image as ImageIcon, User, ClipboardList, Layers,
-  CalendarDays, Wallet, Target, MessageSquare, Settings, Bell
+  FolderOpen, Pill, FileStack, Box, ImageIcon, User, ClipboardList,
+  CalendarDays, Wallet, Target, MessageSquare, Sparkles, StickyNote
 } from "lucide-react";
 import { DashboardLayout, NavGroup } from "@/components/layout/DashboardLayout";
 import { StatsGrid } from "@/components/layout/DashboardStats";
@@ -18,7 +16,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdvancedFileManager } from "@/components/clinic/AdvancedFileManager";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
-import { Odontogram } from "@/components/clinic/Odontogram";
 import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { MyProfile } from "@/components/dashboard/MyProfile";
@@ -32,25 +29,88 @@ import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgres
 import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerator";
 import { AgendaModule } from "@/components/portal/AgendaModule";
 import { CajasModule } from "@/components/portal/CajasModule";
+import { DashboardAIAssistant } from "@/components/DashboardAIAssistant";
+import { DoctorPatientNotes } from "@/components/clinic/DoctorPatientNotes";
+import { DoctorAssignedPatients } from "@/components/clinic/DoctorAssignedPatients";
 
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
   const [activeSection, setActiveSection] = useState("dashboard");
+  
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: ['doctor-appointments'],
+  // Get doctor record for current user
+  const { data: doctorRecord } = useQuery({
+    queryKey: ['doctor-record', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('appointments').select('*').order('appointment_date');
-      return data || [];
+      const { data } = await supabase
+        .from('doctors')
+        .select('*')
+        .eq('user_id', user?.id || '')
+        .single();
+      return data;
     },
+    enabled: !!user?.id,
   });
 
-  const { data: treatments = [] } = useQuery({
-    queryKey: ['doctor-treatments'],
+  // Get assigned patients for this doctor
+  const { data: assignedPatients = [] } = useQuery({
+    queryKey: ['doctor-assigned-patients', user?.id],
     queryFn: async () => {
-      const { data } = await supabase.from('treatments').select('*').order('created_at', { ascending: false });
+      const { data } = await supabase
+        .from('doctor_patients')
+        .select(`
+          id,
+          is_primary,
+          assigned_at,
+          patient_profile_id,
+          profiles:patient_profile_id (
+            id,
+            user_id,
+            full_name,
+            email,
+            phone,
+            avatar_url,
+            location_id
+          )
+        `)
+        .eq('doctor_id', user?.id || '');
       return data || [];
     },
+    enabled: !!user?.id,
+  });
+
+  // Get appointments for assigned patients
+  const { data: appointments = [] } = useQuery({
+    queryKey: ['doctor-appointments', user?.id],
+    queryFn: async () => {
+      const patientEmails = assignedPatients.map((p: any) => p.profiles?.email).filter(Boolean);
+      if (patientEmails.length === 0) return [];
+      
+      const { data } = await supabase
+        .from('appointments')
+        .select('*')
+        .in('patient_email', patientEmails)
+        .order('appointment_date');
+      return data || [];
+    },
+    enabled: assignedPatients.length > 0,
+  });
+
+  // Get treatments for assigned patients
+  const { data: treatments = [] } = useQuery({
+    queryKey: ['doctor-treatments', user?.id],
+    queryFn: async () => {
+      const patientIds = assignedPatients.map((p: any) => p.profiles?.user_id).filter(Boolean);
+      if (patientIds.length === 0) return [];
+      
+      const { data } = await supabase
+        .from('treatments')
+        .select('*')
+        .in('patient_id', patientIds)
+        .order('created_at', { ascending: false });
+      return data || [];
+    },
+    enabled: assignedPatients.length > 0,
   });
 
   const todayAppointments = appointments.filter(apt => isSameDay(new Date(apt.appointment_date), new Date()));
@@ -61,7 +121,7 @@ export const DoctorDashboard = () => {
       items: [
         { id: "dashboard", label: "Dashboard", icon: <Calendar className="w-5 h-5" /> },
         { id: "agenda", label: "Mi Agenda", icon: <CalendarDays className="w-5 h-5" />, badge: todayAppointments.length },
-        { id: "patients", label: "Mis Pacientes", icon: <Users className="w-5 h-5" /> },
+        { id: "my-patients", label: "Mis Pacientes", icon: <Users className="w-5 h-5" />, badge: assignedPatients.length },
       ]
     },
     { 
@@ -73,10 +133,11 @@ export const DoctorDashboard = () => {
         { id: "treatment-plan", label: "Plan Tratamiento", icon: <Target className="w-5 h-5" /> },
         { id: "treatment-progress", label: "Progreso", icon: <Activity className="w-5 h-5" /> },
         { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
+        { id: "patient-notes", label: "Notas Clínicas", icon: <StickyNote className="w-5 h-5" /> },
       ]
     },
     { 
-      title: "Pagos & Finanzas", 
+      title: "Pagos", 
       items: [
         { id: "cajas", label: "Cobros", icon: <Wallet className="w-5 h-5" /> },
         { id: "payment-plans", label: "Planes de Pago", icon: <Wallet className="w-5 h-5" /> },
@@ -85,11 +146,10 @@ export const DoctorDashboard = () => {
     { 
       title: "Documentos", 
       items: [
-        { id: "files", label: "Archivos Paciente", icon: <FolderOpen className="w-5 h-5" /> },
-        { id: "gallery", label: "Galería Fotos", icon: <ImageIcon className="w-5 h-5" /> },
+        { id: "files", label: "Archivos", icon: <FolderOpen className="w-5 h-5" /> },
+        { id: "gallery", label: "Galería", icon: <ImageIcon className="w-5 h-5" /> },
         { id: "prescriptions", label: "Recetas", icon: <Pill className="w-5 h-5" /> },
         { id: "templates", label: "Plantillas", icon: <FileStack className="w-5 h-5" /> },
-        { id: "clinical-docs", label: "Notas Clínicas", icon: <ClipboardList className="w-5 h-5" /> },
       ]
     },
     { 
@@ -98,26 +158,31 @@ export const DoctorDashboard = () => {
         { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
       ]
     },
-  ], [todayAppointments.length]);
+  ], [todayAppointments.length, assignedPatients.length]);
 
   const stats = [
     { label: "Citas Hoy", value: todayAppointments.length, icon: Calendar, color: "primary" as const },
-    { label: "Pendientes", value: appointments.filter(a => a.status === "pending").length, icon: Clock, color: "warning" as const },
+    { label: "Mis Pacientes", value: assignedPatients.length, icon: Users, color: "info" as const },
     { label: "Tratamientos Activos", value: treatments.filter(t => t.status === "in_progress").length, icon: Activity, color: "success" as const },
-    { label: "Esta Semana", value: appointments.filter(a => { const d = new Date(a.appointment_date); return d >= startOfWeek(new Date()) && d <= endOfWeek(new Date()); }).length, icon: TrendingUp, color: "info" as const },
+    { label: "Esta Semana", value: appointments.filter(a => { 
+      const d = new Date(a.appointment_date); 
+      return d >= startOfWeek(new Date()) && d <= endOfWeek(new Date()); 
+    }).length, icon: TrendingUp, color: "warning" as const },
   ];
 
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const renderContent = () => {
-    // If a patient is selected, show their profile
+    // Use selected patient from state
+    const patientId = selectedPatientId;
+
     if (selectedPatientId && activeSection === "patient-profile") {
       return (
         <ComprehensivePatientProfile 
           patientId={selectedPatientId} 
           onBack={() => {
             setSelectedPatientId(null);
-            setActiveSection("patients");
+            setActiveSection("my-patients");
           }}
         />
       );
@@ -126,37 +191,52 @@ export const DoctorDashboard = () => {
     switch (activeSection) {
       case "dashboard": 
         return (
-          <DashboardWidgets 
-            appointments={appointments} 
-            treatments={treatments}
-            userRole="doctor" 
-            userName={profile?.full_name || 'Doctor'}
-          />
+          <>
+            <PageHeader 
+              title="Mi Dashboard" 
+              subtitle={`Bienvenido, Dr. ${profile?.full_name || ''}`} 
+            />
+            <StatsGrid stats={stats} />
+            <DashboardWidgets 
+              appointments={appointments} 
+              treatments={treatments}
+              userRole="doctor" 
+              userName={profile?.full_name || 'Doctor'}
+            />
+          </>
         );
       case "agenda":
         return <AgendaModule />;
       case "cajas":
         return <CajasModule />;
-      case "patients": 
-        return <PatientManager />;
+      case "my-patients": 
+        return (
+          <DoctorAssignedPatients 
+            doctorId={user?.id || ''} 
+            onSelectPatient={(id) => {
+              setSelectedPatientId(id);
+              setActiveSection("patient-profile");
+            }}
+          />
+        );
       case "orthodontics": 
-        return <OrthodonticsModule patientId="demo" />;
+        return <OrthodonticsModule patientId={patientId || "demo"} />;
       case "enhanced-odontogram":
-        return <EnhancedOdontogram patientId="demo-patient" />;
+        return <EnhancedOdontogram patientId={patientId || "demo-patient"} />;
       case "dental-3d":
-        return <DiagnocatViewer patientId="demo-patient" patientName="Paciente Demo" />;
+        return <DiagnocatViewer patientId={patientId || "demo-patient"} patientName="Paciente" />;
       case "patient-profile":
-        return <ComprehensivePatientProfile patientId={selectedPatientId || undefined} />;
+        return <ComprehensivePatientProfile patientId={patientId || undefined} />;
+      case "patient-notes":
+        return <DoctorPatientNotes patientId={patientId || ''} doctorId={user?.id || ''} />;
       case "files": 
-        return <AdvancedFileManager patientId="demo" />;
+        return <AdvancedFileManager patientId={patientId || "demo"} />;
       case "gallery": 
         return <FileGallery />;
       case "prescriptions": 
         return <PrescriptionManager />;
       case "templates": 
         return <DocumentTemplates />;
-      case "clinical-docs":
-        return <ClinicalDocumentsEditor />;
       case "treatment-plan":
         return <TreatmentPlanGenerator doctorName={profile?.full_name || "Doctor"} />;
       case "profile": 
@@ -171,8 +251,18 @@ export const DoctorDashboard = () => {
   };
 
   return (
-    <DashboardLayout navGroups={navGroups} activeItem={activeSection} onNavigate={setActiveSection} title="Portal del Doctor" subtitle={`Dr. ${profile?.full_name || ''}`} userRole="doctor">
-      {renderContent()}
-    </DashboardLayout>
+    <>
+      <DashboardLayout 
+        navGroups={navGroups} 
+        activeItem={activeSection} 
+        onNavigate={setActiveSection} 
+        title="Portal del Doctor" 
+        subtitle={`Dr. ${profile?.full_name || ''}`} 
+        userRole="doctor"
+      >
+        {renderContent()}
+      </DashboardLayout>
+      <DashboardAIAssistant userRole="doctor" userName={profile?.full_name} />
+    </>
   );
 };
