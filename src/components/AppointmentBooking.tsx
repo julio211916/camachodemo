@@ -14,33 +14,32 @@ import { useBookedSlots, useCreateAppointment } from "@/hooks/useAppointments";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
-const locations = [
-  {
-    id: "tepic",
-    name: "Matriz Tepic",
-    address: "Tepic, Nayarit",
-    phone: "+52 311 133 8000",
-  },
-  {
-    id: "marina",
-    name: "Marina Nuevo Nayarit",
-    address: "Nuevo Vallarta Plaza Business Center, Bahía de Banderas, Nayarit",
-    phone: "+52 322 183 7666",
-  },
-  {
-    id: "centro-empresarial",
-    name: "Centro Empresarial Nuevo Nayarit",
-    address: "Núcleo Médico Joya, Bahía de Banderas, Nayarit",
-    phone: "+52 322 183 7666",
-  },
-  {
-    id: "puerto-magico",
-    name: "Puerto Mágico Puerto Vallarta",
-    address: "Plaza Puerto Mágico, Puerto Vallarta, Jalisco",
-    phone: "+52 322 183 7666",
-  },
-];
+interface Location {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  city: string | null;
+  state: string | null;
+}
+
+// Hook para obtener sucursales de la base de datos
+const useLocations = () => {
+  return useQuery({
+    queryKey: ["booking-locations"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("locations")
+        .select("id, name, address, phone, city, state")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data as Location[];
+    },
+  });
+};
 
 const serviceTranslations = {
   es: [
@@ -108,6 +107,9 @@ export const AppointmentBooking = () => {
   const createAppointment = useCreateAppointment();
   const services = serviceTranslations[language] || serviceTranslations.es;
   const dateLocale = getDateLocale(language);
+  
+  // Fetch locations from database
+  const { data: locations = [], isLoading: loadingLocations } = useLocations();
 
   const [step, setStep] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -631,7 +633,11 @@ export const AppointmentBooking = () => {
                         {t('appointments.selectBranch')}
                       </h3>
                       <div className="grid sm:grid-cols-2 gap-4">
-                        {locations.map((location) => (
+                        {loadingLocations ? (
+                          <div className="col-span-2 flex justify-center py-8">
+                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                          </div>
+                        ) : locations.map((location) => (
                           <motion.button
                             key={location.id}
                             whileHover={{ scale: 1.02 }}
@@ -645,7 +651,9 @@ export const AppointmentBooking = () => {
                             )}
                           >
                             <div className="font-semibold text-foreground mb-1">{location.name}</div>
-                            <div className="text-sm text-muted-foreground">{location.address}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {location.address}{location.city ? `, ${location.city}` : ''}{location.state ? `, ${location.state}` : ''}
+                            </div>
                           </motion.button>
                         ))}
                       </div>
