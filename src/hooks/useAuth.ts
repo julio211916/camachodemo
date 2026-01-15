@@ -14,6 +14,10 @@ interface Profile {
   avatar_url: string | null;
   date_of_birth: string | null;
   address: string | null;
+  location_id: string | null;
+  is_admin_master: boolean | null;
+  referral_code: string | null;
+  patient_code: string | null;
 }
 
 export const useAuth = () => {
@@ -22,6 +26,7 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isAdminMaster, setIsAdminMaster] = useState(false);
   const { toast } = useToast();
 
   const fetchUserRole = async (userId: string) => {
@@ -66,10 +71,12 @@ export const useAuth = () => {
             
             const profileData = await fetchProfile(session.user.id);
             setProfile(profileData);
+            setIsAdminMaster(profileData?.is_admin_master === true);
           }, 0);
         } else {
           setUserRole(null);
           setProfile(null);
+          setIsAdminMaster(false);
         }
         
         setLoading(false);
@@ -87,6 +94,7 @@ export const useAuth = () => {
         
         const profileData = await fetchProfile(session.user.id);
         setProfile(profileData);
+        setIsAdminMaster(profileData?.is_admin_master === true);
       }
       
       setLoading(false);
@@ -169,6 +177,7 @@ export const useAuth = () => {
     
     setUserRole(null);
     setProfile(null);
+    setIsAdminMaster(false);
     
     toast({
       title: "Sesión cerrada",
@@ -196,6 +205,8 @@ export const useAuth = () => {
     // Refresh profile
     const profileData = await fetchProfile(user.id);
     setProfile(profileData);
+    setIsAdminMaster(profileData?.is_admin_master === true);
+    setProfile(profileData);
 
     toast({
       title: "Perfil actualizado",
@@ -214,6 +225,7 @@ export const useAuth = () => {
     loading,
     userRole,
     isAdmin,
+    isAdminMaster,
     profile,
     signIn,
     signUp,
