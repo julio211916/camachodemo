@@ -109,8 +109,15 @@ CREATE FUNCTION public.handle_new_user() RETURNS trigger
     SET search_path TO 'public'
     AS $$
 BEGIN
+  -- Create profile
   INSERT INTO public.profiles (user_id, email, full_name)
   VALUES (NEW.id, NEW.email, COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)));
+  
+  -- Assign default patient role if no role is assigned
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (NEW.id, 'patient'::app_role)
+  ON CONFLICT DO NOTHING;
+  
   RETURN NEW;
 END;
 $$;
@@ -130,6 +137,72 @@ CREATE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS bo
     WHERE user_id = _user_id
       AND role = _role
   )
+$$;
+
+
+--
+-- Name: mark_lead_as_won(uuid); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.mark_lead_as_won(p_lead_id uuid) RETURNS jsonb
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_lead RECORD;
+BEGIN
+  -- Get lead data
+  SELECT * INTO v_lead FROM public.leads WHERE id = p_lead_id;
+  
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Lead not found');
+  END IF;
+  
+  IF v_lead.converted_patient_id IS NOT NULL THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Lead already converted');
+  END IF;
+  
+  -- Update lead status to won and mark conversion time
+  UPDATE public.leads 
+  SET 
+    status = 'ganado',
+    converted_at = NOW(),
+    updated_at = NOW()
+  WHERE id = p_lead_id;
+  
+  RETURN jsonb_build_object(
+    'success', true,
+    'lead_id', p_lead_id,
+    'name', v_lead.name,
+    'email', v_lead.email,
+    'phone', v_lead.phone
+  );
+END;
+$$;
+
+
+--
+-- Name: sync_expense_to_transaction(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.sync_expense_to_transaction() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    INSERT INTO public.transactions (
+      transaction_type, amount, description, category, payment_method,
+      reference_type, reference_id, location_id, transaction_date, created_by
+    ) VALUES (
+      'egreso', NEW.amount, NEW.description, NEW.category, NEW.payment_method,
+      'expense', NEW.id, COALESCE(NEW.location_id, 'main'), NEW.expense_date, NEW.created_by
+    );
+  ELSIF TG_OP = 'DELETE' THEN
+    DELETE FROM public.transactions WHERE reference_type = 'expense' AND reference_id = OLD.id;
+  END IF;
+  RETURN NEW;
+END;
 $$;
 
 
@@ -439,6 +512,47 @@ CREATE TABLE public.lab_orders (
 
 
 --
+-- Name: lead_interactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lead_interactions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    lead_id uuid NOT NULL,
+    interaction_type text NOT NULL,
+    notes text,
+    performed_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: leads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.leads (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    email text,
+    phone text,
+    whatsapp text,
+    source text DEFAULT 'website'::text NOT NULL,
+    source_detail text,
+    score integer DEFAULT 0,
+    status text DEFAULT 'new'::text NOT NULL,
+    interest text,
+    notes text,
+    assigned_to uuid,
+    converted_patient_id text,
+    converted_at timestamp with time zone,
+    last_contact_at timestamp with time zone,
+    follow_up_date date,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    location_id uuid
+);
+
+
+--
 -- Name: locations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -588,6 +702,32 @@ CREATE TABLE public.payments (
 
 
 --
+-- Name: payroll; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.payroll (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    professional_id uuid NOT NULL,
+    period_start date NOT NULL,
+    period_end date NOT NULL,
+    base_salary numeric(12,2) DEFAULT 0 NOT NULL,
+    commission_rate numeric(5,2) DEFAULT 0,
+    total_services integer DEFAULT 0,
+    services_amount numeric(12,2) DEFAULT 0,
+    commission_amount numeric(12,2) DEFAULT 0,
+    bonus numeric(12,2) DEFAULT 0,
+    deductions numeric(12,2) DEFAULT 0,
+    net_payment numeric(12,2) NOT NULL,
+    status text DEFAULT 'pending'::text NOT NULL,
+    paid_at timestamp with time zone,
+    notes text,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
 -- Name: periodontogram; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -627,7 +767,8 @@ CREATE TABLE public.profiles (
     birth_year integer,
     tags text[] DEFAULT '{}'::text[],
     is_archived boolean DEFAULT false,
-    notes text
+    notes text,
+    location_id uuid
 );
 
 
@@ -707,6 +848,61 @@ CREATE TABLE public.scheduled_emails (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT scheduled_emails_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'sent'::text, 'failed'::text, 'cancelled'::text])))
+);
+
+
+--
+-- Name: services_catalog; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.services_catalog (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    code text NOT NULL,
+    name text NOT NULL,
+    description text,
+    category text DEFAULT 'general'::text NOT NULL,
+    base_price numeric(12,2) NOT NULL,
+    convention_price numeric(12,2),
+    cost numeric(12,2),
+    duration_minutes integer DEFAULT 30,
+    is_active boolean DEFAULT true NOT NULL,
+    requires_lab boolean DEFAULT false NOT NULL,
+    image_url text,
+    display_order integer DEFAULT 0,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    iva_rate numeric(5,2) DEFAULT 16,
+    lab_cost numeric(12,2) DEFAULT 0,
+    commission_rate numeric(5,2) DEFAULT 30
+);
+
+
+--
+-- Name: transactions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.transactions (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    transaction_type text NOT NULL,
+    amount numeric(12,2) NOT NULL,
+    description text NOT NULL,
+    category text NOT NULL,
+    payment_method text DEFAULT 'efectivo'::text NOT NULL,
+    reference_type text,
+    reference_id uuid,
+    patient_id text,
+    patient_name text,
+    doctor_id uuid,
+    location_id text DEFAULT 'main'::text,
+    cash_register_id uuid,
+    status text DEFAULT 'completed'::text NOT NULL,
+    transaction_date date DEFAULT CURRENT_DATE NOT NULL,
+    notes text,
+    created_by uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT transactions_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'completed'::text, 'cancelled'::text, 'reconciled'::text]))),
+    CONSTRAINT transactions_transaction_type_check CHECK ((transaction_type = ANY (ARRAY['ingreso'::text, 'egreso'::text, 'transferencia'::text])))
 );
 
 
@@ -883,6 +1079,22 @@ ALTER TABLE ONLY public.lab_orders
 
 
 --
+-- Name: lead_interactions lead_interactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lead_interactions
+    ADD CONSTRAINT lead_interactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: leads leads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.leads
+    ADD CONSTRAINT leads_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: locations locations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -952,6 +1164,14 @@ ALTER TABLE ONLY public.patient_notes
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: payroll payroll_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payroll
+    ADD CONSTRAINT payroll_pkey PRIMARY KEY (id);
 
 
 --
@@ -1027,6 +1247,30 @@ ALTER TABLE ONLY public.scheduled_emails
 
 
 --
+-- Name: services_catalog services_catalog_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.services_catalog
+    ADD CONSTRAINT services_catalog_code_key UNIQUE (code);
+
+
+--
+-- Name: services_catalog services_catalog_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.services_catalog
+    ADD CONSTRAINT services_catalog_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transactions transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: treatments treatments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1079,6 +1323,34 @@ CREATE INDEX idx_appointments_status ON public.appointments USING btree (status)
 
 
 --
+-- Name: idx_lead_interactions_lead_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_lead_interactions_lead_id ON public.lead_interactions USING btree (lead_id);
+
+
+--
+-- Name: idx_leads_converted; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_leads_converted ON public.leads USING btree (converted_patient_id);
+
+
+--
+-- Name: idx_leads_status; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_leads_status ON public.leads USING btree (status);
+
+
+--
+-- Name: idx_profiles_location_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_profiles_location_id ON public.profiles USING btree (location_id);
+
+
+--
 -- Name: idx_referrals_referral_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1118,6 +1390,41 @@ CREATE INDEX idx_reviews_published ON public.reviews USING btree (is_published);
 --
 
 CREATE INDEX idx_reviews_token ON public.reviews USING btree (review_token);
+
+
+--
+-- Name: idx_services_catalog_active; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_services_catalog_active ON public.services_catalog USING btree (is_active);
+
+
+--
+-- Name: idx_services_catalog_category; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_services_catalog_category ON public.services_catalog USING btree (category);
+
+
+--
+-- Name: idx_transactions_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_transactions_date ON public.transactions USING btree (transaction_date);
+
+
+--
+-- Name: idx_transactions_type; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_transactions_type ON public.transactions USING btree (transaction_type);
+
+
+--
+-- Name: expenses trigger_sync_expense; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER trigger_sync_expense AFTER INSERT OR DELETE ON public.expenses FOR EACH ROW EXECUTE FUNCTION public.sync_expense_to_transaction();
 
 
 --
@@ -1290,6 +1597,14 @@ ALTER TABLE ONLY public.invoice_items
 
 
 --
+-- Name: lead_interactions lead_interactions_lead_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lead_interactions
+    ADD CONSTRAINT lead_interactions_lead_id_fkey FOREIGN KEY (lead_id) REFERENCES public.leads(id) ON DELETE CASCADE;
+
+
+--
 -- Name: orthodontics_visits orthodontics_visits_case_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1303,6 +1618,14 @@ ALTER TABLE ONLY public.orthodontics_visits
 
 ALTER TABLE ONLY public.payments
     ADD CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES public.invoices(id) ON DELETE CASCADE;
+
+
+--
+-- Name: payroll payroll_professional_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payroll
+    ADD CONSTRAINT payroll_professional_id_fkey FOREIGN KEY (professional_id) REFERENCES public.doctors(id) ON DELETE CASCADE;
 
 
 --
@@ -1335,6 +1658,14 @@ ALTER TABLE ONLY public.scheduled_emails
 
 ALTER TABLE ONLY public.scheduled_emails
     ADD CONSTRAINT scheduled_emails_template_id_fkey FOREIGN KEY (template_id) REFERENCES public.email_templates(id);
+
+
+--
+-- Name: transactions transactions_cash_register_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_cash_register_id_fkey FOREIGN KEY (cash_register_id) REFERENCES public.cash_register(id);
 
 
 --
@@ -1383,13 +1714,6 @@ CREATE POLICY "Admin can manage expenses" ON public.expenses USING (public.has_r
 
 
 --
--- Name: profiles Admin can update any profile; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admin can update any profile" ON public.profiles FOR UPDATE USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
 -- Name: appointments Admins can delete appointments; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1432,13 +1756,6 @@ CREATE POLICY "Admins can insert roles" ON public.user_roles FOR INSERT TO authe
 
 
 --
--- Name: referrals Admins can update referrals; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins can update referrals" ON public.referrals FOR UPDATE USING (true);
-
-
---
 -- Name: user_roles Admins can view all roles; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1446,31 +1763,10 @@ CREATE POLICY "Admins can view all roles" ON public.user_roles FOR SELECT TO aut
 
 
 --
--- Name: appointments Anyone can create appointments; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Anyone can create appointments" ON public.appointments FOR INSERT TO authenticated, anon WITH CHECK (true);
-
-
---
 -- Name: push_subscriptions Anyone can create push subscriptions; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Anyone can create push subscriptions" ON public.push_subscriptions FOR INSERT WITH CHECK (true);
-
-
---
--- Name: referrals Anyone can create referrals; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Anyone can create referrals" ON public.referrals FOR INSERT WITH CHECK (true);
-
-
---
--- Name: reviews Anyone can create reviews; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Anyone can create reviews" ON public.reviews FOR INSERT WITH CHECK (true);
 
 
 --
@@ -1488,10 +1784,33 @@ CREATE POLICY "Anyone can view active locations" ON public.locations FOR SELECT 
 
 
 --
+-- Name: services_catalog Anyone can view active services; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Anyone can view active services" ON public.services_catalog FOR SELECT USING (((is_active = true) OR (EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role])))))));
+
+
+--
 -- Name: blog_posts Anyone can view published posts; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Anyone can view published posts" ON public.blog_posts FOR SELECT USING ((is_published = true));
+
+
+--
+-- Name: push_subscriptions Auth users can create subscriptions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Auth users can create subscriptions" ON public.push_subscriptions FOR INSERT WITH CHECK (((auth.uid() IS NOT NULL) OR (patient_email IS NOT NULL)));
+
+
+--
+-- Name: referrals Authenticated can create referrals; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Authenticated can create referrals" ON public.referrals FOR INSERT WITH CHECK ((auth.uid() IS NOT NULL));
 
 
 --
@@ -1544,6 +1863,15 @@ CREATE POLICY "Doctors can view inventory" ON public.inventory FOR SELECT USING 
 
 
 --
+-- Name: payroll Doctors can view own payroll; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Doctors can view own payroll" ON public.payroll FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM public.doctors d
+  WHERE ((d.id = payroll.professional_id) AND (d.user_id = auth.uid())))));
+
+
+--
 -- Name: doctor_payments Doctors can view their payments; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1551,10 +1879,43 @@ CREATE POLICY "Doctors can view their payments" ON public.doctor_payments FOR SE
 
 
 --
+-- Name: referrals Involved parties can read referrals; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Involved parties can read referrals" ON public.referrals FOR SELECT USING (((referrer_email = (( SELECT users.email
+   FROM auth.users
+  WHERE (users.id = auth.uid())))::text) OR (referred_email = (( SELECT users.email
+   FROM auth.users
+  WHERE (users.id = auth.uid())))::text) OR (EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role])))))));
+
+
+--
+-- Name: reviews Patients can update own reviews; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Patients can update own reviews" ON public.reviews FOR UPDATE USING (((patient_email = (( SELECT users.email
+   FROM auth.users
+  WHERE (users.id = auth.uid())))::text) OR (EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role])))))));
+
+
+--
 -- Name: medical_history Patients can update their own medical history; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Patients can update their own medical history" ON public.medical_history FOR UPDATE USING ((patient_id = auth.uid()));
+
+
+--
+-- Name: appointments Patients can view own appointments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Patients can view own appointments" ON public.appointments FOR SELECT USING ((patient_email = (( SELECT users.email
+   FROM auth.users
+  WHERE (users.id = auth.uid())))::text));
 
 
 --
@@ -1614,6 +1975,24 @@ CREATE POLICY "Patients can view their periodontogram" ON public.periodontogram 
 
 
 --
+-- Name: appointments Public can create appointments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Public can create appointments" ON public.appointments FOR INSERT WITH CHECK (((patient_email IS NOT NULL) AND (patient_name IS NOT NULL) AND (service_id IS NOT NULL)));
+
+
+--
+-- Name: reviews Public can see published reviews; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Public can see published reviews" ON public.reviews FOR SELECT USING (((is_published = true) OR (patient_email = (( SELECT users.email
+   FROM auth.users
+  WHERE (users.id = auth.uid())))::text) OR (EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role])))))));
+
+
+--
 -- Name: reviews Published reviews are visible to everyone; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1632,6 +2011,13 @@ CREATE POLICY "Staff can create scheduled emails" ON public.scheduled_emails FOR
 --
 
 CREATE POLICY "Staff can create templates" ON public.email_templates FOR INSERT WITH CHECK ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role) OR public.has_role(auth.uid(), 'doctor'::public.app_role)));
+
+
+--
+-- Name: profiles Staff can insert profiles for patients; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can insert profiles for patients" ON public.profiles FOR INSERT WITH CHECK (((auth.uid() = user_id) OR public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role) OR public.has_role(auth.uid(), 'doctor'::public.app_role)));
 
 
 --
@@ -1684,6 +2070,24 @@ CREATE POLICY "Staff can manage lab orders" ON public.lab_orders USING ((public.
 
 
 --
+-- Name: lead_interactions Staff can manage lead interactions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage lead interactions" ON public.lead_interactions USING ((EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role, 'doctor'::public.app_role]))))));
+
+
+--
+-- Name: leads Staff can manage leads; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage leads" ON public.leads USING ((EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role, 'doctor'::public.app_role]))))));
+
+
+--
 -- Name: locations Staff can manage locations; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -1712,10 +2116,37 @@ CREATE POLICY "Staff can manage payments" ON public.payments USING ((public.has_
 
 
 --
+-- Name: payroll Staff can manage payroll; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage payroll" ON public.payroll USING ((EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role]))))));
+
+
+--
 -- Name: blog_posts Staff can manage posts; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Staff can manage posts" ON public.blog_posts USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
+
+
+--
+-- Name: services_catalog Staff can manage services catalog; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage services catalog" ON public.services_catalog USING ((EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role]))))));
+
+
+--
+-- Name: transactions Staff can manage transactions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can manage transactions" ON public.transactions USING ((EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role, 'doctor'::public.app_role]))))));
 
 
 --
@@ -1726,10 +2157,33 @@ CREATE POLICY "Staff can manage treatments" ON public.treatments USING ((public.
 
 
 --
+-- Name: appointments Staff can read all appointments; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can read all appointments" ON public.appointments FOR SELECT USING ((EXISTS ( SELECT 1
+   FROM public.user_roles
+  WHERE ((user_roles.user_id = auth.uid()) AND (user_roles.role = ANY (ARRAY['admin'::public.app_role, 'staff'::public.app_role, 'doctor'::public.app_role]))))));
+
+
+--
+-- Name: profiles Staff can update any profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update any profile" ON public.profiles FOR UPDATE USING (((auth.uid() = user_id) OR public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role) OR public.has_role(auth.uid(), 'doctor'::public.app_role)));
+
+
+--
 -- Name: appointments Staff can update appointments; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY "Staff can update appointments" ON public.appointments FOR UPDATE TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
+
+
+--
+-- Name: referrals Staff can update referrals; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Staff can update referrals" ON public.referrals FOR UPDATE USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
 
 
 --
@@ -1810,10 +2264,17 @@ CREATE POLICY "Staff can view scheduled emails" ON public.scheduled_emails FOR S
 
 
 --
--- Name: profiles Users can insert their own profile; Type: POLICY; Schema: public; Owner: -
+-- Name: reviews Token holders can create reviews; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK ((auth.uid() = user_id));
+CREATE POLICY "Token holders can create reviews" ON public.reviews FOR INSERT WITH CHECK ((review_token IS NOT NULL));
+
+
+--
+-- Name: profiles Users can delete own profile; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can delete own profile" ON public.profiles FOR DELETE USING ((user_id = auth.uid()));
 
 
 --
@@ -1821,6 +2282,15 @@ CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT
 --
 
 CREATE POLICY "Users can manage their AI chats" ON public.ai_chat_history USING (((user_id = auth.uid()) OR public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'doctor'::public.app_role)));
+
+
+--
+-- Name: push_subscriptions Users can read own subscriptions; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY "Users can read own subscriptions" ON public.push_subscriptions FOR SELECT USING ((patient_email = (( SELECT users.email
+   FROM auth.users
+  WHERE (users.id = auth.uid())))::text));
 
 
 --
@@ -1841,7 +2311,7 @@ CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT U
 -- Name: referrals Users can view their own referrals; Type: POLICY; Schema: public; Owner: -
 --
 
-CREATE POLICY "Users can view their own referrals" ON public.referrals FOR SELECT USING (true);
+CREATE POLICY "Users can view their own referrals" ON public.referrals FOR SELECT USING (((referrer_patient_id = auth.uid()) OR (referred_patient_id = auth.uid()) OR public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'staff'::public.app_role)));
 
 
 --
@@ -1929,6 +2399,18 @@ ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lab_orders ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: lead_interactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.lead_interactions ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: leads; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.leads ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: locations; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -1977,6 +2459,12 @@ ALTER TABLE public.patient_notes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: payroll; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.payroll ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: periodontogram; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -2011,6 +2499,18 @@ ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.scheduled_emails ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: services_catalog; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.services_catalog ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: transactions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: treatments; Type: ROW SECURITY; Schema: public; Owner: -
