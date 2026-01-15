@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSelector } from "./LanguageSelector";
 import { Button } from "@/components/ui/button";
+import { GlassButton } from "@/components/ui/glass-button";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import logo from "@/assets/logo-novelldent.png";
@@ -100,14 +101,12 @@ export const Header = () => {
                   </motion.a>
                 )
               ))}
-              <motion.a
-                href="#reservar"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="btn-primary text-sm"
+              <GlassButton
+                size="sm"
+                onClick={() => document.getElementById('reservar')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 {t('nav.bookNow')}
-              </motion.a>
+              </GlassButton>
               
               <div className="flex items-center gap-2">
                 <LanguageSelector />
