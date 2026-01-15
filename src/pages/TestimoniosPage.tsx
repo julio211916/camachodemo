@@ -1,39 +1,43 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
-import { TestimonialSlider, Testimonial } from "@/components/ui/testimonial-slider";
+import { TestimonialSlider, Review } from "@/components/ui/testimonial-slider";
 import { Star, Quote, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const testimoniosDestacados: Testimonial[] = [
+const testimoniosDestacados: Review[] = [
   {
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop',
+    id: '1',
+    imageSrc: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop',
+    thumbnailSrc: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=200&auto=format&fit=crop',
     quote: "Después de años con miedo al dentista, en NovellDent encontré un equipo que me hizo sentir cómoda desde el primer momento. Mi tratamiento de ortodoncia fue impecable.",
     name: 'Ana María González',
-    role: 'Paciente de Ortodoncia',
-    rating: 5,
+    affiliation: 'Paciente de Ortodoncia',
   },
   {
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+    id: '2',
+    imageSrc: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
+    thumbnailSrc: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
     quote: "Los implantes que me colocaron cambiaron mi vida. El Dr. García es un profesional excepcional y el resultado superó todas mis expectativas.",
     name: 'Roberto Mendoza',
-    role: 'Paciente de Implantes',
-    rating: 5,
+    affiliation: 'Paciente de Implantes',
   },
   {
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop',
+    id: '3',
+    imageSrc: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800&auto=format&fit=crop',
+    thumbnailSrc: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
     quote: "El blanqueamiento dental que me hicieron fue increíble. En solo una hora tenía la sonrisa que siempre quise. ¡Muy recomendado!",
     name: 'Laura Jiménez',
-    role: 'Paciente de Estética',
-    rating: 5,
+    affiliation: 'Paciente de Estética',
   },
   {
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop',
+    id: '4',
+    imageSrc: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop',
+    thumbnailSrc: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop',
     quote: "Excelente atención para mi hija de 6 años. El ambiente es muy amigable para niños y la Dra. Rodríguez tiene una paciencia increíble.",
     name: 'Carlos Hernández',
-    role: 'Padre de Paciente Pediátrico',
-    rating: 5,
+    affiliation: 'Padre de Paciente Pediátrico',
   }
 ];
 
@@ -105,7 +109,7 @@ const TestimoniosPage = () => {
 
         {/* Featured Slider */}
         <section className="mb-16">
-          <TestimonialSlider testimonials={testimoniosDestacados} />
+          <TestimonialSlider reviews={testimoniosDestacados} />
         </section>
 
         {/* Stats */}

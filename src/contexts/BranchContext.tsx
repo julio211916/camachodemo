@@ -38,14 +38,15 @@ interface BranchContextType {
 const BranchContext = createContext<BranchContextType | undefined>(undefined);
 
 export function BranchProvider({ children }: { children: ReactNode }) {
-  const { userRole } = useAuth();
+  const { userRole, profile, isAdminMaster } = useAuth();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [currentBranch, setCurrentBranch] = useState<Branch | null>(null);
   const [viewMode, setViewMode] = useState<'local' | 'global'>('local');
   const [loading, setLoading] = useState(true);
   const [branchSummaries, setBranchSummaries] = useState<BranchSummary[]>([]);
 
-  const canViewGlobal = userRole === 'admin';
+  // Admin master can view global, regular admin/doctor only sees their branch
+  const canViewGlobal = isAdminMaster;
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -58,12 +59,23 @@ export function BranchProvider({ children }: { children: ReactNode }) {
 
       if (!error && data && data.length > 0) {
         setBranches(data);
-        setCurrentBranch(data[0]);
+        
+        // If user has a location_id and is not admin master, set that as their current branch
+        if (profile?.location_id && !isAdminMaster) {
+          const userBranch = data.find(b => b.id === profile.location_id);
+          if (userBranch) {
+            setCurrentBranch(userBranch);
+          } else {
+            setCurrentBranch(data[0]);
+          }
+        } else {
+          setCurrentBranch(data[0]);
+        }
       }
       setLoading(false);
     };
     fetchBranches();
-  }, []);
+  }, [profile?.location_id, isAdminMaster]);
 
   const refreshSummaries = async () => {
     // Fetch summaries manually since RPC may not exist yet

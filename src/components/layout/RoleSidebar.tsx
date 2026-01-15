@@ -250,13 +250,13 @@ const sidebarSections: SidebarSection[] = [
 
 export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }: RoleSidebarProps) {
   const { branches, currentBranch, setCurrentBranch, viewMode, setViewMode, canViewGlobal } = useBranch();
-  const { profile, userRole, signOut } = useAuth();
+  const { profile, userRole, signOut, isAdminMaster } = useAuth();
   const [openSections, setOpenSections] = useState<string[]>(['operacion', 'mi-practica']);
   const [darkMode, setDarkMode] = useState(false);
 
   // Get role-specific label
   const getRoleLabel = () => {
-    if (canViewGlobal && viewMode === 'global') return 'Admin Master';
+    if (isAdminMaster) return 'Admin Master';
     switch (userRole) {
       case 'admin': return 'Admin Sucursal';
       case 'staff': return 'Staff';
@@ -267,7 +267,7 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
   };
 
   const getRoleBadgeColor = () => {
-    if (canViewGlobal && viewMode === 'global') return 'bg-gradient-to-r from-primary to-purple-500';
+    if (isAdminMaster) return 'bg-gradient-to-r from-primary to-purple-500';
     switch (userRole) {
       case 'admin': return 'bg-blue-500';
       case 'staff': return 'bg-green-500';
@@ -280,10 +280,8 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
   const filteredSections = sidebarSections.filter(section => {
     // For doctor role, only show "Mi Práctica" as primary, not "Operación"
     if (userRole === 'doctor' && section.id === 'operacion') return false;
-    // For admin master with global view, show "Organización"
-    if (section.id === 'organizacion' && (!canViewGlobal || viewMode !== 'global')) {
-      if (userRole === 'admin') return true; // Show for admin sucursal too but limited
-    }
+    // "Organización" section only for Admin Master
+    if (section.id === 'organizacion' && !isAdminMaster) return false;
     return section.roles.includes(userRole as UserRole);
   });
 

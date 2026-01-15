@@ -18,49 +18,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdvancedFileManager } from "@/components/clinic/AdvancedFileManager";
 import { PrescriptionManager } from "@/components/clinic/PrescriptionManager";
 import { DocumentTemplates } from "@/components/clinic/DocumentTemplates";
-import { XRayAnalysis } from "@/components/clinic/XRayAnalysis";
-import { AIReportsModule } from "@/components/clinic/AIReportsModule";
-import { SmileSimulator } from "@/components/clinic/SmileSimulator";
-import { InventoryManager } from "@/components/clinic/InventoryManager";
-import { LabOrdersManager } from "@/components/clinic/LabOrdersManager";
-import { InvoicingModule } from "@/components/clinic/InvoicingModule";
-import { ExpensesManager } from "@/components/clinic/ExpensesManager";
 import { Odontogram } from "@/components/clinic/Odontogram";
 import { OrthodonticsModule } from "@/components/clinic/OrthodonticsModule";
-import { TelemedicineModule } from "@/components/clinic/TelemedicineModule";
-import { DigitalSignature } from "@/components/clinic/DigitalSignature";
-import { BackupManager } from "@/components/clinic/BackupManager";
-import { DICOMViewer } from "@/components/clinic/DICOMViewer";
-import { TemplateEditor } from "@/components/clinic/TemplateEditor";
-import { InteractiveOdontogram } from "@/components/clinic/InteractiveOdontogram";
-import { Model3DViewer } from "@/components/clinic/Model3DViewer";
-import { Model3DViewerCloud } from "@/components/clinic/Model3DViewerCloud";
-import { ProfilePhotoUpload } from "@/components/clinic/ProfilePhotoUpload";
-import { PatientQRCode } from "@/components/clinic/PatientQRCode";
 import { FileGallery } from "@/components/clinic/FileGallery";
 import { MyProfile } from "@/components/dashboard/MyProfile";
-import { ClinicKanbanBoard } from "@/components/clinic/ClinicKanbanBoard";
 import { PatientManager } from "@/components/clinic/PatientManager";
 import { DiagnocatViewer } from "@/components/clinic/DiagnocatViewer";
 import { EnhancedOdontogram } from "@/components/clinic/EnhancedOdontogram";
-import { CBCTPanoramicGenerator } from "@/components/clinic/CBCTPanoramicGenerator";
 import { ClinicalDocumentsEditor } from "@/components/clinic/ClinicalDocumentsEditor";
-import { MedicationManager } from "@/components/clinic/MedicationManager";
 import { ComprehensivePatientProfile } from "@/components/clinic/ComprehensivePatientProfile";
 import { PaymentPlanCalculator } from "@/components/clinic/PaymentPlanCalculator";
 import { TreatmentProgressDashboard } from "@/components/clinic/TreatmentProgressDashboard";
 import { TreatmentPlanGenerator } from "@/components/clinic/TreatmentPlanGenerator";
-import { AppointmentReminderSystem } from "@/components/clinic/AppointmentReminderSystem";
-import { CephalometryModule } from "@/components/clinic/CephalometryModule";
-import { DataExportImport } from "@/components/clinic/DataExportImport";
-import { AIDashboardAssistant } from "@/components/clinic/AIDashboardAssistant";
-import { DemoPatientGenerator } from "@/components/clinic/DemoPatientGenerator";
-
-// Portal Modules
 import { AgendaModule } from "@/components/portal/AgendaModule";
-import { CRMModule } from "@/components/portal/CRMModule";
 import { CajasModule } from "@/components/portal/CajasModule";
-import { AdministrationModule } from "@/components/portal/AdministrationModule";
 
 export const DoctorDashboard = () => {
   const { user, profile } = useAuth();
@@ -86,80 +57,45 @@ export const DoctorDashboard = () => {
 
   const navGroups: NavGroup[] = useMemo(() => [
     { 
-      title: "Principal", 
+      title: "Mi Día", 
       items: [
         { id: "dashboard", label: "Dashboard", icon: <Calendar className="w-5 h-5" /> },
-        { id: "agenda", label: "Agenda", icon: <CalendarDays className="w-5 h-5" />, badge: todayAppointments.length },
-        { id: "patients", label: "Pacientes", icon: <Users className="w-5 h-5" /> },
-        { id: "cajas", label: "Cajas", icon: <Wallet className="w-5 h-5" /> },
+        { id: "agenda", label: "Mi Agenda", icon: <CalendarDays className="w-5 h-5" />, badge: todayAppointments.length },
+        { id: "patients", label: "Mis Pacientes", icon: <Users className="w-5 h-5" /> },
       ]
     },
     { 
-      title: "CRM & Seguimiento", 
+      title: "Atención Clínica", 
       items: [
-        { id: "crm", label: "CRM", icon: <Target className="w-5 h-5" /> },
-        { id: "kanban", label: "Kanban", icon: <ClipboardList className="w-5 h-5" /> },
-        { id: "treatments", label: "Tratamientos", icon: <FileText className="w-5 h-5" /> },
+        { id: "patient-profile", label: "Ficha Paciente", icon: <User className="w-5 h-5" /> },
+        { id: "enhanced-odontogram", label: "Odontograma", icon: <Stethoscope className="w-5 h-5" /> },
+        { id: "dental-3d", label: "Visor 3D", icon: <Box className="w-5 h-5" /> },
         { id: "treatment-plan", label: "Plan Tratamiento", icon: <Target className="w-5 h-5" /> },
         { id: "treatment-progress", label: "Progreso", icon: <Activity className="w-5 h-5" /> },
-        { id: "payment-plans", label: "Planes Pago", icon: <Wallet className="w-5 h-5" /> },
-      ]
-    },
-    { 
-      title: "Clínica & Paciente", 
-      items: [
-        { id: "patient-profile", label: "Perfil Paciente", icon: <User className="w-5 h-5" /> },
-        { id: "enhanced-odontogram", label: "Odontograma", icon: <Stethoscope className="w-5 h-5" /> },
-        { id: "dental-3d", label: "Visor 3D Diagnocat", icon: <Box className="w-5 h-5" /> },
         { id: "orthodontics", label: "Ortodoncia", icon: <Sparkles className="w-5 h-5" /> },
-        { id: "medications", label: "Medicamentos", icon: <Pill className="w-5 h-5" /> },
-        { id: "inventory", label: "Inventario", icon: <Package className="w-5 h-5" /> },
-        { id: "lab", label: "Laboratorio", icon: <FlaskConical className="w-5 h-5" /> },
       ]
     },
     { 
-      title: "Imagenología & IA", 
+      title: "Pagos & Finanzas", 
       items: [
-        { id: "xray", label: "Análisis RX", icon: <Scan className="w-5 h-5" /> },
-        { id: "cephalometry", label: "Cefalometría", icon: <Layers className="w-5 h-5" /> },
-        { id: "dicom", label: "Visor DICOM", icon: <Eye className="w-5 h-5" /> },
-        { id: "cbct-panoramic", label: "Panorámica CBCT", icon: <Layers className="w-5 h-5" /> },
-        { id: "ai-reports", label: "Reportes IA", icon: <Brain className="w-5 h-5" /> },
-        { id: "smile", label: "Diseño Sonrisa", icon: <Smile className="w-5 h-5" /> },
+        { id: "cajas", label: "Cobros", icon: <Wallet className="w-5 h-5" /> },
+        { id: "payment-plans", label: "Planes de Pago", icon: <Wallet className="w-5 h-5" /> },
       ]
     },
     { 
-      title: "Comunicación", 
+      title: "Documentos", 
       items: [
-        { id: "reminders", label: "Recordatorios", icon: <Bell className="w-5 h-5" /> },
-        { id: "telemedicine", label: "Telemedicina", icon: <Video className="w-5 h-5" /> },
-      ]
-    },
-    { 
-      title: "Documentos & Plantillas", 
-      items: [
-        { id: "files", label: "Archivos", icon: <FolderOpen className="w-5 h-5" /> },
-        { id: "gallery", label: "Galería", icon: <ImageIcon className="w-5 h-5" /> },
+        { id: "files", label: "Archivos Paciente", icon: <FolderOpen className="w-5 h-5" /> },
+        { id: "gallery", label: "Galería Fotos", icon: <ImageIcon className="w-5 h-5" /> },
         { id: "prescriptions", label: "Recetas", icon: <Pill className="w-5 h-5" /> },
         { id: "templates", label: "Plantillas", icon: <FileStack className="w-5 h-5" /> },
-        { id: "clinical-docs", label: "Docs Clínicos", icon: <ClipboardList className="w-5 h-5" /> },
-        { id: "signature", label: "Firma Digital", icon: <PenTool className="w-5 h-5" /> },
-        { id: "export-import", label: "Exportar/Importar", icon: <HardDrive className="w-5 h-5" /> },
+        { id: "clinical-docs", label: "Notas Clínicas", icon: <ClipboardList className="w-5 h-5" /> },
       ]
     },
     { 
-      title: "Sistema & IA", 
-      items: [
-        { id: "ai-assistant", label: "Asistente IA", icon: <Sparkles className="w-5 h-5" /> },
-        { id: "backup", label: "Backup/Restaurar", icon: <HardDrive className="w-5 h-5" /> },
-        { id: "demo-patients", label: "Pacientes Demo", icon: <Users className="w-5 h-5" /> },
-      ]
-    },
-    { 
-      title: "Cuenta", 
+      title: "Mi Cuenta", 
       items: [
         { id: "profile", label: "Mi Perfil", icon: <User className="w-5 h-5" /> },
-        { id: "administration", label: "Administración", icon: <Settings className="w-5 h-5" /> },
       ]
     },
   ], [todayAppointments.length]);
@@ -197,41 +133,20 @@ export const DoctorDashboard = () => {
             userName={profile?.full_name || 'Doctor'}
           />
         );
-      // Portal Modules
       case "agenda":
         return <AgendaModule />;
       case "cajas":
         return <CajasModule />;
-      case "crm":
-        return <CRMModule />;
-      case "kanban": 
-        return <ClinicKanbanBoard />;
       case "patients": 
         return <PatientManager />;
       case "orthodontics": 
         return <OrthodonticsModule patientId="demo" />;
-      case "inventory": 
-        return <InventoryManager />;
-      case "medications":
-        return <MedicationManager />;
       case "enhanced-odontogram":
         return <EnhancedOdontogram patientId="demo-patient" />;
       case "dental-3d":
         return <DiagnocatViewer patientId="demo-patient" patientName="Paciente Demo" />;
       case "patient-profile":
         return <ComprehensivePatientProfile patientId={selectedPatientId || undefined} />;
-      case "lab": 
-        return <LabOrdersManager />;
-      case "xray": 
-        return <XRayAnalysis />;
-      case "cephalometry":
-        return <CephalometryModule />;
-      case "ai-reports": 
-        return <AIReportsModule />;
-      case "smile": 
-        return <SmileSimulator />;
-      case "telemedicine":
-        return <TelemedicineModule />;
       case "files": 
         return <AdvancedFileManager patientId="demo" />;
       case "gallery": 
@@ -244,32 +159,12 @@ export const DoctorDashboard = () => {
         return <ClinicalDocumentsEditor />;
       case "treatment-plan":
         return <TreatmentPlanGenerator doctorName={profile?.full_name || "Doctor"} />;
-      case "signature":
-        return <DigitalSignature />;
-      case "dicom": 
-        return <DICOMViewer />;
-      case "cbct-panoramic": 
-        return <CBCTPanoramicGenerator patientId="demo" patientName="Paciente Demo" />;
-      case "3d-viewer": 
-        return <Model3DViewerCloud patientId="demo" patientName="Paciente Demo" />;
       case "profile": 
         return <MyProfile />;
-      case "administration":
-        return <AdministrationModule />;
-      case "reminders":
-        return <AppointmentReminderSystem />;
       case "treatment-progress":
         return <TreatmentProgressDashboard />;
       case "payment-plans":
         return <PaymentPlanCalculator treatmentTotal={0} />;
-      case "export-import":
-        return <DataExportImport />;
-      case "ai-assistant":
-        return <AIDashboardAssistant onNavigate={setActiveSection} />;
-      case "backup":
-        return <BackupManager />;
-      case "demo-patients":
-        return <DemoPatientGenerator />;
       default: 
         return <div className="text-muted-foreground text-center py-12">Selecciona una sección</div>;
     }
