@@ -308,6 +308,38 @@ export type Database = {
           },
         ]
       }
+      doctor_patients: {
+        Row: {
+          assigned_at: string | null
+          doctor_id: string
+          id: string
+          is_primary: boolean | null
+          patient_profile_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          doctor_id: string
+          id?: string
+          is_primary?: boolean | null
+          patient_profile_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          doctor_id?: string
+          id?: string
+          is_primary?: boolean | null
+          patient_profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doctor_patients_patient_profile_id_fkey"
+            columns: ["patient_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       doctor_payments: {
         Row: {
           bonus: number | null
@@ -1099,7 +1131,9 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          is_private: boolean | null
           note: string
+          note_type: string | null
           patient_id: string
           updated_at: string
         }
@@ -1107,7 +1141,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_private?: boolean | null
           note: string
+          note_type?: string | null
           patient_id: string
           updated_at?: string
         }
@@ -1115,7 +1151,9 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          is_private?: boolean | null
           note?: string
+          note_type?: string | null
           patient_id?: string
           updated_at?: string
         }
@@ -1298,10 +1336,13 @@ export type Database = {
           full_name: string
           gender: string | null
           id: string
+          is_admin_master: boolean | null
           is_archived: boolean | null
           location_id: string | null
           notes: string | null
+          patient_code: string | null
           phone: string | null
+          referral_code: string | null
           tags: string[] | null
           updated_at: string
           user_id: string
@@ -1316,10 +1357,13 @@ export type Database = {
           full_name: string
           gender?: string | null
           id?: string
+          is_admin_master?: boolean | null
           is_archived?: boolean | null
           location_id?: string | null
           notes?: string | null
+          patient_code?: string | null
           phone?: string | null
+          referral_code?: string | null
           tags?: string[] | null
           updated_at?: string
           user_id: string
@@ -1334,10 +1378,13 @@ export type Database = {
           full_name?: string
           gender?: string | null
           id?: string
+          is_admin_master?: boolean | null
           is_archived?: boolean | null
           location_id?: string | null
           notes?: string | null
+          patient_code?: string | null
           phone?: string | null
+          referral_code?: string | null
           tags?: string[] | null
           updated_at?: string
           user_id?: string
