@@ -3,6 +3,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Calendar, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { GlassButton } from "@/components/ui/glass-button";
 
 export const CTA = () => {
   const ref = useRef(null);
@@ -45,7 +46,7 @@ export const CTA = () => {
                 href="#reservar"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium text-primary bg-white rounded-full hover:bg-white/90 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-base font-medium text-primary bg-white rounded-full hover:bg-white/90 transition-colors shadow-lg"
               >
                 {t('cta.button')}
                 <ArrowRight className="w-5 h-5" />

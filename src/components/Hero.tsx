@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronDown, ArrowRight } from "lucide-react";
 import { ReactTyped } from "react-typed";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LiquidButton } from "@/components/ui/liquid-glass-button";
+import { GlassButton } from "@/components/ui/glass-button";
 
 export const Hero = () => {
   const { t } = useLanguage();
@@ -98,30 +98,32 @@ export const Hero = () => {
             </span>
           </motion.div>
 
-          {/* CTA Buttons with Liquid Glass Effect */}
+          {/* CTA Buttons with Glass Effect */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <LiquidButton
-              size="xxl"
+            <GlassButton
+              size="lg"
               onClick={() => document.getElementById('cita')?.scrollIntoView({ behavior: 'smooth' })}
-              className="group text-lg font-medium"
+              className="group"
             >
-              {t('hero.cta')}
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </LiquidButton>
+              <span className="flex items-center gap-2">
+                {t('hero.cta')}
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </GlassButton>
             
-            <LiquidButton
-              variant="outline"
-              size="xl"
+            <motion.button
               onClick={() => document.getElementById('quienes-somos')?.scrollIntoView({ behavior: 'smooth' })}
-              className="text-lg"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="btn-outline"
             >
               {t('hero.secondary')}
-            </LiquidButton>
+            </motion.button>
           </motion.div>
         </motion.div>
 
