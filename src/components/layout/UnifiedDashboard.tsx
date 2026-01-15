@@ -95,7 +95,7 @@ export function UnifiedDashboard({ userRole }: UnifiedDashboardProps) {
         return (
           <DashboardWidgets
             appointments={appointments}
-            userRole={userRole === 'staff' ? 'admin' : userRole}
+            userRole={userRole === 'admin' || userRole === 'staff' ? 'admin' : 'doctor'}
             userName={profile?.full_name || user?.email}
           />
         );
