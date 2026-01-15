@@ -1,13 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPage } from "@/components/auth/AuthPage";
-import { PatientDashboard } from "@/components/dashboard/PatientDashboard";
-import { DoctorDashboard } from "@/components/dashboard/DoctorDashboard";
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { PatientProvider } from "@/contexts/PatientContext";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { Loader2 } from "lucide-react";
 
 const Portal = () => {
-  const { user, loading, userRole } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -21,25 +18,7 @@ const Portal = () => {
     return <AuthPage />;
   }
 
-  // Wrap dashboards with PatientProvider for global patient selection
-  const renderDashboard = () => {
-    switch (userRole) {
-      case 'admin':
-      case 'staff':
-        return <AdminDashboard />;
-      case 'doctor':
-        return <DoctorDashboard />;
-      case 'patient':
-      default:
-        return <PatientDashboard />;
-    }
-  };
-
-  return (
-    <PatientProvider>
-      {renderDashboard()}
-    </PatientProvider>
-  );
+  return <MainLayout />;
 };
 
 export default Portal;
