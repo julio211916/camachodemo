@@ -178,6 +178,44 @@ export type Database = {
         }
         Relationships: []
       }
+      branch_settings: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          id: string
+          location_id: string
+          razon_social: string | null
+          rfc: string | null
+          timezone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          location_id: string
+          razon_social?: string | null
+          rfc?: string | null
+          timezone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          location_id?: string
+          razon_social?: string | null
+          rfc?: string | null
+          timezone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branch_settings_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: true
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cash_register: {
         Row: {
           closed_at: string | null
