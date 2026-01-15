@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Facebook, Instagram, Twitter, MapPin, Phone, Mail } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { Link } from "react-router-dom";
 import logo from "@/assets/logo-novelldent.png";
 
 const socialLinks = [
@@ -14,18 +15,23 @@ export const Footer = () => {
 
   const footerLinks = {
     servicios: [
-      { label: t('footer.generalDentistry'), href: "#servicios" },
-      { label: t('footer.whitening'), href: "#servicios" },
-      { label: t('footer.implants'), href: "#servicios" },
-      { label: t('footer.orthodontics'), href: "#servicios" },
-      { label: t('footer.aesthetics'), href: "#servicios" },
+      { label: t('footer.generalDentistry'), href: "/servicios" },
+      { label: t('footer.whitening'), href: "/servicios" },
+      { label: t('footer.implants'), href: "/servicios" },
+      { label: t('footer.orthodontics'), href: "/servicios" },
+      { label: t('footer.aesthetics'), href: "/servicios" },
     ],
     especialidades: [
-      { label: t('footer.endodontics'), href: "#especialidades" },
-      { label: t('footer.periodontics'), href: "#especialidades" },
-      { label: t('footer.oralSurgery'), href: "#especialidades" },
-      { label: t('footer.pediatric'), href: "#especialidades" },
-      { label: t('footer.prosthetics'), href: "#especialidades" },
+      { label: t('footer.endodontics'), href: "/especialidades" },
+      { label: t('footer.periodontics'), href: "/especialidades" },
+      { label: t('footer.oralSurgery'), href: "/especialidades" },
+      { label: t('footer.pediatric'), href: "/especialidades" },
+      { label: t('footer.prosthetics'), href: "/especialidades" },
+    ],
+    legal: [
+      { label: "Aviso de Privacidad", href: "/privacidad" },
+      { label: "Términos y Condiciones", href: "/terminos" },
+      { label: "Testimonios", href: "/testimonios" },
     ],
   };
 
@@ -35,7 +41,9 @@ export const Footer = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <img src={logo} alt="NovellDent" className="h-12 mb-6 brightness-0 invert dark:brightness-100 dark:invert-0" />
+            <Link to="/">
+              <img src={logo} alt="NovellDent" className="h-12 mb-6 brightness-0 invert dark:brightness-100 dark:invert-0" />
+            </Link>
             <p className="text-background/70 dark:text-muted-foreground mb-6 max-w-sm">
               {t('footer.description')}
             </p>
@@ -54,39 +62,41 @@ export const Footer = () => {
             </div>
           </div>
 
-          {/* Links */}
+          {/* Links - Servicios */}
           <div>
             <h4 className="font-serif font-bold text-lg mb-4">{t('footer.services')}</h4>
             <ul className="space-y-3">
               {footerLinks.servicios.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-background/70 dark:text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
+          {/* Links - Especialidades */}
           <div>
             <h4 className="font-serif font-bold text-lg mb-4">{t('footer.specialties')}</h4>
             <ul className="space-y-3">
               {footerLinks.especialidades.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-background/70 dark:text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
+          {/* Contact */}
           <div>
             <h4 className="font-serif font-bold text-lg mb-4">{t('footer.contact')}</h4>
             <ul className="space-y-4">
@@ -119,8 +129,12 @@ export const Footer = () => {
         <div className="border-t border-background/10 dark:border-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-background/50 dark:text-muted-foreground">
           <p>© {new Date().getFullYear()} NovellDent. {t('footer.rights')}</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-primary transition-colors">{t('footer.privacy')}</a>
-            <a href="#" className="hover:text-primary transition-colors">{t('footer.terms')}</a>
+            <Link to="/privacidad" className="hover:text-primary transition-colors">
+              {t('footer.privacy')}
+            </Link>
+            <Link to="/terminos" className="hover:text-primary transition-colors">
+              {t('footer.terms')}
+            </Link>
           </div>
         </div>
       </div>

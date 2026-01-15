@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronDown, ArrowRight } from "lucide-react";
 import { ReactTyped } from "react-typed";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 
 export const Hero = () => {
   const { t } = useLanguage();
@@ -97,30 +98,30 @@ export const Hero = () => {
             </span>
           </motion.div>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons with Liquid Glass Effect */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <motion.a
-              href="#cita"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="group inline-flex items-center gap-3 px-8 py-4 bg-foreground text-background rounded-full font-medium text-lg transition-all hover:bg-foreground/90"
+            <LiquidButton
+              size="xxl"
+              onClick={() => document.getElementById('cita')?.scrollIntoView({ behavior: 'smooth' })}
+              className="group text-lg font-medium"
             >
               {t('hero.cta')}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </motion.a>
-            <motion.a
-              href="#quienes-somos"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 px-8 py-4 text-foreground rounded-full font-medium text-lg border border-border hover:bg-muted/50 transition-all"
+            </LiquidButton>
+            
+            <LiquidButton
+              variant="outline"
+              size="xl"
+              onClick={() => document.getElementById('quienes-somos')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-lg"
             >
               {t('hero.secondary')}
-            </motion.a>
+            </LiquidButton>
           </motion.div>
         </motion.div>
 
