@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, ArrowRight, Lock, Mail, User, Phone, Loader2, Stethoscope, Sparkles } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Lock, Mail, User, Phone, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,7 +17,6 @@ export const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [registerAs, setRegisterAs] = useState<'patient' | 'doctor'>('patient');
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,7 +31,8 @@ export const AuthPage = () => {
     if (isLogin) {
       await signIn(formData.email, formData.password);
     } else {
-      await signUp(formData.email, formData.password, formData.fullName, registerAs);
+      // Solo pacientes pueden registrarse públicamente
+      await signUp(formData.email, formData.password, formData.fullName, 'patient');
     }
 
     setIsLoading(false);
@@ -115,7 +115,7 @@ export const AuthPage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
             >
-              {isLogin ? t('auth.accessPortal') : t('auth.joinUs')}
+              {isLogin ? t('auth.accessPortal') : t('auth.joinAsPatient')}
             </motion.p>
           </div>
 
@@ -165,53 +165,24 @@ export const AuthPage = () => {
               >
                 {!isLogin && (
                   <>
-                    {/* Role Selection */}
+                    {/* Info banner - Solo pacientes */}
                     <motion.div 
-                      className="grid grid-cols-2 gap-3"
+                      className="p-4 rounded-2xl bg-primary/10 border border-primary/20"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
                     >
-                      <motion.button
-                        type="button"
-                        onClick={() => setRegisterAs('patient')}
-                        className={`group p-4 rounded-2xl border-2 transition-all duration-300 ${
-                          registerAs === 'patient'
-                            ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                            : 'border-border/50 hover:border-primary/50 hover:bg-muted/50'
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <User className={`w-6 h-6 mx-auto mb-2 transition-colors ${
-                          registerAs === 'patient' ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
-                        }`} />
-                        <p className={`text-sm font-medium transition-colors ${
-                          registerAs === 'patient' ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                        }`}>
-                          {t('auth.patient')}
-                        </p>
-                      </motion.button>
-                      <motion.button
-                        type="button"
-                        onClick={() => setRegisterAs('doctor')}
-                        className={`group p-4 rounded-2xl border-2 transition-all duration-300 ${
-                          registerAs === 'doctor'
-                            ? 'border-primary bg-primary/10 shadow-lg shadow-primary/20'
-                            : 'border-border/50 hover:border-primary/50 hover:bg-muted/50'
-                        }`}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Stethoscope className={`w-6 h-6 mx-auto mb-2 transition-colors ${
-                          registerAs === 'doctor' ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
-                        }`} />
-                        <p className={`text-sm font-medium transition-colors ${
-                          registerAs === 'doctor' ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                        }`}>
-                          {t('auth.doctor')}
-                        </p>
-                      </motion.button>
+                      <div className="flex items-center gap-3">
+                        <User className="w-5 h-5 text-primary" />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            Registro de Pacientes
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Los doctores y administradores son registrados por el personal de la clínica
+                          </p>
+                        </div>
+                      </div>
                     </motion.div>
 
                     {/* Full Name */}
@@ -229,7 +200,7 @@ export const AuthPage = () => {
                           type="text"
                           value={formData.fullName}
                           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                          placeholder="Dr. Juan García"
+                          placeholder="Tu nombre completo"
                           className="pl-12 h-14 rounded-2xl border-border/50 bg-muted/30 focus:bg-background transition-all duration-300 text-base"
                           required={!isLogin}
                         />
@@ -276,7 +247,7 @@ export const AuthPage = () => {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+34 600 000 000"
+                        placeholder="+52 322 000 0000"
                         className="pl-12 h-14 rounded-2xl border-border/50 bg-muted/30 focus:bg-background transition-all duration-300 text-base"
                       />
                     </div>
