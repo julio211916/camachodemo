@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Phone, MapPin, LogIn, User } from "lucide-react";
+import { Menu, X, Phone, MapPin, LogIn, User, ShoppingCart } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import { LanguageSelector } from "./LanguageSelector";
@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { GlassButton } from "@/components/ui/glass-button";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
-import logo from "@/assets/logo-novelldent.png";
+import { useCart } from "@/contexts/CartContext";
+import logo from "@/assets/logo-camacho.jpg";
 interface NavItem {
   label: string;
   href: string;
@@ -25,6 +26,7 @@ export const Header = () => {
   const {
     t
   } = useLanguage();
+  const { itemCount, setIsOpen } = useCart();
   const navItems = [{
     label: t('nav.home'),
     href: "#inicio"
@@ -103,6 +105,19 @@ export const Header = () => {
               </GlassButton>
               
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsOpen(true)}
+                  className={`relative gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {itemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                      {itemCount > 99 ? '99+' : itemCount}
+                    </span>
+                  )}
+                </Button>
                 <LanguageSelector />
                 <ThemeToggle />
                 {user ? <Button variant="ghost" size="sm" onClick={handlePortalClick} className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}>
@@ -171,6 +186,22 @@ export const Header = () => {
             }} transition={{
               delay: 0.5
             }} className="flex items-center justify-center gap-4 mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setIsOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="relative gap-2"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    {itemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                        {itemCount}
+                      </span>
+                    )}
+                  </Button>
                   <LanguageSelector />
                   <ThemeToggle />
                   {user ? <Button variant="outline" size="sm" onClick={() => {
