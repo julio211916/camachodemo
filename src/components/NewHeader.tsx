@@ -18,7 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import logo from "@/assets/logo-novelldent.png";
+import logo from "@/assets/logo-camacho.jpg";
 
 export function NewHeader() {
   const { user } = useAuth();
@@ -72,7 +72,7 @@ export function NewHeader() {
   return (
     <Navbar>
       <NavBody>
-        <NavbarLogo src={logo} alt="NovellDent" onClick={handleLogoClick} />
+        <NavbarLogo src={logo} alt="Productos Camacho" onClick={handleLogoClick} />
         <NavItems 
           items={navItems} 
           onItemClick={handleNavItemClick}
@@ -92,7 +92,7 @@ export function NewHeader() {
 
       <MobileNav>
         <MobileNavHeader>
-          <NavbarLogo src={logo} alt="NovellDent" onClick={handleLogoClick} />
+          <NavbarLogo src={logo} alt="Productos Camacho" onClick={handleLogoClick} />
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <ThemeToggle />
