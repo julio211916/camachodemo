@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { getSignedUrl } from '@/hooks/useSignedUrl';
 import { parseDicomFile, DicomImageData, renderDicomToImageData, sortDicomSlices } from '@/lib/dicomParser';
 import { useToast } from '@/hooks/use-toast';
 
@@ -58,8 +59,15 @@ export const useDicomLoader = (patientId?: string) => {
     setLoadingStudy(study.id);
     
     try {
+      // Resolve private storage paths to signed URLs
+      const resolvedUrl = (study.fileUrl.startsWith('http://') || study.fileUrl.startsWith('https://'))
+        ? study.fileUrl
+        : await getSignedUrl('patient-files', study.fileUrl);
+
+      if (!resolvedUrl) throw new Error('Failed to generate signed URL');
+
       // Fetch the file
-      const response = await fetch(study.fileUrl);
+      const response = await fetch(resolvedUrl);
       if (!response.ok) {
         throw new Error('Failed to fetch DICOM file');
       }
@@ -174,30 +182,25 @@ export const useDicomLoader = (patientId?: string) => {
     for (const file of files) {
       try {
         const fileName = `${patientId}/${Date.now()}-${file.name}`;
-        
+
         // Upload to storage
         const { error: uploadError } = await supabase.storage
           .from('patient-files')
           .upload(fileName, file);
-        
+
         if (uploadError) throw uploadError;
-        
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('patient-files')
-          .getPublicUrl(fileName);
-        
+
         // Determine document type
         const isDcm = file.name.toLowerCase().endsWith('.dcm');
         const docType = isDcm ? 'dicom' : 'xray';
-        
-        // Save document record
+
+        // Save document record (store path only)
         const { data: docData, error: docError } = await supabase
           .from('patient_documents')
           .insert({
             patient_id: patientId,
             file_name: file.name,
-            file_url: urlData.publicUrl,
+            file_url: fileName,
             document_type: docType,
             mime_type: file.type || (isDcm ? 'application/dicom' : 'image/unknown'),
             file_size: file.size,
@@ -205,13 +208,13 @@ export const useDicomLoader = (patientId?: string) => {
           })
           .select()
           .single();
-        
+
         if (docError) throw docError;
-        
+
         uploadedStudies.push({
           id: docData.id,
           name: docData.description,
-          fileUrl: urlData.publicUrl,
+          fileUrl: docData.file_url,
           fileName: file.name,
           createdAt: docData.created_at,
           documentType: docType,

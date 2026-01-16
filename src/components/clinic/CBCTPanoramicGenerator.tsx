@@ -417,26 +417,21 @@ export const CBCTPanoramicGenerator = ({ patientId, patientName }: CBCTPanoramic
       
       if (uploadError) throw uploadError;
       
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('patient-files')
-        .getPublicUrl(fileName);
-      
-      // Save document record
+      // Store only the storage path (bucket is private). Signed URLs are generated on-demand when viewing.
       const { error: docError } = await supabase
         .from('patient_documents')
         .insert({
           patient_id: patientId,
           file_name: `Panorámica generada - ${new Date().toLocaleDateString()}`,
-          file_url: urlData.publicUrl,
+          file_url: fileName,
           document_type: 'xray',
           mime_type: 'image/png',
           description: `Panorámica ${projectionMode.toUpperCase()} generada desde CBCT`
         });
-      
+
       if (docError) throw docError;
-      
-      return urlData.publicUrl;
+
+      return fileName;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dicom-studies', patientId] });

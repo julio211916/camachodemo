@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -119,37 +120,32 @@ export const DICOMViewer = ({ patientId, patientName }: DICOMViewerProps) => {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       if (!patientId) throw new Error("Patient ID required");
-      
+
       const fileName = `${patientId}/${Date.now()}-${file.name}`;
-      
+
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('patient-files')
         .upload(fileName, file);
-      
+
       if (uploadError) throw uploadError;
-      
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('patient-files')
-        .getPublicUrl(fileName);
-      
-      // Save document record
+
+      // Store only the storage path (bucket is private). Signed URLs are generated on-demand when viewing.
       const { error: docError } = await supabase
         .from('patient_documents')
         .insert({
           patient_id: patientId,
           file_name: file.name,
-          file_url: urlData.publicUrl,
+          file_url: fileName,
           document_type: 'xray',
           mime_type: file.type,
           file_size: file.size,
           description: file.name.replace(/\.[^/.]+$/, '')
         });
-      
+
       if (docError) throw docError;
-      
-      return urlData.publicUrl;
+
+      return fileName;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dicom-studies', patientId] });
@@ -174,7 +170,7 @@ export const DICOMViewer = ({ patientId, patientName }: DICOMViewerProps) => {
   // Load and render image
   const loadImage = useCallback(async (study: DicomStudy) => {
     setCurrentStudy(study);
-    
+
     if (study.slices) {
       setTotalSlices(study.slices);
       setCurrentSlice(0);
@@ -182,32 +178,42 @@ export const DICOMViewer = ({ patientId, patientName }: DICOMViewerProps) => {
       setTotalSlices(1);
       setCurrentSlice(0);
     }
-    
+
+    // Resolve private storage paths to signed URLs
+    const resolvedUrl = (study.file_url.startsWith('http://') || study.file_url.startsWith('https://'))
+      ? study.file_url
+      : await getSignedUrl('patient-files', study.file_url);
+
+    if (!resolvedUrl) {
+      toast({ title: "Error", description: "No se pudo generar el acceso al archivo", variant: "destructive" });
+      return;
+    }
+
     // Load image
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      
+
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
-      
+
       // Set canvas size
       canvas.width = img.width;
       canvas.height = img.height;
-      
+
       // Draw image
       ctx.drawImage(img, 0, 0);
-      
+
       // Store image data for manipulation
       setImageData(ctx.getImageData(0, 0, canvas.width, canvas.height));
     };
     img.onerror = () => {
       toast({ title: "Error", description: "No se pudo cargar la imagen", variant: "destructive" });
     };
-    img.src = study.file_url;
-    
+    img.src = resolvedUrl;
+
     resetView();
   }, [toast]);
 

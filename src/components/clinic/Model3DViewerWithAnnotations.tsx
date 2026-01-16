@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -318,11 +319,17 @@ export const Model3DViewerWithAnnotations = ({ patientId, patientName, onClose }
         throw new Error('Formato no soportado');
       }
 
-      setModelUrl(doc.file_url);
+      const resolvedUrl = (typeof doc.file_url === 'string' && (doc.file_url.startsWith('http://') || doc.file_url.startsWith('https://')))
+        ? doc.file_url
+        : await getSignedUrl('patient-files', doc.file_url);
+
+      if (!resolvedUrl) throw new Error('No se pudo generar URL firmada');
+
+      setModelUrl(resolvedUrl);
       setModelType(extension as 'stl' | 'ply' | 'obj');
       setModelName(doc.file_name);
       setAnnotations([]); // Reset annotations when loading new model
-      
+
       toast({ title: "Modelo cargado", description: doc.file_name });
     } catch (error) {
       toast({ title: "Error", description: "No se pudo cargar el modelo", variant: "destructive" });
@@ -352,21 +359,17 @@ export const Model3DViewerWithAnnotations = ({ patientId, patientName, onClose }
       setIsUploading(true);
       try {
         const fileName = `${patientId}/models/${Date.now()}-${file.name}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('patient-files')
           .upload(fileName, file);
-        
-        if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
-          .from('patient-files')
-          .getPublicUrl(fileName);
+        if (uploadError) throw uploadError;
 
         await supabase.from('patient_documents').insert({
           patient_id: patientId,
           file_name: file.name,
-          file_url: urlData.publicUrl,
+          file_url: fileName,
           document_type: '3d-model',
           mime_type: file.type || 'application/octet-stream',
           file_size: file.size

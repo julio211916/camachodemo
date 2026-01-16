@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { getSignedUrl } from "@/hooks/useSignedUrl";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -178,13 +179,13 @@ export const DiagnocatViewer = ({ patientId, patientName, onClose }: DiagnocatVi
       if (patientId) {
         const fileName = `${patientId}/models/${Date.now()}-${file.name}`;
         const { error: uploadError } = await supabase.storage.from('patient-files').upload(fileName, file);
-        
+
         if (!uploadError) {
-          const { data: urlData } = supabase.storage.from('patient-files').getPublicUrl(fileName);
+          // Store only the storage path (bucket is private). Signed URLs are generated on-demand when viewing.
           await supabase.from('patient_documents').insert({
             patient_id: patientId,
             file_name: file.name,
-            file_url: urlData.publicUrl,
+            file_url: fileName,
             document_type: '3d-model',
             mime_type: file.type || 'application/octet-stream',
             file_size: file.size,
@@ -206,9 +207,19 @@ export const DiagnocatViewer = ({ patientId, patientName, onClose }: DiagnocatVi
     if (modelUrl) window.open(modelUrl, '_blank');
   };
 
-  const loadCloudModel = (doc: any) => {
+  const loadCloudModel = async (doc: any) => {
     const ext = doc.file_name.split('.').pop()?.toLowerCase();
-    setModelUrl(doc.file_url);
+
+    const resolvedUrl = (typeof doc.file_url === 'string' && (doc.file_url.startsWith('http://') || doc.file_url.startsWith('https://')))
+      ? doc.file_url
+      : await getSignedUrl('patient-files', doc.file_url);
+
+    if (!resolvedUrl) {
+      toast({ title: "Error", description: "No se pudo generar el acceso al modelo", variant: "destructive" });
+      return;
+    }
+
+    setModelUrl(resolvedUrl);
     setModelType((ext === 'drc' ? 'stl' : ext) as 'stl' | 'ply' | 'obj');
     setModelName(doc.file_name);
     toast({ title: "Modelo cargado", description: doc.file_name });

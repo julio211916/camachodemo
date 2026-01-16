@@ -205,21 +205,18 @@ export const CephalometryModule = ({ patientId, patientName }: CephalometryModul
         const { error: uploadError } = await supabase.storage
           .from('patient-files')
           .upload(fileName, file);
-        
+
         if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from('patient-files')
-            .getPublicUrl(fileName);
-          
+          // Store only the storage path (bucket is private). Signed URLs are generated on-demand when viewing.
           await supabase.from('patient_documents').insert({
             patient_id: patientId,
             file_name: file.name,
-            file_url: urlData.publicUrl,
+            file_url: fileName,
             document_type: 'cephalometric',
             mime_type: file.type,
             file_size: file.size,
           });
-          
+
           queryClient.invalidateQueries({ queryKey: ['ceph-images', patientId] });
         }
       }
