@@ -37,7 +37,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useTheme } from "next-themes";
+import { useThemePreference } from "@/hooks/useThemePreference";
 import logo from "@/assets/logo-novelldent.png";
 import { PatientSelector } from "@/components/clinic/PatientSelector";
 
@@ -77,13 +77,19 @@ export const DashboardLayout = ({
   showSearch = true,
   notifications = 0
 }: DashboardLayoutProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem('portal_dashboard_sidebar_collapsed') === '1';
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
   const { user, profile, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { isDark, toggleTheme } = useThemePreference();
   const location = useLocation();
+
+  useEffect(() => {
+    localStorage.setItem('portal_dashboard_sidebar_collapsed', collapsed ? '1' : '0');
+  }, [collapsed]);
 
   // Auto-expand group containing active item
   useEffect(() => {
@@ -341,9 +347,9 @@ export const DashboardLayout = ({
                       variant="ghost"
                       size="icon"
                       className="w-full h-10 text-muted-foreground dark:text-sidebar-foreground/70 hover:text-foreground dark:hover:text-sidebar-foreground"
-                      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                      onClick={toggleTheme}
                     >
-                      {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="right">Cambiar tema</TooltipContent>
@@ -367,10 +373,10 @@ export const DashboardLayout = ({
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-3 text-muted-foreground dark:text-sidebar-foreground/70 hover:text-foreground dark:hover:text-sidebar-foreground"
-                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  onClick={toggleTheme}
                 >
-                  {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                  <span>{theme === "dark" ? "Modo claro" : "Modo oscuro"}</span>
+                  {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  <span>{isDark ? "Modo claro" : "Modo oscuro"}</span>
                 </Button>
                 <Button
                   variant="ghost"
