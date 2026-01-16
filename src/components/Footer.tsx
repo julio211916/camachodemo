@@ -5,9 +5,9 @@ import { Link } from "react-router-dom";
 import logo from "@/assets/logo-novelldent.png";
 
 const socialLinks = [
-  { icon: Facebook, href: "#", label: "Facebook" },
-  { icon: Instagram, href: "#", label: "Instagram" },
-  { icon: Twitter, href: "#", label: "Twitter" },
+  { icon: Facebook, href: "https://facebook.com/novelldent", label: "Facebook" },
+  { icon: Instagram, href: "https://instagram.com/novelldent", label: "Instagram" },
+  { icon: Twitter, href: "https://twitter.com/novelldent", label: "Twitter" },
 ];
 
 export const Footer = () => {
@@ -15,18 +15,18 @@ export const Footer = () => {
 
   const footerLinks = {
     servicios: [
-      { label: t('footer.generalDentistry'), href: "/servicios" },
-      { label: t('footer.whitening'), href: "/servicios" },
-      { label: t('footer.implants'), href: "/servicios" },
-      { label: t('footer.orthodontics'), href: "/servicios" },
-      { label: t('footer.aesthetics'), href: "/servicios" },
+      { label: t('footer.generalDentistry'), href: "/#servicios" },
+      { label: t('footer.whitening'), href: "/#servicios" },
+      { label: t('footer.implants'), href: "/#servicios" },
+      { label: t('footer.orthodontics'), href: "/#servicios" },
+      { label: t('footer.aesthetics'), href: "/#servicios" },
     ],
     especialidades: [
-      { label: t('footer.endodontics'), href: "/especialidades" },
-      { label: t('footer.periodontics'), href: "/especialidades" },
-      { label: t('footer.oralSurgery'), href: "/especialidades" },
-      { label: t('footer.pediatric'), href: "/especialidades" },
-      { label: t('footer.prosthetics'), href: "/especialidades" },
+      { label: t('footer.endodontics'), href: "/#especialidades" },
+      { label: t('footer.periodontics'), href: "/#especialidades" },
+      { label: t('footer.oralSurgery'), href: "/#especialidades" },
+      { label: t('footer.pediatric'), href: "/#especialidades" },
+      { label: t('footer.prosthetics'), href: "/#especialidades" },
     ],
     legal: [
       { label: "Aviso de Privacidad", href: "/privacidad" },

@@ -255,13 +255,24 @@ export const NavbarLogo = ({
   src,
   alt = "Logo",
   className,
+  onClick,
 }: {
   src: string;
   alt?: string;
   className?: string;
+  onClick?: () => void;
 }) => {
   return (
-    <a href="#inicio" className="flex items-center z-50">
+    <a 
+      href="/" 
+      className="flex items-center z-50"
+      onClick={(e) => {
+        if (onClick) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <img
         src={src}
         alt={alt}

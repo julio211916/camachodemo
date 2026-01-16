@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Header } from "@/components/Header";
+import { NewHeader } from "@/components/NewHeader";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Calendar, User, ArrowRight, Tag, Search, X } from "lucide-react";
@@ -55,7 +55,7 @@ const Blog = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <NewHeader />
       
       <main className="pt-32 pb-20">
         <div className="container-wide">

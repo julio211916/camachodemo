@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Header } from "@/components/Header";
+import { NewHeader } from "@/components/NewHeader";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Calendar, User, ArrowLeft, Tag, Share2 } from "lucide-react";
@@ -56,7 +56,7 @@ const BlogPost = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <NewHeader />
         <main className="pt-32 pb-20">
           <div className="container-wide max-w-4xl">
             <div className="animate-pulse">
@@ -79,7 +79,7 @@ const BlogPost = () => {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <NewHeader />
         <main className="pt-32 pb-20">
           <div className="container-wide text-center">
             <h1 className="text-3xl font-bold mb-4">Artículo no encontrado</h1>
@@ -101,7 +101,7 @@ const BlogPost = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <NewHeader />
       
       <main className="pt-32 pb-20">
         <article className="container-wide max-w-4xl">

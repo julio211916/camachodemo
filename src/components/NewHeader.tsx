@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import {
   Navbar,
@@ -24,17 +24,20 @@ export function NewHeader() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const isHomePage = location.pathname === "/";
+
   const navItems = [
-    { name: t("nav.home"), link: "#inicio" },
-    { name: t("nav.about"), link: "#quienes-somos" },
-    { name: t("nav.specialties"), link: "#especialidades" },
-    { name: t("nav.services"), link: "#servicios" },
-    { name: t("nav.appointments"), link: "#reservar" },
-    { name: t("nav.locations"), link: "#sucursales" },
+    { name: t("nav.home"), link: isHomePage ? "#inicio" : "/", isRoute: !isHomePage },
+    { name: t("nav.about"), link: isHomePage ? "#quienes-somos" : "/#quienes-somos", isRoute: !isHomePage },
+    { name: t("nav.specialties"), link: isHomePage ? "#especialidades" : "/#especialidades", isRoute: !isHomePage },
+    { name: t("nav.services"), link: isHomePage ? "#servicios" : "/#servicios", isRoute: !isHomePage },
+    { name: t("nav.appointments"), link: isHomePage ? "#reservar" : "/#reservar", isRoute: !isHomePage },
+    { name: t("nav.locations"), link: isHomePage ? "#sucursales" : "/#sucursales", isRoute: !isHomePage },
     { name: "Blog", link: "/blog", isRoute: true },
-    { name: t("nav.contact"), link: "#contacto" },
+    { name: t("nav.contact"), link: isHomePage ? "#contacto" : "/#contacto", isRoute: !isHomePage },
   ];
 
   const handleNavItemClick = (item: { name: string; link: string; isRoute?: boolean }) => {
@@ -44,21 +47,32 @@ export function NewHeader() {
     setIsMobileMenuOpen(false);
   };
 
+  const handleLogoClick = () => {
+    if (!isHomePage) {
+      navigate("/");
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const handlePortalClick = () => {
     navigate("/portal");
     setIsMobileMenuOpen(false);
   };
 
   const handleBookNow = () => {
-    document.getElementById("reservar")?.scrollIntoView({ behavior: "smooth" });
+    if (isHomePage) {
+      document.getElementById("reservar")?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate("/#reservar");
+    }
     setIsMobileMenuOpen(false);
   };
 
   return (
     <Navbar>
-      {/* Desktop Navigation */}
       <NavBody>
-        <NavbarLogo src={logo} alt="NovellDent" />
+        <NavbarLogo src={logo} alt="NovellDent" onClick={handleLogoClick} />
         <NavItems 
           items={navItems} 
           onItemClick={handleNavItemClick}
@@ -76,10 +90,9 @@ export function NewHeader() {
         </div>
       </NavBody>
 
-      {/* Mobile Navigation */}
       <MobileNav>
         <MobileNavHeader>
-          <NavbarLogo src={logo} alt="NovellDent" />
+          <NavbarLogo src={logo} alt="NovellDent" onClick={handleLogoClick} />
           <div className="flex items-center gap-2">
             <LanguageSelector />
             <ThemeToggle />

@@ -1,4 +1,4 @@
-import { Header } from "@/components/Header";
+import { NewHeader } from "@/components/NewHeader";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
 import { TestimonialSlider, Review } from "@/components/ui/testimonial-slider";
@@ -89,7 +89,7 @@ const testimoniosAdicionales = [
 const TestimoniosPage = () => {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <NewHeader />
       <main className="pt-24 pb-16">
         {/* Hero */}
         <section className="container-wide section-padding text-center mb-8">
