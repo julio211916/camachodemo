@@ -1806,6 +1806,41 @@ export type Database = {
           },
         ]
       }
+      order_status_history: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           balance: number | null
@@ -1819,12 +1854,15 @@ export type Database = {
           discount_code: string | null
           distributor_id: string | null
           employee_id: string | null
+          estimated_delivery: string | null
           id: string
           internal_notes: string | null
           location_id: string | null
           notes: string | null
           order_number: string
           paid_amount: number | null
+          payment_method: string | null
+          payment_reference: string | null
           payment_status: string | null
           payment_type: string | null
           shipped_at: string | null
@@ -1854,12 +1892,15 @@ export type Database = {
           discount_code?: string | null
           distributor_id?: string | null
           employee_id?: string | null
+          estimated_delivery?: string | null
           id?: string
           internal_notes?: string | null
           location_id?: string | null
           notes?: string | null
           order_number: string
           paid_amount?: number | null
+          payment_method?: string | null
+          payment_reference?: string | null
           payment_status?: string | null
           payment_type?: string | null
           shipped_at?: string | null
@@ -1889,12 +1930,15 @@ export type Database = {
           discount_code?: string | null
           distributor_id?: string | null
           employee_id?: string | null
+          estimated_delivery?: string | null
           id?: string
           internal_notes?: string | null
           location_id?: string | null
           notes?: string | null
           order_number?: string
           paid_amount?: number | null
+          payment_method?: string | null
+          payment_reference?: string | null
           payment_status?: string | null
           payment_type?: string | null
           shipped_at?: string | null
@@ -3293,6 +3337,63 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           presentation?: string | null
+        }
+        Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          wishlist_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          wishlist_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          wishlist_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wishlist_items_wishlist_id_fkey"
+            columns: ["wishlist_id"]
+            isOneToOne: false
+            referencedRelation: "wishlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishlists: {
+        Row: {
+          created_at: string | null
+          id: string
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
