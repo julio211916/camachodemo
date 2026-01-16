@@ -190,10 +190,10 @@ export const NewHero = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-16 mt-24 max-w-4xl mx-auto"
         >
           {[
-            { number: "15", suffix: "+", label: t("hero.years") },
-            { number: "4", suffix: "", label: t("hero.branches") },
-            { number: "9", suffix: "", label: t("hero.specialties") },
-            { number: "10K", suffix: "+", label: t("hero.patients") },
+            { number: "40", suffix: "+", label: t("hero.years") },
+            { number: "7", suffix: "", label: t("hero.branches") },
+            { number: "165", suffix: "+", label: t("hero.specialties") },
+            { number: "2K", suffix: "+", label: t("hero.patients") },
           ].map((stat, index) => (
             <motion.div
               key={stat.label}
