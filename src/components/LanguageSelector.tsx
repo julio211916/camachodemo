@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Globe } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,11 +7,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage, Language } from "@/contexts/LanguageContext";
 
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'pt', label: 'Português', flag: '🇧🇷' },
-  { code: 'ru', label: 'Русский', flag: '🇷🇺' },
+const languages: { code: Language; flag: string }[] = [
+  { code: 'es', flag: '🇪🇸' },
+  { code: 'en', flag: '🇺🇸' },
+  { code: 'pt', flag: '🇧🇷' },
+  { code: 'ru', flag: '🇷🇺' },
 ];
 
 export const LanguageSelector = () => {
@@ -23,26 +22,23 @@ export const LanguageSelector = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <motion.button
-          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/80 hover:bg-secondary transition-colors text-sm font-medium"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-lg"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <Globe className="w-4 h-4" />
-          <span className="hidden sm:inline">{currentLang?.flag} {currentLang?.label}</span>
-          <span className="sm:hidden">{currentLang?.flag}</span>
+          {currentLang?.flag}
         </motion.button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
+      <DropdownMenuContent align="end" className="min-w-[50px]">
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => setLanguage(lang.code)}
-            className={`flex items-center gap-2 cursor-pointer ${
-              language === lang.code ? 'bg-primary/10 text-primary' : ''
+            className={`flex items-center justify-center cursor-pointer text-lg py-2 ${
+              language === lang.code ? 'bg-primary/10' : ''
             }`}
           >
-            <span className="text-lg">{lang.flag}</span>
-            <span>{lang.label}</span>
+            {lang.flag}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
