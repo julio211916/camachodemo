@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Menu, Select, Switch, Avatar, Badge, Typography } from 'antd';
+import { Layout, Menu, Select, Switch, Avatar, Badge, Typography, Tooltip } from 'antd';
 import {
   DashboardOutlined,
   CalendarOutlined,
@@ -249,32 +249,38 @@ export function UnifiedSidebar({ activeSection, onNavigate, collapsed, onCollaps
           </div>
         )}
 
-        {/* Collapse Button - Always visible */}
+        {/* Collapse Button - Always visible with tooltip and hover animation */}
         <div className="p-2 border-b border-gray-100">
-          <button
-            onClick={() => onCollapse(!collapsed)}
-            className="w-full flex items-center justify-center gap-2 p-2.5 hover:bg-teal-50 text-teal-700 rounded-lg transition-colors border border-gray-200 hover:border-teal-300"
-            title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+          <Tooltip 
+            title={collapsed ? 'Expandir menú' : 'Colapsar menú'} 
+            placement="right"
+            mouseEnterDelay={0.3}
           >
-            {collapsed ? (
-              <PanelLeftOpen className="w-5 h-5" />
-            ) : (
-              <>
-                <PanelLeftClose className="w-5 h-5" />
-                <span className="text-sm font-medium">Colapsar</span>
-              </>
-            )}
-          </button>
+            <button
+              onClick={() => onCollapse(!collapsed)}
+              className="group w-full flex items-center justify-center gap-2 p-2.5 hover:bg-teal-50 text-teal-700 rounded-lg transition-all duration-200 border border-gray-200 hover:border-teal-400 hover:shadow-md active:scale-95"
+            >
+              {collapsed ? (
+                <PanelLeftOpen className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-0.5" />
+              ) : (
+                <>
+                  <PanelLeftClose className="w-5 h-5 transition-transform duration-200 group-hover:-translate-x-0.5" />
+                  <span className="text-sm font-medium">Colapsar</span>
+                </>
+              )}
+            </button>
+          </Tooltip>
         </div>
 
-        {/* Menu */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Menu with tooltips when collapsed */}
+        <div className="flex-1 overflow-y-auto sidebar-menu-container">
           <Menu
             mode="inline"
             selectedKeys={[activeSection]}
             onClick={handleMenuClick}
             items={menuItems}
             className="border-0"
+            inlineCollapsed={collapsed}
           />
         </div>
 

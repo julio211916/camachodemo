@@ -322,3 +322,49 @@
 .dark .glass-button-text {
   color: hsl(var(--background));
 }
+
+/* Ant Design Menu Tooltip Styles for Collapsed Sidebar */
+.sidebar-menu-container .ant-menu-inline-collapsed > .ant-menu-item,
+.sidebar-menu-container .ant-menu-inline-collapsed > .ant-menu-submenu > .ant-menu-submenu-title {
+  padding-inline: 0 !important;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-menu-container .ant-menu-inline-collapsed .ant-menu-item-icon,
+.sidebar-menu-container .ant-menu-inline-collapsed .anticon {
+  font-size: 18px !important;
+  line-height: 1 !important;
+}
+
+/* Tooltip styles for collapsed menu items */
+.ant-menu-inline-collapsed-tooltip {
+  pointer-events: none;
+}
+
+.ant-menu-inline-collapsed-tooltip .ant-tooltip-inner {
+  background-color: hsl(var(--primary));
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ant-menu-inline-collapsed-tooltip .ant-tooltip-arrow::before {
+  background-color: hsl(var(--primary));
+}
+
+/* Sidebar collapse button animation */
+.sidebar-collapse-btn {
+  transition: all 0.2s ease;
+}
+
+.sidebar-collapse-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 128, 128, 0.2);
+}
+
+.sidebar-collapse-btn:active {
+  transform: scale(0.98);
+}
