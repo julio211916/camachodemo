@@ -87,6 +87,8 @@ import { MyProfile } from '@/components/dashboard/MyProfile';
 import { ProfilePhotoUpload } from '@/components/clinic/ProfilePhotoUpload';
 import { BackupManager } from '@/components/clinic/BackupManager';
 import { LoyaltyModule } from '@/components/clinic/LoyaltyModule';
+import { UsersRolesManager } from '@/components/admin/UsersRolesManager';
+import { MedicationManager } from '@/components/clinic/MedicationManager';
 
 function MainLayoutContent() {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -190,9 +192,13 @@ function MainLayoutContent() {
       case 'payment-plans':
         return <PaymentPlanCalculator treatmentTotal={10000} />;
 
-      // Personnel
+      // Personnel & Users
+      case 'users-roles':
+        return <UsersRolesManager />;
       case 'doctors':
         return <DoctorsManager />;
+      case 'medications':
+        return <MedicationManager />;
 
       // Documents
       case 'files':
