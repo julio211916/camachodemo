@@ -218,26 +218,23 @@ export const AdvancedFileManager = ({ patientId, patientName, readOnly = false }
     enabled: !!patientId,
   });
 
-  // Upload mutation
+  // Upload mutation - stores file path only (secure pattern - no public URLs)
   const uploadMutation = useMutation({
     mutationFn: async ({ file, category, description }: { file: File; category: string; description: string }) => {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${patientId}/${Date.now()}_${category}.${fileExt}`;
+      const filePath = `${patientId}/${Date.now()}_${category}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('patient-documents')
-        .upload(fileName, file);
+        .upload(filePath, file);
       
       if (uploadError) throw uploadError;
       
-      const { data: { publicUrl } } = supabase.storage
-        .from('patient-documents')
-        .getPublicUrl(fileName);
-      
+      // Store file path only - generate signed URL when viewing
       const { error: dbError } = await supabase.from('patient_documents').insert({
         patient_id: patientId,
         file_name: file.name,
-        file_url: publicUrl,
+        file_url: filePath, // Store path, not public URL
         document_type: category,
         file_size: file.size,
         mime_type: file.type || 'application/octet-stream',

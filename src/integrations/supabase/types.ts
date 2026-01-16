@@ -1807,7 +1807,56 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      reviews_public: {
+        Row: {
+          appointment_id: string | null
+          comment: string | null
+          created_at: string | null
+          id: string | null
+          is_published: boolean | null
+          location_id: string | null
+          location_name: string | null
+          patient_name: string | null
+          rating: number | null
+          service_id: string | null
+          service_name: string | null
+        }
+        Insert: {
+          appointment_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_published?: boolean | null
+          location_id?: string | null
+          location_name?: string | null
+          patient_name?: string | null
+          rating?: number | null
+          service_id?: string | null
+          service_name?: string | null
+        }
+        Update: {
+          appointment_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_published?: boolean | null
+          location_id?: string | null
+          location_name?: string | null
+          patient_name?: string | null
+          rating?: number | null
+          service_id?: string | null
+          service_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       generate_referral_code: { Args: never; Returns: string }
