@@ -94,7 +94,7 @@ export const ProfilePhotoUpload = ({
       if (!selectedFile) throw new Error("No file selected");
 
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${userType}/${userId}/avatar.${fileExt}`;
+      const fileName = `${userId}/avatar.${fileExt}`;
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
@@ -108,15 +108,17 @@ export const ProfilePhotoUpload = ({
         .from('avatars')
         .getPublicUrl(fileName);
 
+      const avatarUrl = `${publicUrl}?t=${Date.now()}`;
+
       // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ avatar_url: avatarUrl })
         .eq('user_id', userId);
 
       if (updateError) throw updateError;
 
-      return publicUrl;
+      return avatarUrl;
     },
     onSuccess: (url) => {
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
@@ -138,8 +140,8 @@ export const ProfilePhotoUpload = ({
   const deleteMutation = useMutation({
     mutationFn: async () => {
       // Delete from storage
-      const fileName = `${userType}/${userId}/avatar`;
-      await supabase.storage.from('avatars').remove([`${fileName}.jpg`, `${fileName}.png`, `${fileName}.jpeg`]);
+      const fileName = `${userId}/avatar`;
+      await supabase.storage.from('avatars').remove([`${fileName}.jpg`, `${fileName}.png`, `${fileName}.jpeg`, `${fileName}.webp`]);
 
       // Update profile
       const { error } = await supabase
