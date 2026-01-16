@@ -17,6 +17,7 @@ import { ResponsiveDashboard } from './ResponsiveDashboard';
 import { BranchProvider, useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppointments } from '@/hooks/useAppointments';
+import { usePushNotificationSubscription } from '@/hooks/usePushNotificationSubscription';
 import {
   Search,
   Bell,
@@ -95,6 +96,9 @@ function MainLayoutContent() {
   const { user, profile, userRole, signOut } = useAuth();
   const { currentBranch, viewMode, branchSummaries } = useBranch();
   const { data: appointments = [] } = useAppointments();
+  
+  // Initialize push notifications
+  usePushNotificationSubscription();
 
   useEffect(() => {
     localStorage.setItem('portal_sidebar_collapsed', collapsed ? '1' : '0');

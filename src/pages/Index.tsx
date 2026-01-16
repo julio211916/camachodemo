@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Header } from "@/components/Header";
+import { MiniNavbar } from "@/components/ui/mini-navbar";
 import { Hero } from "@/components/Hero";
 import { TechnologySection } from "@/components/TechnologySection";
 import { About } from "@/components/About";
@@ -25,7 +25,7 @@ const Index = () => {
       <Preloader onComplete={() => setShowPreloader(false)} />
       
       <div className={`min-h-screen bg-background transition-opacity duration-500 ${showPreloader ? 'opacity-0' : 'opacity-100'}`}>
-        <Header />
+        <MiniNavbar />
         <main>
           <Hero />
           <TechnologySection />
