@@ -30,20 +30,24 @@ export interface CreateReviewData {
   review_token?: string;
 }
 
-// Fetch published reviews (public)
+// Fetch published reviews (public) - uses secure view that excludes email addresses
 export const usePublishedReviews = () => {
   return useQuery({
     queryKey: ['reviews', 'published'],
     queryFn: async () => {
+      // Use the secure public view that excludes patient_email
       const { data, error } = await supabase
-        .from('reviews')
+        .from('reviews_public' as any)
         .select('*')
-        .eq('is_published', true)
         .order('created_at', { ascending: false })
         .limit(20);
       
       if (error) throw error;
-      return data as Review[];
+      // Map to Review interface with empty email for public view
+      return (data || []).map((r: any) => ({
+        ...r,
+        patient_email: '', // Email excluded in public view for privacy
+      })) as Review[];
     },
   });
 };

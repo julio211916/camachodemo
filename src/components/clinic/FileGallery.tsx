@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { 
   FolderOpen, 
@@ -30,9 +30,68 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { getSignedUrl } from "@/hooks/useSignedUrl";
 
 // Lazy load the STL viewer to avoid loading three.js unless needed
 const STLViewer = lazy(() => import("./STLViewer"));
+
+// Secure image component that uses signed URLs
+const SecureImage = ({ filePath, alt, className }: { filePath: string; alt: string; className?: string }) => {
+  const [src, setSrc] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUrl = async () => {
+      setLoading(true);
+      const url = await getSignedUrl('patient-documents', filePath);
+      setSrc(url);
+      setLoading(false);
+    };
+    loadUrl();
+  }, [filePath]);
+
+  if (loading) {
+    return (
+      <div className={`flex items-center justify-center bg-secondary/30 ${className}`}>
+        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!src) {
+    return (
+      <div className={`flex items-center justify-center bg-secondary/30 ${className}`}>
+        <Image className="w-8 h-8 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return <img src={src} alt={alt} className={className} />;
+};
+
+// Secure STL viewer wrapper that loads signed URL
+const SecureSTLViewer = ({ filePath, fileName }: { filePath: string; fileName: string }) => {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUrl = async () => {
+      const url = await getSignedUrl('patient-documents', filePath);
+      setSignedUrl(url);
+    };
+    loadUrl();
+  }, [filePath]);
+
+  if (!signedUrl) {
+    return (
+      <div className="aspect-video bg-secondary/30 rounded-lg flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Cargando archivo...</span>
+      </div>
+    );
+  }
+
+  return <STLViewer fileUrl={signedUrl} fileName={fileName} />;
+};
 
 interface FileGalleryProps {
   patientId?: string;
@@ -81,25 +140,20 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
       if (!patientId) throw new Error('Se requiere un paciente');
       
       const fileExt = file.name.split('.').pop();
-      const fileName = `${patientId}/${Date.now()}.${fileExt}`;
+      const filePath = `${patientId}/${Date.now()}.${fileExt}`;
       
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('patient-documents')
-        .upload(fileName, file);
+        .upload(filePath, file);
       
       if (uploadError) throw uploadError;
       
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('patient-documents')
-        .getPublicUrl(fileName);
-      
-      // Save to database
+      // Store file path only - generate signed URL when viewing (secure pattern)
       const { error: dbError } = await supabase.from('patient_documents').insert({
         patient_id: patientId,
         file_name: file.name,
-        file_url: publicUrl,
+        file_url: filePath, // Store path, not public URL
         document_type: documentType,
         file_size: file.size,
         mime_type: file.type,
@@ -281,8 +335,8 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
               >
                 <div className="aspect-square flex items-center justify-center bg-secondary/30 rounded-lg mb-3">
                   {isImageFile(file.mime_type) ? (
-                    <img
-                      src={file.file_url}
+                    <SecureImage
+                      filePath={file.file_url}
                       alt={file.file_name}
                       className="w-full h-full object-cover rounded-lg"
                     />
@@ -296,6 +350,31 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
                 </p>
                 
                 {/* Quick actions */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-7 w-7"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const url = await getSignedUrl('patient-documents', file.file_url);
+                      if (url) window.open(url, '_blank');
+                    }}
+                  >
+                    <Download className="w-3 h-3" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="h-7 w-7"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteMutation.mutate(file.id);
+                    }}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                   <Button
                     size="icon"
@@ -346,7 +425,10 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
                   <Button size="icon" variant="ghost" onClick={() => setSelectedFile(file)}>
                     <Eye className="w-4 h-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" onClick={() => window.open(file.file_url, '_blank')}>
+                  <Button size="icon" variant="ghost" onClick={async () => {
+                    const url = await getSignedUrl('patient-documents', file.file_url);
+                    if (url) window.open(url, '_blank');
+                  }}>
                     <Download className="w-4 h-4" />
                   </Button>
                   <Button size="icon" variant="ghost" className="text-red-500" onClick={() => deleteMutation.mutate(file.id)}>
@@ -370,8 +452,8 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
           </DialogHeader>
           <div className="mt-4">
             {selectedFile && isImageFile(selectedFile.mime_type) && (
-              <img
-                src={selectedFile.file_url}
+              <SecureImage
+                filePath={selectedFile.file_url}
                 alt={selectedFile.file_name}
                 className="w-full max-h-[70vh] object-contain rounded-lg"
               />
@@ -383,8 +465,8 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
                   <span className="ml-2 text-muted-foreground">Cargando visor 3D...</span>
                 </div>
               }>
-                <STLViewer 
-                  fileUrl={selectedFile.file_url} 
+                <SecureSTLViewer 
+                  filePath={selectedFile.file_url} 
                   fileName={selectedFile.file_name} 
                 />
               </Suspense>
@@ -396,7 +478,10 @@ export const FileGallery = ({ patientId, patientName }: FileGalleryProps) => {
                   <p className="text-muted-foreground mt-4 mb-4">
                     Vista previa no disponible
                   </p>
-                  <Button onClick={() => window.open(selectedFile.file_url, '_blank')}>
+                  <Button onClick={async () => {
+                    const url = await getSignedUrl('patient-documents', selectedFile.file_url);
+                    if (url) window.open(url, '_blank');
+                  }}>
                     <Download className="w-4 h-4 mr-2" />
                     Descargar
                   </Button>
