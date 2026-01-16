@@ -240,7 +240,7 @@ function MainLayoutContent() {
       case 'profile':
         return <MyProfile />;
       case 'profiles':
-        return <ProfilePhotoUpload userId={user?.id || ''} userType={userRole === 'staff' ? 'admin' : userRole} />;
+        return <ProfilePhotoUpload userId={user?.id || ''} userType={userRole === 'staff' || userRole === 'distributor' || userRole === 'customer' ? 'admin' : (userRole === 'doctor' || userRole === 'patient' || userRole === 'admin' ? userRole : 'patient')} />;
 
       default:
         return (

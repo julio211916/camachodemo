@@ -64,7 +64,7 @@ import {
   X,
 } from 'lucide-react';
 
-type UserRole = 'admin' | 'staff' | 'doctor' | 'patient' | 'distributor' | 'customer';
+import { UserRole } from '@/hooks/useAuth';
 
 interface SidebarSection {
   id: string;
