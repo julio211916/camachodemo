@@ -4106,7 +4106,14 @@ export type Database = {
       mark_lead_as_won: { Args: { p_lead_id: string }; Returns: Json }
     }
     Enums: {
-      app_role: "admin" | "staff" | "user" | "patient" | "doctor"
+      app_role:
+        | "admin"
+        | "staff"
+        | "user"
+        | "patient"
+        | "doctor"
+        | "distributor"
+        | "customer"
       appointment_status: "pending" | "confirmed" | "cancelled" | "completed"
     }
     CompositeTypes: {
@@ -4235,7 +4242,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "staff", "user", "patient", "doctor"],
+      app_role: [
+        "admin",
+        "staff",
+        "user",
+        "patient",
+        "doctor",
+        "distributor",
+        "customer",
+      ],
       appointment_status: ["pending", "confirmed", "cancelled", "completed"],
     },
   },

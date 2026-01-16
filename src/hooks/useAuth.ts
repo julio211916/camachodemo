@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 
-export type UserRole = 'admin' | 'staff' | 'doctor' | 'patient' | null;
+export type UserRole = 'admin' | 'staff' | 'doctor' | 'patient' | 'distributor' | 'customer' | null;
 
 interface Profile {
   id: string;
@@ -36,11 +36,13 @@ export const useAuth = () => {
       .eq('user_id', userId);
     
     if (data && data.length > 0) {
-      // Priority: admin > doctor > staff > patient
-      const roles = data.map(r => r.role);
+      // Priority: admin > doctor > staff > distributor > customer > patient
+      const roles = data.map(r => r.role as string);
       if (roles.includes('admin')) return 'admin' as UserRole;
       if (roles.includes('doctor')) return 'doctor' as UserRole;
       if (roles.includes('staff')) return 'staff' as UserRole;
+      if (roles.includes('distributor')) return 'distributor' as UserRole;
+      if (roles.includes('customer')) return 'customer' as UserRole;
       if (roles.includes('patient')) return 'patient' as UserRole;
     }
     return null;
