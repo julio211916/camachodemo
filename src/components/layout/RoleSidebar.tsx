@@ -27,7 +27,7 @@ import {
 import { useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemePreference } from '@/hooks/useThemePreference';
-import logoNovellDentIcon from '@/assets/logo-novelldent-icon.png';
+import logoCamachoIcon from '@/assets/logo-camacho.jpg';
 import {
   LayoutDashboard,
   Calendar,
@@ -325,16 +325,16 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
           <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
             <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img
-                src={logoNovellDentIcon}
-                alt="NovellDent"
-                className="w-7 h-7 object-contain"
+                src={logoCamachoIcon}
+                alt="Productos Camacho"
+                className="w-8 h-8 object-cover rounded"
                 loading="eager"
               />
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">
-                <h1 className="font-bold text-foreground truncate">NovellDent</h1>
-                <p className="text-xs text-muted-foreground truncate">Sistema Dental</p>
+                <h1 className="font-bold text-foreground truncate">Productos Camacho</h1>
+                <p className="text-xs text-muted-foreground truncate">Sistema E-commerce</p>
               </div>
             )}
           </div>

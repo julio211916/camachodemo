@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useLanguage } from "@/contexts/LanguageContext";
-import logo from "@/assets/logo-novelldent.png";
+import logo from "@/assets/logo-camacho.jpg";
 
 export const AuthPage = () => {
   const { signIn, signUp } = useAuth();
@@ -93,8 +93,8 @@ export const AuthPage = () => {
             >
               <motion.img 
                 src={logo} 
-                alt="NovellDent" 
-                className="h-14 mx-auto mb-6 drop-shadow-lg cursor-pointer"
+                alt="Productos Camacho" 
+                className="h-16 mx-auto mb-6 drop-shadow-lg cursor-pointer rounded-lg"
                 onClick={() => navigate("/")}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -165,7 +165,7 @@ export const AuthPage = () => {
               >
                 {!isLogin && (
                   <>
-                    {/* Info banner - Solo pacientes */}
+                    {/* Info banner - Solo clientes */}
                     <motion.div 
                       className="p-4 rounded-2xl bg-primary/10 border border-primary/20"
                       initial={{ opacity: 0, y: 20 }}
@@ -176,10 +176,10 @@ export const AuthPage = () => {
                         <User className="w-5 h-5 text-primary" />
                         <div>
                           <p className="text-sm font-medium text-foreground">
-                            Registro de Pacientes
+                            Registro de Clientes
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Los doctores y administradores son registrados por el personal de la clínica
+                            Crea tu cuenta para realizar pedidos y dar seguimiento
                           </p>
                         </div>
                       </div>

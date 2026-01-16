@@ -104,14 +104,14 @@ export const Header = () => {
                 {t('nav.bookNow')}
               </GlassButton>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button 
                   variant="ghost" 
-                  size="sm" 
+                  size="icon"
                   onClick={() => setIsOpen(true)}
-                  className={`relative gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}
+                  className={`relative ${isScrolled ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`}
                 >
-                  <ShoppingCart className="w-4 h-4" />
+                  <ShoppingCart className="w-5 h-5" />
                   {itemCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                       {itemCount > 99 ? '99+' : itemCount}
@@ -120,11 +120,15 @@ export const Header = () => {
                 </Button>
                 <LanguageSelector />
                 <ThemeToggle />
-                {user ? <Button variant="ghost" size="sm" onClick={handlePortalClick} className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}>
-                    <User className="w-4 h-4" />
-                  </Button> : <Button variant="ghost" size="sm" onClick={handlePortalClick} className={`gap-2 ${isScrolled ? "text-foreground" : "text-white hover:text-white/80"}`}>
-                    <LogIn className="w-4 h-4" />
-                  </Button>}
+                {user ? (
+                  <Button variant="ghost" size="icon" onClick={handlePortalClick} className={`${isScrolled ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`}>
+                    <User className="w-5 h-5" />
+                  </Button>
+                ) : (
+                  <Button variant="ghost" size="icon" onClick={handlePortalClick} className={`${isScrolled ? "text-foreground hover:bg-muted" : "text-white hover:bg-white/10"}`}>
+                    <LogIn className="w-5 h-5" />
+                  </Button>
+                )}
               </div>
             </nav>
 
