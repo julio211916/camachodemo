@@ -54,7 +54,7 @@ export const Contact = () => {
 
             <div className="space-y-6">
               <motion.a
-                href="tel:+523221837666"
+                href="tel:+525555555555"
                 whileHover={{ x: 8 }}
                 className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors"
               >
@@ -63,12 +63,12 @@ export const Contact = () => {
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">{t('contact.callUs')}</div>
-                  <div className="font-semibold text-foreground">+52 322 183 7666</div>
+                  <div className="font-semibold text-foreground">+52 55 5555 5555</div>
                 </div>
               </motion.a>
 
               <motion.a
-                href="https://wa.me/523221837666"
+                href="https://wa.me/525555555555"
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ x: 8 }}
@@ -79,12 +79,12 @@ export const Contact = () => {
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">{t('contact.whatsapp')}</div>
-                  <div className="font-semibold text-foreground">+52 322 183 7666</div>
+                  <div className="font-semibold text-foreground">+52 55 5555 5555</div>
                 </div>
               </motion.a>
 
               <motion.a
-                href="mailto:info@novelldent.com"
+                href="mailto:info@productoscamacho.com.mx"
                 whileHover={{ x: 8 }}
                 className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors"
               >
@@ -93,7 +93,7 @@ export const Contact = () => {
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">{t('contact.email')}</div>
-                  <div className="font-semibold text-foreground">info@novelldent.com</div>
+                  <div className="font-semibold text-foreground">info@productoscamacho.com.mx</div>
                 </div>
               </motion.a>
             </div>

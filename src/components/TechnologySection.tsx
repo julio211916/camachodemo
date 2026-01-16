@@ -1,35 +1,13 @@
 import { motion } from "framer-motion";
-import { LogoCloud } from "@/components/ui/logo-cloud";
 import { useLanguage } from "@/contexts/LanguageContext";
-
-// Import brand logos
-import exocadLogo from "@/assets/brands/exocad.png";
-import shapeLogo from "@/assets/brands/3shape.png";
-import blueskyplanLogo from "@/assets/brands/blueskyplan.png";
-import realguideLogo from "@/assets/brands/realguide.png";
-import dentsplyLogo from "@/assets/brands/dentsply-sirona.png";
-import dolphinLogo from "@/assets/brands/dolphin.png";
-import tlanticadLogo from "@/assets/brands/tlanticad.png";
-import dsdLogo from "@/assets/brands/dsd.png";
-import planmecaLogo from "@/assets/brands/planmeca.png";
-
-const dentalLogos = [
-  { src: exocadLogo, alt: "Exocad" },
-  { src: shapeLogo, alt: "3Shape" },
-  { src: blueskyplanLogo, alt: "BlueSkyPlan" },
-  { src: realguideLogo, alt: "RealGUIDE" },
-  { src: dentsplyLogo, alt: "Dentsply Sirona" },
-  { src: dolphinLogo, alt: "Dolphin" },
-  { src: tlanticadLogo, alt: "TlantiCAD" },
-  { src: dsdLogo, alt: "Digital Smile Design" },
-  { src: planmecaLogo, alt: "Planmeca" },
-];
+import jarabeAjolotius from "@/assets/products/jarabe-ajolotius.png";
+import jarabeBroncoplus from "@/assets/products/jarabe-broncoplus.png";
 
 export const TechnologySection = () => {
   const { t } = useLanguage();
 
   return (
-    <section className="py-16 md:py-24 bg-muted/30 overflow-hidden">
+    <section className="py-16 md:py-24 bg-primary/5 overflow-hidden">
       <div className="container-wide">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -41,18 +19,37 @@ export const TechnologySection = () => {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground mb-4">
             {t('brands.title')}
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            {t('brands.subtitle')}
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto">
+            Contamos con marcas registradas y reconocidas como <strong className="text-primary">AJOLOTIUS®</strong> y <strong className="text-primary">BRONCOPLUS®</strong>, formuladas con ingredientes naturales y eficacia comprobada. Nuestros jarabes y productos son aliados de farmacias independientes, distribuidores mayoristas y negocios naturistas que buscan calidad y confianza.
           </p>
         </motion.div>
 
+        {/* Featured Products */}
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
+          className="flex flex-wrap justify-center items-center gap-8 md:gap-16 mb-16"
         >
-          <LogoCloud logos={dentalLogos} />
+          <motion.div
+            whileHover={{ scale: 1.05, y: -5 }}
+            className="flex flex-col items-center"
+          >
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center p-4">
+              <img src={jarabeAjolotius} alt="AJOLOTIUS®" className="w-full h-full object-contain" />
+            </div>
+            <span className="mt-3 font-serif font-bold text-foreground">AJOLOTIUS®</span>
+          </motion.div>
+          <motion.div
+            whileHover={{ scale: 1.05, y: -5 }}
+            className="flex flex-col items-center"
+          >
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-gradient-to-br from-green-500/20 to-teal-500/20 flex items-center justify-center p-4">
+              <img src={jarabeBroncoplus} alt="BRONCOPLUS®" className="w-full h-full object-contain" />
+            </div>
+            <span className="mt-3 font-serif font-bold text-foreground">BRONCOPLUS®</span>
+          </motion.div>
         </motion.div>
 
         <motion.div
@@ -60,22 +57,22 @@ export const TechnologySection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid md:grid-cols-3 gap-8 mt-16"
+          className="grid md:grid-cols-3 gap-8"
         >
           {[
             {
-              title: t('technology.precision') || "Precisión Digital",
-              description: t('technology.precisionDesc') || "Escaneo 3D intraoral para restauraciones exactas",
-              icon: "🎯",
+              title: t('technology.precision'),
+              description: t('technology.precisionDesc'),
+              icon: "🍯",
             },
             {
-              title: t('technology.speed') || "Rapidez",
-              description: t('technology.speedDesc') || "Diseño y fabricación en el mismo día",
-              icon: "⚡",
+              title: t('technology.speed'),
+              description: t('technology.speedDesc'),
+              icon: "🌿",
             },
             {
-              title: t('technology.quality') || "Calidad Superior",
-              description: t('technology.qualityDesc') || "Materiales de última generación certificados",
+              title: t('technology.quality'),
+              description: t('technology.qualityDesc'),
               icon: "✨",
             },
           ].map((feature, index) => (
