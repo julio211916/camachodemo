@@ -27,10 +27,10 @@ import {
   SearchOutlined,
   HeartOutlined,
   SmileOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
 } from '@ant-design/icons';
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import logoNovellDent from '@/assets/logo-novelldent-sidebar.png';
+import logoNovellDentIcon from '@/assets/logo-novelldent-icon.png';
 import { useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
@@ -194,7 +194,7 @@ export function UnifiedSidebar({ activeSection, onNavigate, collapsed, onCollaps
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <img 
-              src={logoNovellDent} 
+              src={collapsed ? logoNovellDentIcon : logoNovellDent} 
               alt="NovellDent" 
               className={`transition-all duration-300 ${collapsed ? 'w-10 h-10' : 'w-12 h-12'} object-contain`}
             />
@@ -249,13 +249,21 @@ export function UnifiedSidebar({ activeSection, onNavigate, collapsed, onCollaps
           </div>
         )}
 
-        {/* Collapse Button */}
+        {/* Collapse Button - Always visible */}
         <div className="p-2 border-b border-gray-100">
           <button
             onClick={() => onCollapse(!collapsed)}
-            className="w-full flex items-center justify-center p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 p-2.5 hover:bg-teal-50 text-teal-700 rounded-lg transition-colors border border-gray-200 hover:border-teal-300"
+            title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           >
-            {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            {collapsed ? (
+              <PanelLeftOpen className="w-5 h-5" />
+            ) : (
+              <>
+                <PanelLeftClose className="w-5 h-5" />
+                <span className="text-sm font-medium">Colapsar</span>
+              </>
+            )}
           </button>
         </div>
 
