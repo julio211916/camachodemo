@@ -1,120 +1,133 @@
 import { NewHeader } from "@/components/NewHeader";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
+import { FileText, AlertCircle, CreditCard, Calendar, Scale, Phone } from "lucide-react";
 
 const Terminos = () => {
-  return (
-    <div className="min-h-screen bg-[#f5f5f0]">
-      <NewHeader />
+  const sections = [
+    {
+      icon: FileText,
+      title: "1. Aceptación de Términos",
+      content: `Al utilizar los servicios de NovellDent Clínica Dental, aceptas estos términos y condiciones en su totalidad. 
+      Si no estás de acuerdo con alguno de estos términos, por favor no utilices nuestros servicios.
       
-      {/* Header Banner */}
-      <section className="pt-28 pb-12 bg-[#e8e8e0]">
-        <div className="container mx-auto px-4 text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-serif font-bold text-[#1a1f1a] mb-4"
-          >
-            Términos y Condiciones
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-gray-600"
-          >
-            Última actualización: Enero 2024
-          </motion.p>
-        </div>
-      </section>
+      Estos términos pueden ser modificados en cualquier momento, y es tu responsabilidad revisarlos periódicamente.`
+    },
+    {
+      icon: Calendar,
+      title: "2. Citas y Cancelaciones",
+      content: `Las citas deben programarse con al menos 24 horas de anticipación.
+      
+      Para cancelar o reprogramar una cita, se requiere un aviso mínimo de 24 horas. Las cancelaciones con menos tiempo pueden estar sujetas a un cargo del 50% del valor de la consulta.
+      
+      La llegada tardía de más de 15 minutos puede resultar en la reprogramación de tu cita.
+      
+      Nos reservamos el derecho de cancelar citas por causas de fuerza mayor, ofreciendo reprogramación sin costo.`
+    },
+    {
+      icon: CreditCard,
+      title: "3. Pagos y Facturación",
+      content: `Aceptamos pagos en efectivo, tarjetas de crédito/débito, transferencias bancarias y planes de financiamiento.
+      
+      Los presupuestos son válidos por 30 días naturales desde su emisión.
+      
+      Para tratamientos extensos, se requiere un anticipo del 50% antes de iniciar.
+      
+      Las facturas se emiten dentro de los 5 días siguientes al pago, conforme a las disposiciones fiscales vigentes.`
+    },
+    {
+      icon: AlertCircle,
+      title: "4. Tratamientos y Consentimiento",
+      content: `Antes de cualquier tratamiento, recibirás información completa sobre el procedimiento, riesgos y alternativas.
+      
+      Se requiere la firma de un consentimiento informado para procedimientos quirúrgicos y tratamientos mayores.
+      
+      Los resultados de los tratamientos pueden variar según las condiciones individuales de cada paciente.
+      
+      Es obligación del paciente informar sobre condiciones médicas, alergias y medicamentos que esté tomando.`
+    },
+    {
+      icon: Scale,
+      title: "5. Garantías y Responsabilidades",
+      content: `Ofrecemos garantía de 5 años en implantes dentales, sujeta a seguimiento regular.
+      
+      Las prótesis dentales tienen garantía de 1 año por defectos de fabricación.
+      
+      La garantía no cubre daños por mal uso, accidentes o falta de seguimiento del tratamiento.
+      
+      No nos hacemos responsables por complicaciones derivadas del incumplimiento de las indicaciones post-tratamiento.`
+    },
+    {
+      icon: Phone,
+      title: "6. Comunicaciones",
+      content: `Al proporcionar tus datos de contacto, autorizas el envío de:
+      - Recordatorios de citas por SMS, WhatsApp o correo electrónico
+      - Información sobre promociones y servicios (puedes darte de baja en cualquier momento)
+      - Comunicaciones relacionadas con tu tratamiento
+      
+      Tus datos de contacto serán tratados conforme a nuestro Aviso de Privacidad.`
+    }
+  ];
 
-      <main className="container mx-auto px-4 py-16">
-        <div className="max-w-3xl mx-auto prose prose-lg">
+  return (
+    <div className="min-h-screen bg-background">
+      <NewHeader />
+      <main className="pt-24 pb-16">
+        <div className="container-wide section-padding">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-8"
+            className="text-center mb-12"
           >
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                1. Aceptación de Términos
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Al acceder y utilizar este sitio web, usted acepta estar sujeto a estos términos y condiciones de uso. Si no está de acuerdo con alguna parte de estos términos, le solicitamos no utilizar nuestro sitio.
-              </p>
-            </section>
+            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
+              Términos y <span className="text-primary">Condiciones</span>
+            </h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Por favor lee cuidadosamente estos términos antes de utilizar nuestros servicios.
+              Tu bienestar y satisfacción son nuestra prioridad.
+            </p>
+            <p className="text-sm text-muted-foreground mt-4">
+              Vigente desde: 15 de enero de 2026
+            </p>
+          </motion.div>
 
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                2. Uso del Sitio
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Este sitio web es para uso personal y no comercial. Queda prohibido utilizar el contenido de este sitio para cualquier propósito ilegal o no autorizado.
-              </p>
-            </section>
+          <div className="grid gap-8 max-w-4xl mx-auto">
+            {sections.map((section, index) => (
+              <motion.div
+                key={section.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-card rounded-2xl p-6 md:p-8 shadow-lg"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <section.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-bold">{section.title}</h2>
+                </div>
+                <div className="text-muted-foreground whitespace-pre-line leading-relaxed">
+                  {section.content}
+                </div>
+              </motion.div>
+            ))}
+          </div>
 
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                3. Productos y Precios
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Nos reservamos el derecho de modificar los precios de nuestros productos en cualquier momento sin previo aviso. Todos los precios están expresados en pesos mexicanos (MXN) e incluyen IVA.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                4. Pedidos y Pagos
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Al realizar un pedido, usted se compromete a proporcionar información precisa y completa. Nos reservamos el derecho de rechazar o cancelar cualquier pedido por cualquier motivo.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                5. Envíos y Entregas
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Los tiempos de entrega son estimados y pueden variar según la ubicación. No nos hacemos responsables por retrasos causados por terceros o circunstancias fuera de nuestro control.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                6. Devoluciones y Reembolsos
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Aceptamos devoluciones dentro de los 30 días posteriores a la compra, siempre que el producto esté en su empaque original y sin usar. Los gastos de envío de devolución corren por cuenta del cliente.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                7. Propiedad Intelectual
-              </h2>
-              <p className="text-gray-700 leading-relaxed">
-                Todo el contenido de este sitio, incluyendo textos, gráficos, logotipos, imágenes y software, es propiedad de Productos Camacho y está protegido por las leyes de propiedad intelectual.
-              </p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
-                8. Contacto
-              </h2>
-              <p className="text-gray-700 mb-4">
-                Para cualquier pregunta sobre estos términos y condiciones, puede contactarnos a través de:
-              </p>
-              <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li>Email: legal@productoscamacho.com.mx</li>
-                <li>Teléfono: +52 55 1234 5678</li>
-              </ul>
-            </section>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-12 p-6 bg-muted/50 rounded-2xl max-w-4xl mx-auto"
+          >
+            <h3 className="font-bold mb-2">Jurisdicción Aplicable</h3>
+            <p className="text-muted-foreground text-sm">
+              Estos términos se rigen por las leyes de los Estados Unidos Mexicanos. 
+              Cualquier controversia será sometida a los tribunales competentes de la ciudad de Tepic, Nayarit, 
+              renunciando expresamente a cualquier otro fuero que pudiera corresponder por razón de domicilio.
+            </p>
           </motion.div>
         </div>
       </main>
-
       <Footer />
     </div>
   );

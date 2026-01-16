@@ -2,11 +2,22 @@
 
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Search, ShoppingCart, User, Menu, X, Sun, Moon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import {
+  Navbar,
+  NavBody,
+  NavItems,
+  MobileNav,
+  NavbarLogo,
+  NavbarButton,
+  MobileNavHeader,
+  MobileNavToggle,
+  MobileNavMenu,
+} from "@/components/ui/resizable-navbar";
 import { useAuth } from "@/hooks/useAuth";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Button } from "@/components/ui/button";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import logo from "@/assets/logo-camacho.jpg";
 
 export function NewHeader() {
@@ -19,105 +30,116 @@ export function NewHeader() {
   const isHomePage = location.pathname === "/";
 
   const navItems = [
-    { name: "Inicio", link: "/" },
-    { name: "Productos", link: "/productos" },
-    { name: "Marcas", link: "/marcas" },
-    { name: "Nosotros", link: "/nosotros" },
-    { name: "Contacto", link: "/contacto" },
+    { name: t("nav.home"), link: isHomePage ? "#inicio" : "/", isRoute: !isHomePage },
+    { name: t("nav.about"), link: isHomePage ? "#quienes-somos" : "/#quienes-somos", isRoute: !isHomePage },
+    { name: t("nav.specialties"), link: isHomePage ? "#especialidades" : "/#especialidades", isRoute: !isHomePage },
+    { name: t("nav.services"), link: isHomePage ? "#servicios" : "/#servicios", isRoute: !isHomePage },
+    { name: t("nav.appointments"), link: isHomePage ? "#reservar" : "/#reservar", isRoute: !isHomePage },
+    { name: t("nav.locations"), link: isHomePage ? "#sucursales" : "/#sucursales", isRoute: !isHomePage },
+    { name: "Blog", link: "/blog", isRoute: true },
+    { name: t("nav.contact"), link: isHomePage ? "#contacto" : "/#contacto", isRoute: !isHomePage },
   ];
 
-  const handleNavClick = (link: string) => {
-    navigate(link);
+  const handleNavItemClick = (item: { name: string; link: string; isRoute?: boolean }) => {
+    if (item.isRoute) {
+      navigate(item.link);
+    }
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleLogoClick = () => {
+    if (!isHomePage) {
+      navigate("/");
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handlePortalClick = () => {
+    navigate("/portal");
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleBookNow = () => {
+    if (isHomePage) {
+      document.getElementById("reservar")?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      navigate("/#reservar");
+    }
     setIsMobileMenuOpen(false);
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#1a1f1a]/95 backdrop-blur-md border-b border-white/10">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Logo */}
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2"
+    <Navbar>
+      <NavBody>
+        <NavbarLogo src={logo} alt="Productos Camacho" onClick={handleLogoClick} />
+        <NavItems 
+          items={navItems} 
+          onItemClick={handleNavItemClick}
+        />
+        <div className="flex items-center gap-3 z-50">
+          <LanguageSelector />
+          <ThemeToggle />
+          <NavbarButton
+            onClick={handlePortalClick}
+            variant="secondary"
+            className="border-none"
           >
-            <img src={logo} alt="Productos Camacho" className="h-10 w-10 rounded-full object-cover" />
-            <div className="hidden sm:block">
-              <span className="text-lg font-bold text-white">Productos</span>
-              <span className="text-lg font-bold text-primary ml-1">Camacho</span>
-            </div>
-          </button>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.name}
-                onClick={() => handleNavClick(item.link)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  location.pathname === item.link
-                    ? "bg-primary/20 text-primary"
-                    : "text-gray-300 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {item.name}
-              </button>
-            ))}
-          </nav>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-2">
-            <button className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-              <Search className="w-5 h-5" />
-            </button>
-            
-            <ThemeToggle />
-            
-            <button className="relative w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-              <ShoppingCart className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-xs rounded-full flex items-center justify-center">
-                0
-              </span>
-            </button>
-            
-            <button
-              onClick={() => navigate("/portal")}
-              className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-            >
-              <User className="w-5 h-5" />
-            </button>
-
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+            {user ? t("nav.portal") : t("nav.login")}
+          </NavbarButton>
         </div>
+      </NavBody>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-white/10">
-            <nav className="flex flex-col gap-1">
-              {navItems.map((item) => (
-                <button
-                  key={item.name}
-                  onClick={() => handleNavClick(item.link)}
-                  className={`px-4 py-3 rounded-xl text-left font-medium transition-colors ${
-                    location.pathname === item.link
-                      ? "bg-primary/20 text-primary"
-                      : "text-gray-300 hover:text-white hover:bg-white/5"
-                  }`}
-                >
-                  {item.name}
-                </button>
-              ))}
-            </nav>
+      <MobileNav>
+        <MobileNavHeader>
+          <NavbarLogo src={logo} alt="Productos Camacho" onClick={handleLogoClick} />
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <ThemeToggle />
+            <MobileNavToggle
+              isOpen={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            />
           </div>
-        )}
-      </div>
-    </header>
+        </MobileNavHeader>
+
+        <MobileNavMenu
+          isOpen={isMobileMenuOpen}
+          onClose={() => setIsMobileMenuOpen(false)}
+        >
+          {navItems.map((item, idx) => (
+            <a
+              key={`mobile-link-${idx}`}
+              href={item.isRoute ? undefined : item.link}
+              onClick={(e) => {
+                if (item.isRoute) e.preventDefault();
+                handleNavItemClick(item);
+              }}
+              className="relative w-full py-3 px-4 rounded-xl text-foreground/80 hover:text-foreground hover:bg-muted transition-colors"
+            >
+              {item.name}
+            </a>
+          ))}
+          <div className="flex flex-col gap-2 w-full pt-4 border-t border-border">
+            <NavbarButton
+              onClick={handlePortalClick}
+              variant="secondary"
+              className="w-full"
+            >
+              {user ? t("nav.portal") : t("nav.login")}
+            </NavbarButton>
+            <NavbarButton
+              onClick={handleBookNow}
+              variant="primary"
+              className="w-full"
+            >
+              {t("nav.bookNow")}
+              <ArrowRight className="w-4 h-4" />
+            </NavbarButton>
+          </div>
+        </MobileNavMenu>
+      </MobileNav>
+    </Navbar>
   );
 }
 
