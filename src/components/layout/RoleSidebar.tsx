@@ -63,6 +63,10 @@ import {
   FolderOpen,
   Target,
   Megaphone,
+  CalendarDays,
+  Clock,
+  TrendingUp,
+  RefreshCw,
 } from 'lucide-react';
 
 type UserRole = 'admin' | 'staff' | 'doctor' | 'patient';
@@ -256,10 +260,23 @@ const sidebarSections: SidebarSection[] = [
 ];
 
 export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }: RoleSidebarProps) {
-  const { branches, currentBranch, setCurrentBranch, viewMode, setViewMode, canViewGlobal } = useBranch();
+  const { branches, currentBranch, setCurrentBranch, viewMode, setViewMode, canViewGlobal, branchSummaries, dateFilter, setDateFilter, refreshSummaries } = useBranch();
   const { profile, userRole, signOut, isAdminMaster } = useAuth();
   const { isDark, toggleTheme } = useThemePreference();
   const [openSections, setOpenSections] = useState<string[]>(['operacion', 'mi-practica']);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const currentSummary = branchSummaries.find(s => s.location_id === currentBranch?.id);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshSummaries();
+    setRefreshing(false);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(amount);
+  };
 
   // Get role-specific label
   const getRoleLabel = () => {
@@ -364,9 +381,9 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
         </div>
       )}
 
-      {/* Branch Selector */}
+      {/* Branch Selector with Stats */}
       {!collapsed && (
-        <div className="p-3 border-b border-border space-y-2">
+        <div className="p-3 border-b border-border space-y-3">
           {/* View Mode Toggle (Only for Admin Master) */}
           {canViewGlobal && (
             <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
@@ -390,25 +407,134 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
 
           {/* Branch Selector (Only in Local Mode) */}
           {viewMode === 'local' && branches.length > 0 && (
-            <Select
-              value={currentBranch?.id || ''}
-              onValueChange={(value) => {
-                const branch = branches.find(b => b.id === value);
-                if (branch) setCurrentBranch(branch);
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs">
-                <Building2 className="w-3 h-3 mr-2" />
-                <SelectValue placeholder="Seleccionar sucursal" />
-              </SelectTrigger>
-              <SelectContent>
-                {branches.map(branch => (
-                  <SelectItem key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Select
+                  value={currentBranch?.id || ''}
+                  onValueChange={(value) => {
+                    const branch = branches.find(b => b.id === value);
+                    if (branch) setCurrentBranch(branch);
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs flex-1">
+                    <Building2 className="w-3 h-3 mr-2" />
+                    <SelectValue placeholder="Seleccionar sucursal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {branches.map(branch => {
+                      const summary = branchSummaries.find(s => s.location_id === branch.id);
+                      return (
+                        <SelectItem key={branch.id} value={branch.id} className="py-2">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{branch.name}</span>
+                            {summary && (
+                              <span className="text-[10px] text-muted-foreground">
+                                {summary.total_appointments_today} citas hoy • {summary.pending_appointments} pendientes
+                              </span>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                >
+                  <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
+                </Button>
+              </div>
+
+              {/* Date Filter */}
+              <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as typeof dateFilter)}>
+                <SelectTrigger className="h-7 text-xs">
+                  <CalendarDays className="w-3 h-3 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">Hoy</SelectItem>
+                  <SelectItem value="week">Esta semana</SelectItem>
+                  <SelectItem value="month">Este mes</SelectItem>
+                  <SelectItem value="all">Todo</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Quick Stats for Current Branch */}
+              {currentSummary && (
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div className="bg-primary/10 rounded-md p-2 text-center">
+                    <div className="flex items-center justify-center gap-1 text-primary">
+                      <CalendarDays className="w-3 h-3" />
+                      <span className="text-sm font-bold">{currentSummary.total_appointments_today}</span>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground">Citas hoy</p>
+                  </div>
+                  <div className="bg-yellow-500/10 rounded-md p-2 text-center">
+                    <div className="flex items-center justify-center gap-1 text-yellow-600">
+                      <Clock className="w-3 h-3" />
+                      <span className="text-sm font-bold">{currentSummary.pending_appointments}</span>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground">Pendientes</p>
+                  </div>
+                  <div className="bg-green-500/10 rounded-md p-2 text-center col-span-2">
+                    <div className="flex items-center justify-center gap-1 text-green-600">
+                      <TrendingUp className="w-3 h-3" />
+                      <span className="text-sm font-bold">
+                        {dateFilter === 'today' && formatCurrency(currentSummary.income_today)}
+                        {dateFilter === 'week' && formatCurrency(currentSummary.income_week)}
+                        {dateFilter === 'month' && formatCurrency(currentSummary.income_month)}
+                        {dateFilter === 'all' && formatCurrency(currentSummary.income_month)}
+                      </span>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground">
+                      Ingresos {dateFilter === 'today' ? 'hoy' : dateFilter === 'week' ? 'semana' : 'mes'}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Global Stats */}
+          {viewMode === 'global' && canViewGlobal && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Todas las sucursales</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                >
+                  <RefreshCw className={cn("w-3 h-3", refreshing && "animate-spin")} />
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="bg-primary/10 rounded-md p-2 text-center">
+                  <span className="text-sm font-bold text-primary">
+                    {branchSummaries.reduce((sum, s) => sum + s.total_appointments_today, 0)}
+                  </span>
+                  <p className="text-[9px] text-muted-foreground">Citas hoy</p>
+                </div>
+                <div className="bg-yellow-500/10 rounded-md p-2 text-center">
+                  <span className="text-sm font-bold text-yellow-600">
+                    {branchSummaries.reduce((sum, s) => sum + s.pending_appointments, 0)}
+                  </span>
+                  <p className="text-[9px] text-muted-foreground">Pendientes</p>
+                </div>
+                <div className="bg-green-500/10 rounded-md p-2 text-center col-span-2">
+                  <span className="text-sm font-bold text-green-600">
+                    {formatCurrency(branchSummaries.reduce((sum, s) => sum + s.income_today, 0))}
+                  </span>
+                  <p className="text-[9px] text-muted-foreground">Ingresos totales hoy</p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}
