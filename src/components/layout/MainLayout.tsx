@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -89,10 +89,16 @@ import { LoyaltyModule } from '@/components/clinic/LoyaltyModule';
 
 function MainLayoutContent() {
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem('portal_sidebar_collapsed') === '1';
+  });
   const { user, profile, userRole, signOut } = useAuth();
   const { currentBranch, viewMode, branchSummaries } = useBranch();
   const { data: appointments = [] } = useAppointments();
+
+  useEffect(() => {
+    localStorage.setItem('portal_sidebar_collapsed', collapsed ? '1' : '0');
+  }, [collapsed]);
 
   // Calculate summary stats
   const summary = viewMode === 'global'

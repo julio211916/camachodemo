@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
+import { motion, LayoutGroup } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   Select,
   SelectContent,
@@ -19,6 +25,8 @@ import {
 } from '@/components/ui/collapsible';
 import { useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useThemePreference } from '@/hooks/useThemePreference';
+import logoNovellDentIcon from '@/assets/logo-novelldent-icon.png';
 import {
   LayoutDashboard,
   Calendar,
@@ -39,7 +47,6 @@ import {
   LogOut,
   Moon,
   Sun,
-  Smile,
   Stethoscope,
   Brain,
   ImageIcon,
@@ -110,7 +117,7 @@ const sidebarSections: SidebarSection[] = [
       { id: 'dashboard', label: 'Mi Dashboard', icon: LayoutDashboard },
       { id: 'agenda', label: 'Mi Agenda', icon: Calendar },
       { id: 'patients', label: 'Mis Pacientes', icon: Users },
-      { id: 'enhanced-odontogram', label: 'Atención Clínica', icon: Smile },
+      { id: 'enhanced-odontogram', label: 'Atención Clínica', icon: Stethoscope },
       { id: 'ai-reports', label: 'IA Clínica', icon: Brain },
     ],
   },
@@ -122,11 +129,11 @@ const sidebarSections: SidebarSection[] = [
     roles: ['admin', 'staff'],
     items: [
       { id: 'patient-profile', label: 'Ficha Clínica', icon: Users },
-      { id: 'enhanced-odontogram', label: 'Odontograma', icon: Smile },
+      { id: 'enhanced-odontogram', label: 'Odontograma', icon: Stethoscope },
       { id: 'treatment-plan', label: 'Plan Tratamiento', icon: FileText },
       { id: 'treatment-progress', label: 'Progreso', icon: BarChart3 },
       { id: 'lab', label: 'Laboratorio', icon: FlaskConical },
-      { id: 'orthodontics', label: 'Ortodoncia', icon: Smile },
+      { id: 'orthodontics', label: 'Ortodoncia', icon: Stethoscope },
     ],
   },
   // IMAGENOLOGÍA
@@ -140,7 +147,7 @@ const sidebarSections: SidebarSection[] = [
       { id: 'dicom', label: 'DICOM', icon: ImageIcon },
       { id: 'xray', label: 'Análisis RX', icon: ImageIcon },
       { id: 'cephalometry', label: 'Cefalometría', icon: ImageIcon },
-      { id: 'smile', label: 'Diseño Sonrisa', icon: Smile },
+      { id: 'smile', label: 'Diseño Sonrisa', icon: ImageIcon },
     ],
   },
   // CRM
@@ -251,8 +258,8 @@ const sidebarSections: SidebarSection[] = [
 export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }: RoleSidebarProps) {
   const { branches, currentBranch, setCurrentBranch, viewMode, setViewMode, canViewGlobal } = useBranch();
   const { profile, userRole, signOut, isAdminMaster } = useAuth();
+  const { isDark, toggleTheme } = useThemePreference();
   const [openSections, setOpenSections] = useState<string[]>(['operacion', 'mi-practica']);
-  const [darkMode, setDarkMode] = useState(false);
 
   // Get role-specific label
   const getRoleLabel = () => {
@@ -300,9 +307,14 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
     )}>
       {/* Header */}
       <div className="p-3 border-b border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
-            <Smile className="w-5 h-5 text-primary-foreground" />
+        <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
+          <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <img
+              src={logoNovellDentIcon}
+              alt="NovellDent"
+              className="w-7 h-7 object-contain"
+              loading="eager"
+            />
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
@@ -310,15 +322,26 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
               <p className="text-xs text-muted-foreground truncate">Sistema Dental</p>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 flex-shrink-0"
-            onClick={() => onCollapse(!collapsed)}
-          >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </Button>
         </div>
+      </div>
+
+      {/* Collapse Toggle (above Vista Local / Vista Global) */}
+      <div className={cn("p-2 border-b border-border", collapsed && "flex justify-center")}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0"
+              onClick={() => onCollapse(!collapsed)}
+            >
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {collapsed ? 'Expandir menú' : 'Colapsar menú'}
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* User Info */}
@@ -392,73 +415,109 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
 
       {/* Navigation */}
       <ScrollArea className="flex-1">
-        <nav className="p-2 space-y-1">
-          {filteredSections.map((section) => (
-            <Collapsible
-              key={section.id}
-              open={collapsed ? false : openSections.includes(section.id)}
-              onOpenChange={() => !collapsed && toggleSection(section.id)}
-            >
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-2 text-sm font-medium",
-                    collapsed && "justify-center px-2"
-                  )}
-                >
-                  <section.icon className="w-4 h-4 flex-shrink-0" />
-                  {!collapsed && (
-                    <>
+        <LayoutGroup id="role-sidebar">
+          <nav className="p-2 space-y-1">
+            {filteredSections.map((section) => (
+              <Collapsible
+                key={section.id}
+                open={collapsed ? false : openSections.includes(section.id)}
+                onOpenChange={() => !collapsed && toggleSection(section.id)}
+              >
+                <CollapsibleTrigger asChild>
+                  {collapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" className="w-full justify-center px-2">
+                          <section.icon className="w-4 h-4 flex-shrink-0" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">{section.title}</TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Button variant="ghost" className="w-full justify-start gap-2 text-sm font-medium">
+                      <section.icon className="w-4 h-4 flex-shrink-0" />
                       <span className="flex-1 text-left">{section.title}</span>
-                      <ChevronDown className={cn(
-                        "w-4 h-4 transition-transform",
-                        openSections.includes(section.id) && "rotate-180"
-                      )} />
-                    </>
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-              {!collapsed && (
-                <CollapsibleContent className="space-y-1 pl-4 mt-1">
-                  {section.items.map((item) => (
-                    <Button
-                      key={item.id}
-                      variant={activeSection === item.id ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className={cn(
-                        "w-full justify-start gap-2 h-8 text-xs",
-                        activeSection === item.id && "bg-primary/10 text-primary font-medium"
-                      )}
-                      onClick={() => onNavigate(item.id)}
-                    >
-                      <item.icon className="w-3.5 h-3.5" />
-                      <span>{item.label}</span>
-                      {item.badge && (
-                        <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
-                          {item.badge}
-                        </Badge>
-                      )}
+                      <ChevronDown
+                        className={cn(
+                          'w-4 h-4 transition-transform',
+                          openSections.includes(section.id) && 'rotate-180'
+                        )}
+                      />
                     </Button>
-                  ))}
-                </CollapsibleContent>
-              )}
-            </Collapsible>
-          ))}
-        </nav>
+                  )}
+                </CollapsibleTrigger>
+
+                {!collapsed && (
+                  <CollapsibleContent className="space-y-1 pl-4 mt-1">
+                    {section.items.map((item) => {
+                      const isActive = activeSection === item.id;
+
+                      return (
+                        <div key={item.id} className="relative">
+                          {isActive && (
+                            <motion.div
+                              layoutId="role-sidebar-active"
+                              transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                              className="absolute inset-0 rounded-md bg-primary/10"
+                            />
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                              'relative z-10 w-full justify-start gap-2 h-8 text-xs transition-colors',
+                              isActive && 'text-primary font-medium'
+                            )}
+                            onClick={() => onNavigate(item.id)}
+                          >
+                            <item.icon className="w-3.5 h-3.5" />
+                            <span>{item.label}</span>
+                            {item.badge && (
+                              <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </CollapsibleContent>
+                )}
+              </Collapsible>
+            ))}
+          </nav>
+        </LayoutGroup>
       </ScrollArea>
 
       {/* Footer */}
       <div className="p-2 border-t border-border space-y-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn("w-full gap-2", collapsed ? "justify-center" : "justify-start")}
-          onClick={() => setDarkMode(!darkMode)}
-        >
-          {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          {!collapsed && <span className="text-xs">Modo {darkMode ? 'claro' : 'oscuro'}</span>}
-        </Button>
+        {collapsed ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-center"
+                onClick={toggleTheme}
+              >
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">Cambiar tema</TooltipContent>
+          </Tooltip>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full gap-2 justify-start"
+            onClick={toggleTheme}
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <span className="text-xs">Modo {isDark ? 'claro' : 'oscuro'}</span>
+          </Button>
+        )}
+
         <Button
           variant="ghost"
           size="sm"

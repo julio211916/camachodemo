@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Layout, ConfigProvider, theme as antTheme } from 'antd';
 import { UnifiedSidebar } from './UnifiedSidebar';
 import { UnifiedHeader } from './UnifiedHeader';
 import { BranchProvider } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useThemePreference } from '@/hooks/useThemePreference';
 
 // Module imports - All unified
 import { DashboardWidgets } from '@/components/dashboard/DashboardWidgets';
@@ -84,9 +85,16 @@ interface UnifiedDashboardProps {
 
 export function UnifiedDashboard({ userRole }: UnifiedDashboardProps) {
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    return localStorage.getItem('unified_sidebar_collapsed') === '1';
+  });
+  const { isDark } = useThemePreference();
   const { user, profile } = useAuth();
   const { data: appointments = [] } = useAppointments();
+
+  useEffect(() => {
+    localStorage.setItem('unified_sidebar_collapsed', collapsed ? '1' : '0');
+  }, [collapsed]);
 
   const renderContent = () => {
     switch (activeSection) {
@@ -238,9 +246,9 @@ export function UnifiedDashboard({ userRole }: UnifiedDashboardProps) {
   return (
     <ConfigProvider
       theme={{
-        algorithm: antTheme.defaultAlgorithm,
+        algorithm: isDark ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
         token: {
-          colorPrimary: '#0d9488',
+          colorPrimary: 'hsl(var(--primary))',
           borderRadius: 8,
           fontFamily: 'inherit',
         },
@@ -256,7 +264,7 @@ export function UnifiedDashboard({ userRole }: UnifiedDashboardProps) {
           />
           <Layout>
             <UnifiedHeader collapsed={collapsed} />
-            <Content className="p-6 bg-gray-50 overflow-auto">
+            <Content className="p-6 bg-background overflow-auto">
               {renderContent()}
             </Content>
           </Layout>
