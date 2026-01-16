@@ -23,6 +23,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Sparkline } from '@/components/ui/sparkline';
 import { useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemePreference } from '@/hooks/useThemePreference';
@@ -463,36 +464,51 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
                 </SelectContent>
               </Select>
 
-              {/* Quick Stats for Current Branch */}
+              {/* Quick Stats with Sparklines */}
               {currentSummary && (
-                <div className="grid grid-cols-2 gap-1.5">
-                  <div className="bg-primary/10 rounded-md p-2 text-center">
-                    <div className="flex items-center justify-center gap-1 text-primary">
-                      <CalendarDays className="w-3 h-3" />
-                      <span className="text-sm font-bold">{currentSummary.total_appointments_today}</span>
+                <div className="space-y-2">
+                  {/* Appointments Trend */}
+                  <div className="bg-muted/30 rounded-lg p-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-muted-foreground">Citas (7 días)</span>
+                      <span className="text-xs font-bold text-primary">{currentSummary.total_appointments_today} hoy</span>
                     </div>
-                    <p className="text-[9px] text-muted-foreground">Citas hoy</p>
+                    <Sparkline 
+                      data={currentSummary.appointments_trend || [0,0,0,0,0,0,0]} 
+                      height={24} 
+                      color="hsl(var(--primary))" 
+                    />
                   </div>
-                  <div className="bg-yellow-500/10 rounded-md p-2 text-center">
-                    <div className="flex items-center justify-center gap-1 text-yellow-600">
-                      <Clock className="w-3 h-3" />
-                      <span className="text-sm font-bold">{currentSummary.pending_appointments}</span>
+                  
+                  {/* Income Trend */}
+                  <div className="bg-muted/30 rounded-lg p-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-muted-foreground">Ingresos (7 días)</span>
+                      <span className="text-xs font-bold text-green-600">{formatCurrency(currentSummary.income_today)}</span>
                     </div>
-                    <p className="text-[9px] text-muted-foreground">Pendientes</p>
+                    <Sparkline 
+                      data={currentSummary.income_trend || [0,0,0,0,0,0,0]} 
+                      height={24} 
+                      color="hsl(142 76% 36%)" 
+                    />
                   </div>
-                  <div className="bg-green-500/10 rounded-md p-2 text-center col-span-2">
-                    <div className="flex items-center justify-center gap-1 text-green-600">
-                      <TrendingUp className="w-3 h-3" />
-                      <span className="text-sm font-bold">
-                        {dateFilter === 'today' && formatCurrency(currentSummary.income_today)}
-                        {dateFilter === 'week' && formatCurrency(currentSummary.income_week)}
-                        {dateFilter === 'month' && formatCurrency(currentSummary.income_month)}
-                        {dateFilter === 'all' && formatCurrency(currentSummary.income_month)}
-                      </span>
+                  
+                  {/* Quick stats row */}
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <div className="bg-yellow-500/10 rounded-md p-2 text-center">
+                      <div className="flex items-center justify-center gap-1 text-yellow-600">
+                        <Clock className="w-3 h-3" />
+                        <span className="text-sm font-bold">{currentSummary.pending_appointments}</span>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground">Pendientes</p>
                     </div>
-                    <p className="text-[9px] text-muted-foreground">
-                      Ingresos {dateFilter === 'today' ? 'hoy' : dateFilter === 'week' ? 'semana' : 'mes'}
-                    </p>
+                    <div className="bg-blue-500/10 rounded-md p-2 text-center">
+                      <div className="flex items-center justify-center gap-1 text-blue-600">
+                        <Users className="w-3 h-3" />
+                        <span className="text-sm font-bold">{currentSummary.total_patients}</span>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground">Pacientes</p>
+                    </div>
                   </div>
                 </div>
               )}

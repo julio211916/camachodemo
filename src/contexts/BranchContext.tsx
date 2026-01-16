@@ -24,6 +24,9 @@ export interface BranchSummary {
   income_week: number;
   income_month: number;
   expenses_today: number;
+  // Trend data (last 7 days)
+  appointments_trend: number[];
+  income_trend: number[];
 }
 
 export type DateFilter = 'today' | 'week' | 'month' | 'all';
@@ -176,11 +179,40 @@ export function BranchProvider({ children }: { children: ReactNode }) {
 
         const expensesToday = todayExpenses?.reduce((sum, e) => sum + e.amount, 0) || 0;
 
-        // Pacientes totales (aproximación por perfiles asignados a la sucursal)
+        // Pacientes totales
         const { count: patientsCount } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true })
           .eq('location_id', loc.id);
+
+        // Trend data - last 7 days appointments
+        const appointmentsTrend: number[] = [];
+        const incomeTrend: number[] = [];
+        
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date();
+          date.setDate(date.getDate() - i);
+          const dateStr = format(date, 'yyyy-MM-dd');
+          
+          const { count: dayAppointments } = await supabase
+            .from('appointments')
+            .select('*', { count: 'exact', head: true })
+            .eq('location_id', loc.id)
+            .eq('appointment_date', dateStr);
+          
+          appointmentsTrend.push(dayAppointments || 0);
+          
+          const { data: dayTransactions } = await supabase
+            .from('transactions')
+            .select('amount')
+            .eq('location_id', loc.id)
+            .eq('transaction_type', 'income')
+            .eq('status', 'completed')
+            .gte('transaction_date', dateStr)
+            .lt('transaction_date', format(new Date(date.getTime() + 86400000), 'yyyy-MM-dd'));
+          
+          incomeTrend.push(dayTransactions?.reduce((sum, t) => sum + t.amount, 0) || 0);
+        }
 
         return {
           location_id: loc.id,
@@ -193,6 +225,8 @@ export function BranchProvider({ children }: { children: ReactNode }) {
           income_week: incomeWeek,
           income_month: incomeMonth,
           expenses_today: expensesToday,
+          appointments_trend: appointmentsTrend,
+          income_trend: incomeTrend,
         };
       })
     );
