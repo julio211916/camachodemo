@@ -50,22 +50,16 @@ export const PatientProvider = ({ children }: PatientProviderProps) => {
     const fetchPatients = async () => {
       setLoadingPatients(true);
       try {
-        let query = supabase
-          .from('profiles')
-          .select('id, user_id, full_name, email, phone, avatar_url')
-          .order('full_name', { ascending: true })
-          .limit(100);
-
-        if (searchQuery) {
-          query = query.or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
-        }
-
-        const { data, error } = await query;
+        const { data, error } = await supabase.rpc('get_patient_profiles', {
+          p_search: searchQuery || null,
+          p_show_archived: false,
+          p_limit: 100,
+        });
 
         if (error) throw error;
 
         setPatients(
-          (data || []).map((p) => ({
+          (data || []).map((p: any) => ({
             id: p.id,
             userId: p.user_id,
             fullName: p.full_name,
@@ -86,22 +80,20 @@ export const PatientProvider = ({ children }: PatientProviderProps) => {
 
   const selectPatientById = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, user_id, full_name, email, phone, avatar_url')
-        .eq('user_id', userId)
-        .single();
+      const { data, error } = await supabase.rpc('get_patient_profile', {
+        p_user_id: userId,
+      });
 
       if (error) throw error;
 
       if (data) {
         setSelectedPatient({
-          id: data.id,
-          userId: data.user_id,
-          fullName: data.full_name,
-          email: data.email,
-          phone: data.phone,
-          avatarUrl: data.avatar_url,
+          id: (data as any).id,
+          userId: (data as any).user_id,
+          fullName: (data as any).full_name,
+          email: (data as any).email,
+          phone: (data as any).phone,
+          avatarUrl: (data as any).avatar_url,
         });
       }
     } catch (err) {

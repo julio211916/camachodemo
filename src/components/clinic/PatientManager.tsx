@@ -125,18 +125,18 @@ export const PatientManager = () => {
     avatar_url: null
   });
 
-  // Fetch patients
+  // Fetch patients (exclude admins/staff/doctors from the patient list)
   const { data: patients = [], isLoading } = useQuery({
     queryKey: ['patients', showArchived],
     queryFn: async () => {
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('is_archived', showArchived)
-        .order('full_name');
-      
+      const { data: profiles, error } = await supabase.rpc('get_patient_profiles', {
+        p_search: null,
+        p_show_archived: showArchived,
+        p_limit: 1000,
+      });
+
       if (error) throw error;
-      
+
       // Get appointments and payments for each patient
       const enrichedPatients = await Promise.all((profiles || []).map(async (profile: any) => {
         // Get last appointment
@@ -147,26 +147,26 @@ export const PatientManager = () => {
           .eq('status', 'completed')
           .order('appointment_date', { ascending: false })
           .limit(1);
-        
+
         // Get total payments
         const { data: invoices } = await supabase
           .from('invoices')
           .select('total')
           .eq('patient_id', profile.user_id)
           .eq('status', 'paid');
-        
+
         const totalPayments = (invoices || []).reduce((sum: number, inv: any) => sum + Number(inv.total), 0);
-        
+
         return {
           ...profile,
           tags: profile.tags || [],
           last_visit: lastAppt?.[0]?.appointment_date || null,
-          total_payments: totalPayments
+          total_payments: totalPayments,
         };
       }));
-      
+
       return enrichedPatients as Patient[];
-    }
+    },
   });
 
   // Filter and sort patients
