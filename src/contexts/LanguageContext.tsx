@@ -311,6 +311,20 @@ const translations: Record<Language, Record<string, string>> = {
     'common.filter': 'Filtrar',
     'common.export': 'Exportar',
     'common.print': 'Imprimir',
+    
+    // Brands Section
+    'brands.title': 'Marcas que Usamos',
+    'brands.subtitle': 'Trabajamos con las mejores marcas del mundo en tecnología dental',
+    
+    // Technology Section
+    'technology.title': 'Contamos con la Mejor Tecnología',
+    'technology.subtitle': 'Utilizamos equipos y software de vanguardia para ofrecerte los mejores resultados',
+    'technology.precision': 'Precisión Digital',
+    'technology.precisionDesc': 'Escaneo 3D intraoral para restauraciones exactas',
+    'technology.speed': 'Rapidez',
+    'technology.speedDesc': 'Diseño y fabricación en el mismo día',
+    'technology.quality': 'Calidad Superior',
+    'technology.qualityDesc': 'Materiales de última generación certificados',
   },
   en: {
     // Navigation
@@ -614,6 +628,20 @@ const translations: Record<Language, Record<string, string>> = {
     'common.filter': 'Filter',
     'common.export': 'Export',
     'common.print': 'Print',
+    
+    // Brands Section
+    'brands.title': 'Brands We Use',
+    'brands.subtitle': 'We work with the best dental technology brands in the world',
+    
+    // Technology Section
+    'technology.title': 'Best-in-Class Technology',
+    'technology.subtitle': 'We use cutting-edge equipment and software to deliver the best results',
+    'technology.precision': 'Digital Precision',
+    'technology.precisionDesc': 'Intraoral 3D scanning for exact restorations',
+    'technology.speed': 'Speed',
+    'technology.speedDesc': 'Same-day design and manufacturing',
+    'technology.quality': 'Superior Quality',
+    'technology.qualityDesc': 'Certified next-generation materials',
   },
   pt: {
     // Navigation
@@ -917,6 +945,20 @@ const translations: Record<Language, Record<string, string>> = {
     'common.filter': 'Filtrar',
     'common.export': 'Exportar',
     'common.print': 'Imprimir',
+    
+    // Brands Section
+    'brands.title': 'Marcas que Usamos',
+    'brands.subtitle': 'Trabalhamos com as melhores marcas de tecnologia dental do mundo',
+    
+    // Technology Section
+    'technology.title': 'A Melhor Tecnologia',
+    'technology.subtitle': 'Utilizamos equipamentos e software de ponta para oferecer os melhores resultados',
+    'technology.precision': 'Precisão Digital',
+    'technology.precisionDesc': 'Escaneamento 3D intraoral para restaurações exatas',
+    'technology.speed': 'Rapidez',
+    'technology.speedDesc': 'Design e fabricação no mesmo dia',
+    'technology.quality': 'Qualidade Superior',
+    'technology.qualityDesc': 'Materiais de última geração certificados',
   },
   ru: {
     // Navigation
@@ -1220,6 +1262,20 @@ const translations: Record<Language, Record<string, string>> = {
     'common.filter': 'Фильтр',
     'common.export': 'Экспорт',
     'common.print': 'Печать',
+    
+    // Brands Section
+    'brands.title': 'Бренды, которые мы используем',
+    'brands.subtitle': 'Мы работаем с лучшими мировыми брендами стоматологических технологий',
+    
+    // Technology Section
+    'technology.title': 'Лучшие Технологии',
+    'technology.subtitle': 'Мы используем передовое оборудование и программное обеспечение для достижения лучших результатов',
+    'technology.precision': 'Цифровая Точность',
+    'technology.precisionDesc': 'Внутриротовое 3D-сканирование для точных реставраций',
+    'technology.speed': 'Скорость',
+    'technology.speedDesc': 'Проектирование и изготовление в тот же день',
+    'technology.quality': 'Высшее Качество',
+    'technology.qualityDesc': 'Сертифицированные материалы нового поколения',
   },
 };
 

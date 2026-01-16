@@ -1344,6 +1344,7 @@ export type Database = {
           phone: string | null
           referral_code: string | null
           tags: string[] | null
+          theme_preference: string | null
           updated_at: string
           user_id: string
         }
@@ -1365,6 +1366,7 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           tags?: string[] | null
+          theme_preference?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1386,6 +1388,7 @@ export type Database = {
           phone?: string | null
           referral_code?: string | null
           tags?: string[] | null
+          theme_preference?: string | null
           updated_at?: string
           user_id?: string
         }
