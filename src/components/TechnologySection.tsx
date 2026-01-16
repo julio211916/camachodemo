@@ -46,14 +46,11 @@ export const TechnologySection = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-            CAD/CAM Dental
-          </span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground mb-4">
-            {t('technology.title') || 'Contamos con la Mejor Tecnología'}
+            {t('brands.title')}
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            {t('technology.subtitle') || 'Utilizamos equipos y software de vanguardia para ofrecerte los mejores resultados'}
+            {t('brands.subtitle')}
           </p>
         </motion.div>
 
