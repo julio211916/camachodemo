@@ -30,6 +30,41 @@ const allTimeSlots = [
   "15:30", "16:00", "16:30", "17:00", "17:30", "18:00",
 ];
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
+const MAX_CHAT_REQUESTS_PER_WINDOW = 30; // Max chat requests per IP per hour
+const MAX_BOOKINGS_PER_CONTACT_PER_HOUR = 3; // Max bookings per email/phone per hour
+
+// In-memory rate limiting (for edge function instances)
+const rateLimitCache = new Map<string, { count: number; windowStart: number }>();
+
+function checkRateLimit(key: string, maxRequests: number): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const existing = rateLimitCache.get(key);
+  
+  if (!existing || now - existing.windowStart >= RATE_LIMIT_WINDOW_MS) {
+    rateLimitCache.set(key, { count: 1, windowStart: now });
+    return { allowed: true, remaining: maxRequests - 1 };
+  }
+  
+  if (existing.count >= maxRequests) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  existing.count++;
+  rateLimitCache.set(key, existing);
+  return { allowed: true, remaining: maxRequests - existing.count };
+}
+
+function getClientIP(req: Request): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
 const SYSTEM_PROMPT = `Eres un asistente virtual amigable de NovellDent, una clínica dental de alta calidad en México. Tu nombre es "Denti".
 
 INFORMACIÓN DE LA CLÍNICA:
@@ -149,12 +184,92 @@ async function checkAvailability(supabase: any, locationId: string, date: string
   return allTimeSlots.filter(time => !bookedTimes.includes(time));
 }
 
-async function bookAppointment(supabase: any, params: any): Promise<{ success: boolean; message: string; appointmentId?: string }> {
+// Anomaly detection: Check for suspicious booking patterns
+async function checkAnomalies(
+  supabase: any, 
+  email: string, 
+  phone: string
+): Promise<{ allowed: boolean; message?: string }> {
+  const oneHourAgo = new Date(Date.now() - RATE_LIMIT_WINDOW_MS).toISOString();
+  
+  // Check recent bookings from the same email or phone
+  const { data: recentBookings, error } = await supabase
+    .from("appointments")
+    .select("id, created_at")
+    .or(`patient_email.eq.${email},patient_phone.eq.${phone}`)
+    .gte("created_at", oneHourAgo);
+  
+  if (error) {
+    console.error("Error checking anomalies:", error);
+    // Allow booking but log the error
+    return { allowed: true };
+  }
+  
+  if (recentBookings && recentBookings.length >= MAX_BOOKINGS_PER_CONTACT_PER_HOUR) {
+    console.warn("Anomaly detected - too many bookings:", { email, phone, count: recentBookings.length });
+    return { 
+      allowed: false, 
+      message: "Has alcanzado el límite de citas por hora. Por favor intenta más tarde o contáctanos por teléfono." 
+    };
+  }
+  
+  return { allowed: true };
+}
+
+// Validate email format
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+// Validate phone format (Mexican phone numbers)
+function isValidPhone(phone: string): boolean {
+  // Remove common characters and check length
+  const cleaned = phone.replace(/[\s\-\(\)\+]/g, "");
+  return cleaned.length >= 10 && cleaned.length <= 15 && /^\d+$/.test(cleaned);
+}
+
+async function bookAppointment(
+  supabase: any, 
+  params: any,
+  clientIP: string
+): Promise<{ success: boolean; message: string; appointmentId?: string }> {
   const location = locations.find(l => l.id === params.location_id);
   const service = services.find(s => s.id === params.service_id);
 
   if (!location || !service) {
     return { success: false, message: "Sucursal o servicio no válido" };
+  }
+
+  // Validate email format
+  if (!isValidEmail(params.patient_email)) {
+    return { success: false, message: "Por favor proporciona un correo electrónico válido" };
+  }
+
+  // Validate phone format
+  if (!isValidPhone(params.patient_phone)) {
+    return { success: false, message: "Por favor proporciona un número de teléfono válido" };
+  }
+
+  // Validate patient name (must have at least 2 characters)
+  if (!params.patient_name || params.patient_name.trim().length < 2) {
+    return { success: false, message: "Por favor proporciona un nombre válido" };
+  }
+
+  // Rate limit check per booking action
+  const bookingRateLimit = checkRateLimit(`booking:${clientIP}`, 5);
+  if (!bookingRateLimit.allowed) {
+    console.warn("Booking rate limit exceeded for IP:", clientIP);
+    return { 
+      success: false, 
+      message: "Demasiadas solicitudes de citas. Por favor espera unos minutos." 
+    };
+  }
+
+  // Anomaly detection
+  const anomalyCheck = await checkAnomalies(supabase, params.patient_email, params.patient_phone);
+  if (!anomalyCheck.allowed) {
+    return { success: false, message: anomalyCheck.message! };
   }
 
   // Check if time is available
@@ -189,9 +304,9 @@ async function bookAppointment(supabase: any, params: any): Promise<{ success: b
       service_name: service.name,
       appointment_date: params.date,
       appointment_time: params.time,
-      patient_name: params.patient_name,
-      patient_phone: params.patient_phone,
-      patient_email: params.patient_email,
+      patient_name: params.patient_name.trim(),
+      patient_phone: params.patient_phone.trim(),
+      patient_email: params.patient_email.toLowerCase().trim(),
       status: "pending"
     }])
     .select()
@@ -243,8 +358,46 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const clientIP = getClientIP(req);
+
   try {
+    // Rate limit check for chat requests
+    const chatRateLimit = checkRateLimit(`chat:${clientIP}`, MAX_CHAT_REQUESTS_PER_WINDOW);
+    if (!chatRateLimit.allowed) {
+      console.warn("Chat rate limit exceeded for IP:", clientIP);
+      return new Response(
+        JSON.stringify({ error: "Demasiadas solicitudes. Por favor espera unos minutos." }), 
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const { messages } = await req.json();
+    
+    // Basic input validation
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Mensajes inválidos" }), 
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Limit message count to prevent abuse
+    if (messages.length > 50) {
+      return new Response(
+        JSON.stringify({ error: "Demasiados mensajes en la conversación" }), 
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -314,7 +467,7 @@ serve(async (req) => {
               : "No hay horarios disponibles para esta fecha"
           };
         } else if (functionName === "book_appointment") {
-          result = await bookAppointment(supabase, args);
+          result = await bookAppointment(supabase, args, clientIP);
         }
         
         toolResults.push({
