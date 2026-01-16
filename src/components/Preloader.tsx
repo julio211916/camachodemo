@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import logo from "@/assets/logo-novelldent.png";
+import logo from "@/assets/logo-camacho.jpg";
 
 interface PreloaderProps {
   onComplete?: () => void;
@@ -40,7 +40,7 @@ export const Preloader = ({ onComplete }: PreloaderProps) => {
           {/* Animated background gradient */}
           <div className="absolute inset-0 overflow-hidden">
             <motion.div
-              className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full bg-gradient-to-r from-primary/20 to-transparent blur-3xl"
+              className="absolute -top-1/2 -left-1/2 w-full h-full rounded-full bg-primary/10 blur-[100px]"
               animate={{
                 x: [0, 100, 0],
                 y: [0, 50, 0],
@@ -53,7 +53,7 @@ export const Preloader = ({ onComplete }: PreloaderProps) => {
               }}
             />
             <motion.div
-              className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full bg-gradient-to-l from-accent/20 to-transparent blur-3xl"
+              className="absolute -bottom-1/2 -right-1/2 w-full h-full rounded-full bg-accent/10 blur-[100px]"
               animate={{
                 x: [0, -100, 0],
                 y: [0, -50, 0],
@@ -81,8 +81,8 @@ export const Preloader = ({ onComplete }: PreloaderProps) => {
           >
             <motion.img
               src={logo}
-              alt="NovellDent"
-              className="h-20 w-auto drop-shadow-2xl"
+              alt="Productos Camacho"
+              className="h-24 w-auto rounded-xl drop-shadow-2xl"
               animate={{ 
                 scale: [1, 1.05, 1],
               }}
@@ -104,7 +104,7 @@ export const Preloader = ({ onComplete }: PreloaderProps) => {
               animation: "gradient 3s linear infinite",
             }}
           >
-            NovellDent
+            Productos Camacho
           </motion.h1>
 
           <motion.p
@@ -113,7 +113,7 @@ export const Preloader = ({ onComplete }: PreloaderProps) => {
             transition={{ delay: 0.7 }}
             className="mt-2 text-muted-foreground text-sm relative z-10"
           >
-            Digital Dentistry
+            Tradición desde 1985
           </motion.p>
 
           {/* Progress bar */}
@@ -147,11 +147,11 @@ export const Preloader = ({ onComplete }: PreloaderProps) => {
               <span className="w-1.5 h-1.5 bg-primary rounded-full animation-delay-200" />
               <span className="w-1.5 h-1.5 bg-primary rounded-full animation-delay-400" />
             </motion.div>
-            <span>Cargando experiencia</span>
+            <span>Cargando productos naturales</span>
           </motion.div>
 
-          {/* Dental icons floating */}
-          {['🦷', '✨', '😁'].map((emoji, i) => (
+          {/* Floating icons */}
+          {['🌿', '💧', '🌸'].map((emoji, i) => (
             <motion.span
               key={i}
               className="absolute text-2xl opacity-30"

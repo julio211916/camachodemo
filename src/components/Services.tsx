@@ -3,6 +3,10 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import jarabeAjolotius from "@/assets/products/jarabe-ajolotius.png";
+import pomadaAbeja from "@/assets/products/pomada-abeja.png";
+import aceiteCoco from "@/assets/products/aceite-coco.png";
+import glicerinaQp from "@/assets/products/glicerina-qp.png";
 
 export const Services = () => {
   const ref = useRef(null);
@@ -14,25 +18,29 @@ export const Services = () => {
       title: t('services.whitening'),
       description: t('services.whitening.desc'),
       features: [t('services.whitening.f1'), t('services.whitening.f2')],
-      image: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600&q=80",
+      image: jarabeAjolotius,
+      bgColor: "from-amber-500/20 to-orange-500/20",
     },
     {
       title: t('services.implants'),
       description: t('services.implants.desc'),
       features: [t('services.implants.f1'), t('services.implants.f2')],
-      image: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80",
+      image: pomadaAbeja,
+      bgColor: "from-yellow-500/20 to-amber-500/20",
     },
     {
       title: t('services.orthodontics'),
       description: t('services.orthodontics.desc'),
       features: [t('services.orthodontics.f1'), t('services.orthodontics.f2')],
-      image: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&q=80",
+      image: aceiteCoco,
+      bgColor: "from-blue-500/20 to-cyan-500/20",
     },
     {
       title: t('services.smileDesign'),
       description: t('services.smileDesign.desc'),
       features: [t('services.smileDesign.f1'), t('services.smileDesign.f2')],
-      image: "https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=600&q=80",
+      image: glicerinaQp,
+      bgColor: "from-gray-500/20 to-slate-500/20",
     },
   ];
 
@@ -65,15 +73,14 @@ export const Services = () => {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group relative overflow-hidden rounded-3xl bg-card border border-border/50 hover:border-primary/20 transition-all"
             >
-              <div className="aspect-[16/9] overflow-hidden">
-                <img
+              <div className={`aspect-[16/9] overflow-hidden bg-gradient-to-br ${service.bgColor} flex items-center justify-center p-8`}>
+                <motion.img
                   src={service.image}
                   alt={service.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="w-auto h-full max-h-48 object-contain group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/60 to-transparent" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-8">
+              <div className="p-8">
                 <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
                   {service.title}
                 </h3>
@@ -92,7 +99,7 @@ export const Services = () => {
                   ))}
                 </div>
                 <motion.a
-                  href="#cita"
+                  href="#contacto"
                   className="inline-flex items-center gap-2 text-primary font-medium group/link"
                 >
                   {t('services.schedule')}

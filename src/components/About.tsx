@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
-import { Shield, Cpu, Award, Users } from "lucide-react";
+import { Leaf, Shield, Award, Truck } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import aboutClinic from "@/assets/about-clinic.jpg";
+import pomadaSabila from "@/assets/products/pomada-sabila.png";
 
 export const About = () => {
   const ref = useRef(null);
@@ -12,7 +12,7 @@ export const About = () => {
 
   const features = [
     {
-      icon: Cpu,
+      icon: Leaf,
       title: t('about.feature1.title'),
       description: t('about.feature1.desc'),
     },
@@ -27,7 +27,7 @@ export const About = () => {
       description: t('about.feature3.desc'),
     },
     {
-      icon: Users,
+      icon: Truck,
       title: t('about.feature4.title'),
       description: t('about.feature4.desc'),
     },
@@ -44,11 +44,11 @@ export const About = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="relative"
           >
-            <div className="relative rounded-3xl overflow-hidden">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10 p-8">
               <img
-                src={aboutClinic}
-                alt="NovellDent Clínica Dental"
-                className="w-full h-auto object-cover aspect-[4/3]"
+                src={pomadaSabila}
+                alt="Productos Camacho - Pomada de Sábila"
+                className="w-full h-auto object-contain aspect-square"
               />
             </div>
             <motion.div
@@ -57,7 +57,7 @@ export const About = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="absolute -bottom-8 -right-8 bg-card rounded-2xl p-6 border border-border shadow-lg"
             >
-              <div className="text-4xl font-serif font-bold gradient-text">15+</div>
+              <div className="text-4xl font-serif font-bold gradient-text">40+</div>
               <div className="text-sm text-muted-foreground">{t('about.yearsExperience')}</div>
             </motion.div>
           </motion.div>
