@@ -1,12 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { AuthPage } from "@/components/auth/AuthPage";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { PatientDashboard } from "@/components/dashboard/PatientDashboard";
-import { DoctorDashboard } from "@/components/dashboard/DoctorDashboard";
+import { EcommerceLayout } from "@/components/layout/EcommerceLayout";
 import { Loader2 } from "lucide-react";
 
 const Portal = () => {
-  const { user, loading, userRole, isAdminMaster, profile } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -20,23 +18,8 @@ const Portal = () => {
     return <AuthPage />;
   }
 
-  // Route to different dashboards based on role
-  switch (userRole) {
-    case 'patient':
-      return <PatientDashboard />;
-    
-    case 'doctor':
-      return <DoctorDashboard />;
-    
-    case 'admin':
-    case 'staff':
-      // MainLayout handles admin_master vs admin_sucursal internally
-      return <MainLayout />;
-    
-    default:
-      // Default to patient dashboard if no role assigned
-      return <PatientDashboard />;
-  }
+  // All roles use the new EcommerceLayout which handles role-based navigation
+  return <EcommerceLayout />;
 };
 
 export default Portal;
