@@ -1,142 +1,107 @@
 import { NewHeader } from "@/components/NewHeader";
 import { Footer } from "@/components/Footer";
 import { motion } from "framer-motion";
-import { Shield, Lock, Eye, FileText, Users, Bell } from "lucide-react";
 
 const Privacidad = () => {
-  const sections = [
-    {
-      icon: Shield,
-      title: "Información que Recopilamos",
-      content: [
-        "Datos de identificación personal (nombre, dirección, teléfono, correo electrónico)",
-        "Historial médico y dental para brindar el mejor tratamiento",
-        "Información de facturación y pagos",
-        "Imágenes clínicas (radiografías, fotografías intraorales)",
-        "Preferencias de comunicación y citas"
-      ]
-    },
-    {
-      icon: Lock,
-      title: "Protección de Datos",
-      content: [
-        "Utilizamos encriptación SSL/TLS para proteger la transmisión de datos",
-        "Almacenamiento seguro en servidores certificados",
-        "Acceso restringido solo a personal autorizado",
-        "Copias de seguridad regulares y encriptadas",
-        "Cumplimiento con la Ley Federal de Protección de Datos Personales (LFPDPPP)"
-      ]
-    },
-    {
-      icon: Eye,
-      title: "Uso de la Información",
-      content: [
-        "Programar y gestionar tus citas dentales",
-        "Proporcionar diagnósticos y tratamientos personalizados",
-        "Enviar recordatorios de citas y seguimientos",
-        "Procesar pagos y facturación",
-        "Mejorar nuestros servicios y atención al paciente"
-      ]
-    },
-    {
-      icon: Users,
-      title: "Compartir Información",
-      content: [
-        "No vendemos ni alquilamos tu información personal a terceros",
-        "Podemos compartir datos con laboratorios dentales para elaborar tratamientos",
-        "Compartimos información con aseguradoras cuando es requerido",
-        "Cooperamos con autoridades cuando la ley lo requiera"
-      ]
-    },
-    {
-      icon: Bell,
-      title: "Tus Derechos ARCO",
-      content: [
-        "Acceso: Conocer qué datos tenemos sobre ti",
-        "Rectificación: Corregir datos incorrectos o incompletos",
-        "Cancelación: Solicitar la eliminación de tus datos",
-        "Oposición: Oponerte al tratamiento de tus datos"
-      ]
-    },
-    {
-      icon: FileText,
-      title: "Cookies y Tecnologías",
-      content: [
-        "Utilizamos cookies para mejorar tu experiencia en nuestro sitio",
-        "Análisis de uso para optimizar nuestros servicios",
-        "Puedes configurar tu navegador para rechazar cookies",
-        "Las cookies esenciales son necesarias para el funcionamiento del sitio"
-      ]
-    }
-  ];
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#f5f5f0]">
       <NewHeader />
-      <main className="pt-24 pb-16">
-        <div className="container-wide section-padding">
+      
+      {/* Header Banner */}
+      <section className="pt-28 pb-12 bg-[#e8e8e0]">
+        <div className="container mx-auto px-4 text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-5xl font-serif font-bold text-[#1a1f1a] mb-4"
+          >
+            Aviso de Privacidad
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-gray-600"
+          >
+            Última actualización: Enero 2024
+          </motion.p>
+        </div>
+      </section>
+
+      <main className="container mx-auto px-4 py-16">
+        <div className="max-w-3xl mx-auto prose prose-lg">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            transition={{ delay: 0.2 }}
+            className="space-y-8"
           >
-            <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
-              Aviso de <span className="text-primary">Privacidad</span>
-            </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              En NovellDent, proteger tu información personal es nuestra prioridad. 
-              Conoce cómo recopilamos, usamos y protegemos tus datos.
-            </p>
-            <p className="text-sm text-muted-foreground mt-4">
-              Última actualización: 15 de enero de 2026
-            </p>
-          </motion.div>
+            <section>
+              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
+                1. Identidad del Responsable
+              </h2>
+              <p className="text-gray-700 leading-relaxed">
+                Productos Camacho S.A. de C.V., con domicilio en Estado de México, México, es responsable de recabar sus datos personales, del uso que se le dé a los mismos y de su protección.
+              </p>
+            </section>
 
-          <div className="grid gap-8 max-w-4xl mx-auto">
-            {sections.map((section, index) => (
-              <motion.div
-                key={section.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl p-6 md:p-8 shadow-lg"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <section.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <h2 className="text-xl font-bold">{section.title}</h2>
-                </div>
-                <ul className="space-y-3">
-                  {section.content.map((item, i) => (
-                    <li key={i} className="flex items-start gap-3 text-muted-foreground">
-                      <span className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
+            <section>
+              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
+                2. Datos Personales Recabados
+              </h2>
+              <p className="text-gray-700 mb-4">
+                Para las finalidades señaladas en este aviso de privacidad, podemos recabar los siguientes datos personales:
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Nombre completo</li>
+                <li>Dirección de correo electrónico</li>
+                <li>Número de teléfono</li>
+                <li>Dirección de envío</li>
+                <li>RFC (para facturación)</li>
+              </ul>
+            </section>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-12 text-center"
-          >
-            <p className="text-muted-foreground mb-4">
-              Para ejercer tus derechos ARCO o cualquier consulta sobre privacidad:
-            </p>
-            <a 
-              href="mailto:privacidad@novelldent.com" 
-              className="text-primary hover:underline font-medium"
-            >
-              privacidad@novelldent.com
-            </a>
+            <section>
+              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
+                3. Finalidades del Tratamiento
+              </h2>
+              <p className="text-gray-700 mb-4">
+                Sus datos personales serán utilizados para:
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Procesar sus pedidos y entregas</li>
+                <li>Emitir facturas y comprobantes de pago</li>
+                <li>Enviar información sobre promociones y nuevos productos</li>
+                <li>Atender sus consultas y solicitudes</li>
+                <li>Mejorar nuestros servicios</li>
+              </ul>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
+                4. Derechos ARCO
+              </h2>
+              <p className="text-gray-700 leading-relaxed">
+                Usted tiene derecho a conocer qué datos personales tenemos de usted, para qué los utilizamos y las condiciones del uso que les damos (Acceso). Asimismo, es su derecho solicitar la corrección de su información personal en caso de que esté desactualizada, sea inexacta o incompleta (Rectificación); que la eliminemos de nuestros registros cuando considere que no está siendo utilizada conforme a los principios, deberes y obligaciones previstas en la normativa (Cancelación); así como oponerse al uso de sus datos personales para fines específicos (Oposición).
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-serif font-bold text-[#1a1f1a] mb-4">
+                5. Contacto
+              </h2>
+              <p className="text-gray-700 mb-4">
+                Para ejercer sus derechos ARCO o para cualquier duda sobre el tratamiento de sus datos personales, puede contactarnos a través de:
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 space-y-2">
+                <li>Email: privacidad@productoscamacho.com.mx</li>
+                <li>Teléfono: +52 55 1234 5678</li>
+              </ul>
+            </section>
           </motion.div>
         </div>
       </main>
+
       <Footer />
     </div>
   );
