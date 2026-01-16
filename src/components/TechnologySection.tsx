@@ -2,35 +2,27 @@ import { motion } from "framer-motion";
 import { LogoCloud } from "@/components/ui/logo-cloud";
 import { useLanguage } from "@/contexts/LanguageContext";
 
+// Import brand logos
+import exocadLogo from "@/assets/brands/exocad.png";
+import shapeLogo from "@/assets/brands/3shape.png";
+import blueskyplanLogo from "@/assets/brands/blueskyplan.png";
+import realguideLogo from "@/assets/brands/realguide.png";
+import dentsplyLogo from "@/assets/brands/dentsply-sirona.png";
+import dolphinLogo from "@/assets/brands/dolphin.png";
+import tlanticadLogo from "@/assets/brands/tlanticad.png";
+import dsdLogo from "@/assets/brands/dsd.png";
+import planmecaLogo from "@/assets/brands/planmeca.png";
+
 const dentalLogos = [
-  {
-    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Exocad_logo.svg/1200px-Exocad_logo.svg.png",
-    alt: "Exocad",
-  },
-  {
-    src: "https://www.3shape.com/hubfs/3SHAPE_october_2018/images/3shape-logo.svg",
-    alt: "3Shape",
-  },
-  {
-    src: "https://images.squarespace-cdn.com/content/v1/5e4e5b4c3a8e4c6f5f9c4f8a/1582136892456-ceramill-logo.png",
-    alt: "Ceramill",
-  },
-  {
-    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Straumann_logo.svg/1200px-Straumann_logo.svg.png",
-    alt: "Straumann",
-  },
-  {
-    src: "https://www.dentalwings.com/wp-content/uploads/2020/01/dental-wings-logo.svg",
-    alt: "Dental Wings",
-  },
-  {
-    src: "https://www.planmeca.com/globalassets/planmeca-logo-black.svg",
-    alt: "Planmeca",
-  },
-  {
-    src: "https://www.sirona.com/fileadmin/templates/img/logos/dentsply-sirona-logo.svg",
-    alt: "Dentsply Sirona",
-  },
+  { src: exocadLogo, alt: "Exocad" },
+  { src: shapeLogo, alt: "3Shape" },
+  { src: blueskyplanLogo, alt: "BlueSkyPlan" },
+  { src: realguideLogo, alt: "RealGUIDE" },
+  { src: dentsplyLogo, alt: "Dentsply Sirona" },
+  { src: dolphinLogo, alt: "Dolphin" },
+  { src: tlanticadLogo, alt: "TlantiCAD" },
+  { src: dsdLogo, alt: "Digital Smile Design" },
+  { src: planmecaLogo, alt: "Planmeca" },
 ];
 
 export const TechnologySection = () => {
