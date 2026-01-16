@@ -29,12 +29,12 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <PatientProvider>
-        <CartProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <CartSidebar />
-            <BrowserRouter>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <CartProvider>
+              <CartSidebar />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/admin" element={<Admin />} />
@@ -52,9 +52,9 @@ const App = () => (
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </CartProvider>
+            </CartProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </PatientProvider>
     </LanguageProvider>
   </QueryClientProvider>
