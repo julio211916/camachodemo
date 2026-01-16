@@ -68,16 +68,28 @@ export const AppointmentModal = ({
     }
   });
 
-  // Fetch doctors
+  // Fetch doctors with profile info
   const { data: doctors = [] } = useQuery({
-    queryKey: ['doctors'],
+    queryKey: ['doctors-with-profiles'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: doctorsData, error } = await supabase
         .from('doctors')
         .select('id, specialty, user_id')
         .eq('is_active', true);
       if (error) throw error;
-      return data;
+      
+      // Fetch profiles for doctors
+      const doctorsWithProfiles = await Promise.all(
+        (doctorsData || []).map(async (doctor) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('user_id', doctor.user_id)
+            .single();
+          return { ...doctor, profile };
+        })
+      );
+      return doctorsWithProfiles;
     }
   });
 
@@ -257,7 +269,7 @@ export const AppointmentModal = ({
                 <SelectItem value="">Sin asignar</SelectItem>
                 {doctors.map((doctor: any) => (
                   <SelectItem key={doctor.id} value={doctor.id}>
-                    Dr. {doctor.profiles?.full_name || 'Sin nombre'} - {doctor.specialty}
+                    Dr. {doctor.profile?.full_name || 'Sin nombre'} - {doctor.specialty}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -340,7 +352,7 @@ export const AppointmentModal = ({
                   <p><span className="text-muted-foreground">Hora:</span> {time}</p>
                   <p><span className="text-muted-foreground">Sucursal:</span> {selectedLocation?.name}</p>
                   {selectedDoctor && (
-                    <p><span className="text-muted-foreground">Doctor:</span> Dr. {selectedDoctor.profiles?.full_name}</p>
+                    <p><span className="text-muted-foreground">Doctor:</span> Dr. {selectedDoctor.profile?.full_name}</p>
                   )}
                 </div>
               </CardContent>
