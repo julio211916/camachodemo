@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Layout, Input, Badge, Avatar, Dropdown, Button, Space, Tag, Typography } from 'antd';
+import React from 'react';
+import { Layout, Input, Avatar, Dropdown, Button, Tag, Typography, Badge } from 'antd';
 import {
   SearchOutlined,
-  BellOutlined,
   UserOutlined,
   LogoutOutlined,
   SettingOutlined,
-  MoonOutlined,
-  SunOutlined,
   GlobalOutlined,
   HomeOutlined,
 } from '@ant-design/icons';
 import { useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
+import { AnimatedThemeToggler } from '@/components/ui/animated-theme-toggler';
+import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
+import { useThemePreference } from '@/hooks/useThemePreference';
 import type { MenuProps } from 'antd';
 
 const { Header } = Layout;
@@ -23,9 +23,9 @@ interface UnifiedHeaderProps {
 }
 
 export function UnifiedHeader({ collapsed }: UnifiedHeaderProps) {
-  const { currentBranch, viewMode, canViewGlobal, branchSummaries } = useBranch();
+  const { currentBranch, viewMode, branchSummaries } = useBranch();
   const { profile, userRole, signOut } = useAuth();
-  const [darkMode, setDarkMode] = useState(false);
+  const { updateThemePreference } = useThemePreference();
 
   // Get current branch summary
   const currentSummary = branchSummaries.find(s => s.location_id === currentBranch?.id);
@@ -112,21 +112,13 @@ export function UnifiedHeader({ collapsed }: UnifiedHeaderProps) {
       {/* Right Section - Actions & User */}
       <div className="flex items-center gap-4">
         {/* Theme Toggle */}
-        <Button
-          type="text"
-          icon={darkMode ? <SunOutlined /> : <MoonOutlined />}
-          onClick={() => setDarkMode(!darkMode)}
+        <AnimatedThemeToggler
+          onThemeChange={updateThemePreference}
           className="text-gray-600"
         />
 
-        {/* Notifications */}
-        <Badge count={3} size="small">
-          <Button
-            type="text"
-            icon={<BellOutlined />}
-            className="text-gray-600"
-          />
-        </Badge>
+        {/* Notifications Dropdown */}
+        <NotificationsDropdown />
 
         {/* User Menu */}
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>

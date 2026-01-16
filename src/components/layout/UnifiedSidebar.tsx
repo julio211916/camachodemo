@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Select, Switch, Avatar, Badge, Typography, Divider, Tooltip } from 'antd';
+import React from 'react';
+import { Layout, Menu, Select, Switch, Avatar, Badge, Typography } from 'antd';
 import {
   DashboardOutlined,
   CalendarOutlined,
@@ -30,6 +30,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
+import logoNovellDent from '@/assets/logo-novelldent-sidebar.png';
 import { useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
 import type { MenuProps } from 'antd';
@@ -189,12 +190,14 @@ export function UnifiedSidebar({ activeSection, onNavigate, collapsed, onCollaps
       trigger={null}
     >
       <div className="flex flex-col h-full">
-        {/* Header */}
+        {/* Header with Logo */}
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center">
-              <SmileOutlined className="text-white text-xl" />
-            </div>
+            <img 
+              src={logoNovellDent} 
+              alt="NovellDent" 
+              className={`transition-all duration-300 ${collapsed ? 'w-10 h-10' : 'w-12 h-12'} object-contain`}
+            />
             {!collapsed && (
               <div>
                 <Title level={5} className="!mb-0 !text-teal-700">NovellDent</Title>
