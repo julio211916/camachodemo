@@ -8,6 +8,7 @@ import {
   Download, Filter, BarChart3, Users, Eye, Loader2, FileCheck, PenTool,
   Calculator, Save, Send, FileSignature, Printer, Check, X, Copy, Clock
 } from "lucide-react";
+import { sanitizeHTML } from "@/lib/sanitize";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -991,7 +992,7 @@ const DocumentosClinicosSection = () => {
           <CardContent>
             <div 
               className="prose prose-sm dark:prose-invert max-w-none p-4 border rounded-lg bg-muted/30"
-              dangerouslySetInnerHTML={{ __html: editorContent }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHTML(editorContent) }}
             />
           </CardContent>
         </Card>
