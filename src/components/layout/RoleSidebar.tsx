@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, LayoutGroup } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, LayoutGroup, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider,
 } from '@/components/ui/tooltip';
 import {
   Select,
@@ -23,7 +24,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Sparkline } from '@/components/ui/sparkline';
 import { useBranch } from '@/contexts/BranchContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useThemePreference } from '@/hooks/useThemePreference';
@@ -56,18 +56,14 @@ import {
   Shield,
   Database,
   Heart,
-  Mail,
   Bell,
   CreditCard,
-  Briefcase,
   FileSignature,
   FolderOpen,
   Target,
   Megaphone,
-  CalendarDays,
-  Clock,
-  TrendingUp,
-  RefreshCw,
+  Menu,
+  X,
 } from 'lucide-react';
 
 type UserRole = 'admin' | 'staff' | 'doctor' | 'patient';
@@ -107,9 +103,6 @@ const sidebarSections: SidebarSection[] = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'agenda', label: 'Agenda & Citas', icon: Calendar },
       { id: 'patients', label: 'Pacientes', icon: Users },
-      { id: 'transactions', label: 'Finanzas', icon: Wallet },
-      { id: 'contact-center', label: 'Comunicación', icon: MessageSquare },
-      { id: 'analytics', label: 'Reportes', icon: BarChart3 },
     ],
   },
   // MI PRÁCTICA (Doctor only)
@@ -183,13 +176,14 @@ const sidebarSections: SidebarSection[] = [
       { id: 'payment-plans', label: 'Planes Pago', icon: CreditCard },
     ],
   },
-  // PERSONAL
+  // PERSONAL & USUARIOS
   {
     id: 'personal',
-    title: 'Personal',
+    title: 'Personal & Usuarios',
     icon: UserCog,
     roles: ['admin'],
     items: [
+      { id: 'users-roles', label: 'Usuarios & Roles', icon: Shield },
       { id: 'doctors', label: 'Profesionales', icon: UserCog },
       { id: 'medications', label: 'Medicamentos', icon: FlaskConical },
     ],
@@ -240,7 +234,6 @@ const sidebarSections: SidebarSection[] = [
     roles: ['admin'],
     items: [
       { id: 'locations', label: 'Sucursales', icon: Building2 },
-      { id: 'doctors', label: 'Profesionales & Roles', icon: UserCog },
       { id: 'administration', label: 'Catálogos', icon: Package },
       { id: 'templates', label: 'Plantillas & Docs', icon: FileText },
       { id: 'backup', label: 'Seguridad & Backups', icon: Shield },
@@ -261,23 +254,16 @@ const sidebarSections: SidebarSection[] = [
 ];
 
 export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }: RoleSidebarProps) {
-  const { branches, currentBranch, setCurrentBranch, viewMode, setViewMode, canViewGlobal, branchSummaries, dateFilter, setDateFilter, refreshSummaries } = useBranch();
+  const { branches, currentBranch, setCurrentBranch, viewMode, setViewMode, canViewGlobal } = useBranch();
   const { profile, userRole, signOut, isAdminMaster } = useAuth();
   const { isDark, toggleTheme } = useThemePreference();
   const [openSections, setOpenSections] = useState<string[]>(['operacion', 'mi-practica']);
-  const [refreshing, setRefreshing] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const currentSummary = branchSummaries.find(s => s.location_id === currentBranch?.id);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await refreshSummaries();
-    setRefreshing(false);
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 0 }).format(amount);
-  };
+  // Close mobile menu on navigation
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [activeSection]);
 
   // Get role-specific label
   const getRoleLabel = () => {
@@ -318,362 +304,297 @@ export function RoleSidebar({ activeSection, onNavigate, collapsed, onCollapse }
     );
   };
 
-  return (
-    <div className={cn(
-      "h-screen flex flex-col bg-card border-r border-border transition-all duration-300",
-      collapsed ? "w-16" : "w-64"
-    )}>
-      {/* Header */}
-      <div className="p-3 border-b border-border">
-        <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            <img
-              src={logoNovellDentIcon}
-              alt="NovellDent"
-              className="w-7 h-7 object-contain"
-              loading="eager"
-            />
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <h1 className="font-bold text-foreground truncate">NovellDent</h1>
-              <p className="text-xs text-muted-foreground truncate">Sistema Dental</p>
-            </div>
-          )}
-        </div>
-      </div>
+  // Find which section contains the active item and keep it open
+  useEffect(() => {
+    const activeItemSection = filteredSections.find(section =>
+      section.items.some(item => item.id === activeSection)
+    );
+    if (activeItemSection && !openSections.includes(activeItemSection.id)) {
+      setOpenSections(prev => [...prev, activeItemSection.id]);
+    }
+  }, [activeSection, filteredSections]);
 
-      {/* Collapse Toggle (above Vista Local / Vista Global) */}
-      <div className={cn("p-2 border-b border-border", collapsed && "flex justify-center")}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 flex-shrink-0"
-              onClick={() => onCollapse(!collapsed)}
-            >
-              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            {collapsed ? 'Expandir menú' : 'Colapsar menú'}
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
-      {/* User Info */}
-      {!collapsed && (
-        <div className="p-3 border-b border-border">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={profile?.avatar_url} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {profile?.full_name?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{profile?.full_name || 'Usuario'}</p>
-              <Badge className={cn("text-[10px] text-white", getRoleBadgeColor())}>
-                {getRoleLabel()}
-              </Badge>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Branch Selector with Stats */}
-      {!collapsed && (
-        <div className="p-3 border-b border-border space-y-3">
-          {/* View Mode Toggle (Only for Admin Master) */}
-          {canViewGlobal && (
-            <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
-              <div className="flex items-center gap-2">
-                {viewMode === 'global' ? (
-                  <Globe className="w-4 h-4 text-primary" />
-                ) : (
-                  <Home className="w-4 h-4 text-blue-500" />
-                )}
-                <span className="text-xs font-medium">
-                  {viewMode === 'global' ? 'Vista Global' : 'Vista Local'}
-                </span>
-              </div>
-              <Switch
-                checked={viewMode === 'global'}
-                onCheckedChange={(checked) => setViewMode(checked ? 'global' : 'local')}
-                className="data-[state=checked]:bg-primary"
+  const SidebarContent = () => (
+    <TooltipProvider delayDuration={0}>
+      <div className={cn(
+        "h-screen flex flex-col bg-card border-r border-border transition-all duration-300",
+        collapsed ? "w-16" : "w-64"
+      )}>
+        {/* Header */}
+        <div className="p-3 border-b border-border flex-shrink-0">
+          <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
+            <div className="w-10 h-10 rounded-xl bg-muted/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <img
+                src={logoNovellDentIcon}
+                alt="NovellDent"
+                className="w-7 h-7 object-contain"
+                loading="eager"
               />
             </div>
-          )}
-
-          {/* Branch Selector (Only in Local Mode) */}
-          {viewMode === 'local' && branches.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Select
-                  value={currentBranch?.id || ''}
-                  onValueChange={(value) => {
-                    const branch = branches.find(b => b.id === value);
-                    if (branch) setCurrentBranch(branch);
-                  }}
-                >
-                  <SelectTrigger className="h-8 text-xs flex-1">
-                    <Building2 className="w-3 h-3 mr-2" />
-                    <SelectValue placeholder="Seleccionar sucursal" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {branches.map(branch => {
-                      const summary = branchSummaries.find(s => s.location_id === branch.id);
-                      return (
-                        <SelectItem key={branch.id} value={branch.id} className="py-2">
-                          <div className="flex flex-col">
-                            <span className="font-medium">{branch.name}</span>
-                            {summary && (
-                              <span className="text-[10px] text-muted-foreground">
-                                {summary.total_appointments_today} citas hoy • {summary.pending_appointments} pendientes
-                              </span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                >
-                  <RefreshCw className={cn("w-3.5 h-3.5", refreshing && "animate-spin")} />
-                </Button>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <h1 className="font-bold text-foreground truncate">NovellDent</h1>
+                <p className="text-xs text-muted-foreground truncate">Sistema Dental</p>
               </div>
-
-              {/* Date Filter */}
-              <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as typeof dateFilter)}>
-                <SelectTrigger className="h-7 text-xs">
-                  <CalendarDays className="w-3 h-3 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="today">Hoy</SelectItem>
-                  <SelectItem value="week">Esta semana</SelectItem>
-                  <SelectItem value="month">Este mes</SelectItem>
-                  <SelectItem value="all">Todo</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Quick Stats with Sparklines */}
-              {currentSummary && (
-                <div className="space-y-2">
-                  {/* Appointments Trend */}
-                  <div className="bg-muted/30 rounded-lg p-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-muted-foreground">Citas (7 días)</span>
-                      <span className="text-xs font-bold text-primary">{currentSummary.total_appointments_today} hoy</span>
-                    </div>
-                    <Sparkline 
-                      data={currentSummary.appointments_trend || [0,0,0,0,0,0,0]} 
-                      height={24} 
-                      color="hsl(var(--primary))" 
-                    />
-                  </div>
-                  
-                  {/* Income Trend */}
-                  <div className="bg-muted/30 rounded-lg p-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] text-muted-foreground">Ingresos (7 días)</span>
-                      <span className="text-xs font-bold text-green-600">{formatCurrency(currentSummary.income_today)}</span>
-                    </div>
-                    <Sparkline 
-                      data={currentSummary.income_trend || [0,0,0,0,0,0,0]} 
-                      height={24} 
-                      color="hsl(142 76% 36%)" 
-                    />
-                  </div>
-                  
-                  {/* Quick stats row */}
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className="bg-yellow-500/10 rounded-md p-2 text-center">
-                      <div className="flex items-center justify-center gap-1 text-yellow-600">
-                        <Clock className="w-3 h-3" />
-                        <span className="text-sm font-bold">{currentSummary.pending_appointments}</span>
-                      </div>
-                      <p className="text-[9px] text-muted-foreground">Pendientes</p>
-                    </div>
-                    <div className="bg-blue-500/10 rounded-md p-2 text-center">
-                      <div className="flex items-center justify-center gap-1 text-blue-600">
-                        <Users className="w-3 h-3" />
-                        <span className="text-sm font-bold">{currentSummary.total_patients}</span>
-                      </div>
-                      <p className="text-[9px] text-muted-foreground">Pacientes</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Global Stats */}
-          {viewMode === 'global' && canViewGlobal && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Todas las sucursales</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                >
-                  <RefreshCw className={cn("w-3 h-3", refreshing && "animate-spin")} />
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="bg-primary/10 rounded-md p-2 text-center">
-                  <span className="text-sm font-bold text-primary">
-                    {branchSummaries.reduce((sum, s) => sum + s.total_appointments_today, 0)}
-                  </span>
-                  <p className="text-[9px] text-muted-foreground">Citas hoy</p>
-                </div>
-                <div className="bg-yellow-500/10 rounded-md p-2 text-center">
-                  <span className="text-sm font-bold text-yellow-600">
-                    {branchSummaries.reduce((sum, s) => sum + s.pending_appointments, 0)}
-                  </span>
-                  <p className="text-[9px] text-muted-foreground">Pendientes</p>
-                </div>
-                <div className="bg-green-500/10 rounded-md p-2 text-center col-span-2">
-                  <span className="text-sm font-bold text-green-600">
-                    {formatCurrency(branchSummaries.reduce((sum, s) => sum + s.income_today, 0))}
-                  </span>
-                  <p className="text-[9px] text-muted-foreground">Ingresos totales hoy</p>
-                </div>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Navigation */}
-      <ScrollArea className="flex-1">
-        <LayoutGroup id="role-sidebar">
-          <nav className="p-2 space-y-1">
-            {filteredSections.map((section) => (
-              <Collapsible
-                key={section.id}
-                open={collapsed ? false : openSections.includes(section.id)}
-                onOpenChange={() => !collapsed && toggleSection(section.id)}
-              >
-                <CollapsibleTrigger asChild>
-                  {collapsed ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-center px-2">
-                          <section.icon className="w-4 h-4 flex-shrink-0" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">{section.title}</TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <Button variant="ghost" className="w-full justify-start gap-2 text-sm font-medium">
-                      <section.icon className="w-4 h-4 flex-shrink-0" />
-                      <span className="flex-1 text-left">{section.title}</span>
-                      <ChevronDown
-                        className={cn(
-                          'w-4 h-4 transition-transform',
-                          openSections.includes(section.id) && 'rotate-180'
-                        )}
-                      />
-                    </Button>
-                  )}
-                </CollapsibleTrigger>
-
-                {!collapsed && (
-                  <CollapsibleContent className="space-y-1 pl-4 mt-1">
-                    {section.items.map((item) => {
-                      const isActive = activeSection === item.id;
-
-                      return (
-                        <div key={item.id} className="relative">
-                          {isActive && (
-                            <motion.div
-                              layoutId="role-sidebar-active"
-                              transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                              className="absolute inset-0 rounded-md bg-primary/10"
-                            />
-                          )}
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                              'relative z-10 w-full justify-start gap-2 h-8 text-xs transition-colors',
-                              isActive && 'text-primary font-medium'
-                            )}
-                            onClick={() => onNavigate(item.id)}
-                          >
-                            <item.icon className="w-3.5 h-3.5" />
-                            <span>{item.label}</span>
-                            {item.badge && (
-                              <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
-                                {item.badge}
-                              </Badge>
-                            )}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </CollapsibleContent>
-                )}
-              </Collapsible>
-            ))}
-          </nav>
-        </LayoutGroup>
-      </ScrollArea>
-
-      {/* Footer */}
-      <div className="p-2 border-t border-border space-y-1">
-        {collapsed ? (
+        {/* Collapse Toggle */}
+        <div className={cn("p-2 border-b border-border flex-shrink-0", collapsed && "flex justify-center")}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                className="w-full justify-center"
-                onClick={toggleTheme}
+                size="icon"
+                className="h-8 w-8 flex-shrink-0"
+                onClick={() => onCollapse(!collapsed)}
               >
-                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right">Cambiar tema</TooltipContent>
+            <TooltipContent side="right">
+              {collapsed ? 'Expandir menú' : 'Colapsar menú'}
+            </TooltipContent>
           </Tooltip>
-        ) : (
+        </div>
+
+        {/* User Info */}
+        {!collapsed && (
+          <div className="p-3 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={profile?.avatar_url} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {profile?.full_name?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{profile?.full_name || 'Usuario'}</p>
+                <Badge className={cn("text-[10px] text-white", getRoleBadgeColor())}>
+                  {getRoleLabel()}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Branch Selector */}
+        {!collapsed && (userRole === 'admin' || userRole === 'staff') && (
+          <div className="p-3 border-b border-border space-y-2 flex-shrink-0">
+            {/* View Mode Toggle (Only for Admin Master) */}
+            {canViewGlobal && (
+              <div className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                <div className="flex items-center gap-2">
+                  {viewMode === 'global' ? (
+                    <Globe className="w-4 h-4 text-primary" />
+                  ) : (
+                    <Home className="w-4 h-4 text-blue-500" />
+                  )}
+                  <span className="text-xs font-medium">
+                    {viewMode === 'global' ? 'Vista Global' : 'Vista Local'}
+                  </span>
+                </div>
+                <Switch
+                  checked={viewMode === 'global'}
+                  onCheckedChange={(checked) => setViewMode(checked ? 'global' : 'local')}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
+            )}
+
+            {/* Branch Selector */}
+            {viewMode === 'local' && branches.length > 0 && (
+              <Select
+                value={currentBranch?.id || ''}
+                onValueChange={(value) => {
+                  const branch = branches.find(b => b.id === value);
+                  if (branch) setCurrentBranch(branch);
+                }}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <Building2 className="w-3 h-3 mr-2" />
+                  <SelectValue placeholder="Seleccionar sucursal" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map(branch => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        )}
+
+        {/* Navigation - Scrollable */}
+        <ScrollArea className="flex-1 min-h-0">
+          <LayoutGroup id="role-sidebar">
+            <nav className="p-2 space-y-1">
+              {filteredSections.map((section) => (
+                <Collapsible
+                  key={section.id}
+                  open={collapsed ? false : openSections.includes(section.id)}
+                  onOpenChange={() => !collapsed && toggleSection(section.id)}
+                >
+                  <CollapsibleTrigger asChild>
+                    {collapsed ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" className="w-full justify-center px-2">
+                            <section.icon className="w-4 h-4 flex-shrink-0" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">{section.title}</TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button variant="ghost" className="w-full justify-start gap-2 text-sm font-medium">
+                        <section.icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="flex-1 text-left">{section.title}</span>
+                        <ChevronDown
+                          className={cn(
+                            'w-4 h-4 transition-transform',
+                            openSections.includes(section.id) && 'rotate-180'
+                          )}
+                        />
+                      </Button>
+                    )}
+                  </CollapsibleTrigger>
+
+                  {!collapsed && (
+                    <CollapsibleContent className="space-y-1 pl-4 mt-1">
+                      {section.items.map((item) => {
+                        const isActive = activeSection === item.id;
+
+                        return (
+                          <div key={item.id} className="relative">
+                            {isActive && (
+                              <motion.div
+                                layoutId="role-sidebar-active"
+                                transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                                className="absolute inset-0 rounded-md bg-primary/10"
+                              />
+                            )}
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                'relative z-10 w-full justify-start gap-2 h-8 text-xs transition-colors',
+                                isActive && 'text-primary font-medium'
+                              )}
+                              onClick={() => onNavigate(item.id)}
+                            >
+                              <item.icon className="w-3.5 h-3.5" />
+                              <span>{item.label}</span>
+                              {item.badge && (
+                                <Badge variant="secondary" className="ml-auto h-5 px-1.5 text-[10px]">
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </CollapsibleContent>
+                  )}
+                </Collapsible>
+              ))}
+            </nav>
+          </LayoutGroup>
+        </ScrollArea>
+
+        {/* Footer */}
+        <div className="p-2 border-t border-border space-y-1 flex-shrink-0">
+          {collapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-center"
+                  onClick={toggleTheme}
+                >
+                  {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Cambiar tema</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full gap-2 justify-start"
+              onClick={toggleTheme}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              <span className="text-xs">Modo {isDark ? 'claro' : 'oscuro'}</span>
+            </Button>
+          )}
+
           <Button
             variant="ghost"
             size="sm"
-            className="w-full gap-2 justify-start"
-            onClick={toggleTheme}
+            className={cn(
+              "w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10",
+              collapsed ? "justify-center" : "justify-start"
+            )}
+            onClick={signOut}
           >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            <span className="text-xs">Modo {isDark ? 'claro' : 'oscuro'}</span>
+            <LogOut className="w-4 h-4" />
+            {!collapsed && <span className="text-xs">Cerrar sesión</span>}
           </Button>
-        )}
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            "w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10",
-            collapsed ? "justify-center" : "justify-start"
-          )}
-          onClick={signOut}
-        >
-          <LogOut className="w-4 h-4" />
-          {!collapsed && <span className="text-xs">Cerrar sesión</span>}
-        </Button>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
+  );
+
+  return (
+    <>
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-3 left-3 z-50 lg:hidden"
+        onClick={() => setMobileOpen(!mobileOpen)}
+      >
+        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </Button>
+
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ x: -280 }}
+            animate={{ x: 0 }}
+            exit={{ x: -280 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed top-0 left-0 z-50 lg:hidden"
+          >
+            <SidebarContent />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block flex-shrink-0">
+        <SidebarContent />
+      </div>
+    </>
   );
 }
 
