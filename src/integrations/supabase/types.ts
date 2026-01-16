@@ -2256,6 +2256,88 @@ export type Database = {
     }
     Functions: {
       generate_referral_code: { Args: never; Returns: string }
+      get_patient_profile: {
+        Args: { p_user_id: string }
+        Returns: {
+          address: string | null
+          avatar_url: string | null
+          beneficiary_type: string | null
+          birth_year: number | null
+          convention_id: string | null
+          created_at: string
+          curp_rfc: string | null
+          date_of_birth: string | null
+          email: string
+          employer: string | null
+          full_name: string
+          gender: string | null
+          guardian_curp: string | null
+          guardian_name: string | null
+          id: string
+          internal_number: string | null
+          is_admin_master: boolean | null
+          is_archived: boolean | null
+          location_id: string | null
+          notes: string | null
+          occupation: string | null
+          patient_code: string | null
+          phone: string | null
+          reference_source: string | null
+          referral_code: string | null
+          referral_discount_percent: number | null
+          tags: string[] | null
+          theme_preference: string | null
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      get_patient_profiles: {
+        Args: { p_limit?: number; p_search?: string; p_show_archived?: boolean }
+        Returns: {
+          address: string | null
+          avatar_url: string | null
+          beneficiary_type: string | null
+          birth_year: number | null
+          convention_id: string | null
+          created_at: string
+          curp_rfc: string | null
+          date_of_birth: string | null
+          email: string
+          employer: string | null
+          full_name: string
+          gender: string | null
+          guardian_curp: string | null
+          guardian_name: string | null
+          id: string
+          internal_number: string | null
+          is_admin_master: boolean | null
+          is_archived: boolean | null
+          location_id: string | null
+          notes: string | null
+          occupation: string | null
+          patient_code: string | null
+          phone: string | null
+          reference_source: string | null
+          referral_code: string | null
+          referral_discount_percent: number | null
+          tags: string[] | null
+          theme_preference: string | null
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
