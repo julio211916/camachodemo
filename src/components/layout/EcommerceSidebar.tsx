@@ -66,12 +66,14 @@ import {
 
 import { UserRole } from '@/hooks/useAuth';
 
+type NonNullUserRole = Exclude<UserRole, null>;
+
 interface SidebarSection {
   id: string;
   title: string;
   icon: React.ElementType;
   items: SidebarItem[];
-  roles: UserRole[];
+  roles: NonNullUserRole[];
 }
 
 interface SidebarItem {
@@ -79,7 +81,7 @@ interface SidebarItem {
   label: string;
   icon: React.ElementType;
   badge?: number;
-  roles?: UserRole[];
+  roles?: NonNullUserRole[];
 }
 
 interface EcommerceSidebarProps {
@@ -247,14 +249,15 @@ export function EcommerceSidebar({ activeSection, onNavigate, collapsed, onColla
   };
 
   // Map userRole to ecommerce roles
-  const ecommerceRole = (): UserRole => {
+  const ecommerceRole = (): NonNullUserRole | null => {
     if (userRole === 'doctor') return 'customer';
     if (userRole === 'patient') return 'customer';
-    return userRole as UserRole;
+    return userRole;
   };
 
   const filteredSections = sidebarSections.filter(section => {
-    return section.roles.includes(ecommerceRole());
+    const role = ecommerceRole();
+    return role ? section.roles.includes(role) : false;
   });
 
   const toggleSection = (sectionId: string) => {
