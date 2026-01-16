@@ -3,37 +3,37 @@
 import React, { useEffect } from 'react';
 import { ZoomParallax } from '@/components/ui/zoom-parallax';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, Star } from 'lucide-react';
+import { Sparkles, Heart, Star, Leaf } from 'lucide-react';
 import Lenis from '@studio-freight/lenis';
 
-const dentalImages = [
+const productImages = [
   {
-    src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&h=600&fit=crop&q=80',
-    alt: 'Beautiful smile dental care',
+    src: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&h=600&fit=crop&q=80',
+    alt: 'Productos naturales de farmacia',
   },
   {
-    src: 'https://images.unsplash.com/photo-1609840114035-3c981b782dfe?w=800&h=600&fit=crop&q=80',
-    alt: 'Modern dental equipment',
+    src: 'https://images.unsplash.com/photo-1563453392212-326f5e854473?w=800&h=600&fit=crop&q=80',
+    alt: 'Aceites esenciales naturales',
   },
   {
-    src: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&h=600&fit=crop&q=80',
-    alt: 'Dental CAD CAM technology',
+    src: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=800&h=600&fit=crop&q=80',
+    alt: 'Pomadas y ungüentos medicinales',
   },
   {
-    src: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800&h=600&fit=crop&q=80',
-    alt: 'Professional dental clinic',
+    src: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=800&h=600&fit=crop&q=80',
+    alt: 'Hierbas y botánicos naturales',
   },
   {
-    src: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=600&fit=crop&q=80',
-    alt: 'Dental treatment room',
+    src: 'https://images.unsplash.com/photo-1512069772995-ec65ed45afd6?w=800&h=600&fit=crop&q=80',
+    alt: 'Jarabes naturales para la tos',
   },
   {
-    src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&h=600&fit=crop&q=80',
-    alt: 'Happy patient smile',
+    src: 'https://images.unsplash.com/photo-1611241893603-3c359704e0ee?w=800&h=600&fit=crop&q=80',
+    alt: 'Productos de rebotica tradicional',
   },
   {
-    src: 'https://images.unsplash.com/photo-1445527815219-ecbfec67492e?w=800&h=600&fit=crop&q=80',
-    alt: 'Perfect white teeth smile',
+    src: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=800&h=600&fit=crop&q=80',
+    alt: 'Bienestar natural mexicano',
   },
 ];
 
@@ -84,8 +84,8 @@ export const DentalParallaxSection = () => {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8"
             >
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Tecnología CAD/CAM de última generación</span>
+              <Leaf className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Productos Naturales desde 1985</span>
             </motion.div>
 
             {/* Main heading */}
@@ -95,12 +95,12 @@ export const DentalParallaxSection = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-foreground mb-6"
             >
-              Tu Mejor{' '}
+              Tu{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-teal-500 to-primary">
-                Sonrisa
+                Bienestar
               </span>
               <br />
-              en el Mejor Lugar
+              es Nuestra Prioridad
             </motion.h2>
 
             {/* Subtitle */}
@@ -110,7 +110,7 @@ export const DentalParallaxSection = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto"
             >
-              Descubre la excelencia dental con tecnología de vanguardia y un equipo comprometido con tu bienestar
+              Descubre la tradición de la rebotica mexicana con productos naturales de eficacia comprobada
             </motion.p>
 
             {/* Brand name */}
@@ -122,7 +122,7 @@ export const DentalParallaxSection = () => {
             >
               <div className="h-px w-16 bg-gradient-to-r from-transparent to-primary/50" />
               <span className="text-3xl md:text-4xl font-serif font-bold text-primary">
-                NovellDent
+                Productos Camacho
               </span>
               <div className="h-px w-16 bg-gradient-to-l from-transparent to-primary/50" />
             </motion.div>
@@ -135,9 +135,9 @@ export const DentalParallaxSection = () => {
               className="flex flex-wrap justify-center gap-6 mb-12"
             >
               {[
-                { icon: Star, text: 'Tecnología CAD/CAM' },
-                { icon: Heart, text: 'Atención Personalizada' },
-                { icon: Sparkles, text: 'Resultados Perfectos' },
+                { icon: Star, text: 'Calidad Garantizada' },
+                { icon: Heart, text: 'Ingredientes Naturales' },
+                { icon: Sparkles, text: 'Tradición Mexicana' },
               ].map((item, index) => (
                 <div
                   key={index}
@@ -170,7 +170,7 @@ export const DentalParallaxSection = () => {
       </div>
 
       {/* Parallax zoom effect */}
-      <ZoomParallax images={dentalImages} />
+      <ZoomParallax images={productImages} />
 
       {/* Bottom section after parallax */}
       <div className="min-h-[50vh] flex items-center justify-center bg-gradient-to-t from-background to-primary/5">
@@ -182,11 +182,11 @@ export const DentalParallaxSection = () => {
           className="container mx-auto px-4 text-center"
         >
           <h3 className="text-3xl md:text-4xl font-serif font-bold text-foreground mb-4">
-            Transformamos Sonrisas, Cambiamos Vidas
+            Tradición y Calidad en cada Producto
           </h3>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Con más de 10 años de experiencia y la última tecnología en odontología digital,
-            hacemos realidad la sonrisa que siempre soñaste.
+            Con más de 40 años de experiencia y fórmulas magistrales de la rebotica tradicional,
+            cuidamos la salud de las familias mexicanas.
           </p>
         </motion.div>
       </div>
