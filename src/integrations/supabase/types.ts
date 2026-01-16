@@ -308,6 +308,69 @@ export type Database = {
           },
         ]
       }
+      cephalometry_analysis: {
+        Row: {
+          analysis_type: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          image_url: string
+          landmarks: Json | null
+          measurements: Json | null
+          notes: string | null
+          patient_id: string
+        }
+        Insert: {
+          analysis_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url: string
+          landmarks?: Json | null
+          measurements?: Json | null
+          notes?: string | null
+          patient_id: string
+        }
+        Update: {
+          analysis_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          image_url?: string
+          landmarks?: Json | null
+          measurements?: Json | null
+          notes?: string | null
+          patient_id?: string
+        }
+        Relationships: []
+      }
+      conventions: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          discount_percent: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       doctor_patients: {
         Row: {
           assigned_at: string | null
@@ -436,6 +499,45 @@ export type Database = {
           user_id?: string
           working_hours_end?: string | null
           working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      document_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_type?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_type?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1087,6 +1189,51 @@ export type Database = {
           },
         ]
       }
+      patient_consents: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          consent_type: string
+          content: string
+          created_at: string
+          id: string
+          is_cancelled: boolean | null
+          patient_id: string
+          signature_data: string | null
+          signature_url: string | null
+          signed_at: string | null
+          template_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          consent_type: string
+          content: string
+          created_at?: string
+          id?: string
+          is_cancelled?: boolean | null
+          patient_id: string
+          signature_data?: string | null
+          signature_url?: string | null
+          signed_at?: string | null
+          template_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          consent_type?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_cancelled?: boolean | null
+          patient_id?: string
+          signature_data?: string | null
+          signature_url?: string | null
+          signed_at?: string | null
+          template_id?: string | null
+        }
+        Relationships: []
+      }
       patient_documents: {
         Row: {
           created_at: string
@@ -1126,6 +1273,66 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_evolutions: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          content: string
+          created_at: string
+          doctor_id: string | null
+          evolution_type: string | null
+          id: string
+          is_cancelled: boolean | null
+          is_private: boolean | null
+          patient_id: string
+          treatment_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          content: string
+          created_at?: string
+          doctor_id?: string | null
+          evolution_type?: string | null
+          id?: string
+          is_cancelled?: boolean | null
+          is_private?: boolean | null
+          patient_id: string
+          treatment_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          content?: string
+          created_at?: string
+          doctor_id?: string | null
+          evolution_type?: string | null
+          id?: string
+          is_cancelled?: boolean | null
+          is_private?: boolean | null
+          patient_id?: string
+          treatment_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_evolutions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_evolutions_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "treatments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_notes: {
         Row: {
           created_at: string
@@ -1158,6 +1365,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      patient_prescriptions: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
+          created_at: string
+          doctor_id: string | null
+          id: string
+          is_cancelled: boolean | null
+          medications: Json | null
+          patient_id: string
+          prescription_html: string
+          treatment_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          id?: string
+          is_cancelled?: boolean | null
+          medications?: Json | null
+          patient_id: string
+          prescription_html: string
+          treatment_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          created_at?: string
+          doctor_id?: string | null
+          id?: string
+          is_cancelled?: boolean | null
+          medications?: Json | null
+          patient_id?: string
+          prescription_html?: string
+          treatment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_prescriptions_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_prescriptions_treatment_id_fkey"
+            columns: ["treatment_id"]
+            isOneToOne: false
+            referencedRelation: "treatments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -1325,24 +1586,61 @@ export type Database = {
         }
         Relationships: []
       }
+      periodontogram_history: {
+        Row: {
+          data: Json
+          id: string
+          patient_id: string
+          recorded_at: string
+          recorded_by: string | null
+          version_number: number | null
+        }
+        Insert: {
+          data: Json
+          id?: string
+          patient_id: string
+          recorded_at?: string
+          recorded_by?: string | null
+          version_number?: number | null
+        }
+        Update: {
+          data?: Json
+          id?: string
+          patient_id?: string
+          recorded_at?: string
+          recorded_by?: string | null
+          version_number?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
           avatar_url: string | null
+          beneficiary_type: string | null
           birth_year: number | null
+          convention_id: string | null
           created_at: string
+          curp_rfc: string | null
           date_of_birth: string | null
           email: string
+          employer: string | null
           full_name: string
           gender: string | null
+          guardian_curp: string | null
+          guardian_name: string | null
           id: string
+          internal_number: string | null
           is_admin_master: boolean | null
           is_archived: boolean | null
           location_id: string | null
           notes: string | null
+          occupation: string | null
           patient_code: string | null
           phone: string | null
+          reference_source: string | null
           referral_code: string | null
+          referral_discount_percent: number | null
           tags: string[] | null
           theme_preference: string | null
           updated_at: string
@@ -1351,20 +1649,30 @@ export type Database = {
         Insert: {
           address?: string | null
           avatar_url?: string | null
+          beneficiary_type?: string | null
           birth_year?: number | null
+          convention_id?: string | null
           created_at?: string
+          curp_rfc?: string | null
           date_of_birth?: string | null
           email: string
+          employer?: string | null
           full_name: string
           gender?: string | null
+          guardian_curp?: string | null
+          guardian_name?: string | null
           id?: string
+          internal_number?: string | null
           is_admin_master?: boolean | null
           is_archived?: boolean | null
           location_id?: string | null
           notes?: string | null
+          occupation?: string | null
           patient_code?: string | null
           phone?: string | null
+          reference_source?: string | null
           referral_code?: string | null
+          referral_discount_percent?: number | null
           tags?: string[] | null
           theme_preference?: string | null
           updated_at?: string
@@ -1373,20 +1681,30 @@ export type Database = {
         Update: {
           address?: string | null
           avatar_url?: string | null
+          beneficiary_type?: string | null
           birth_year?: number | null
+          convention_id?: string | null
           created_at?: string
+          curp_rfc?: string | null
           date_of_birth?: string | null
           email?: string
+          employer?: string | null
           full_name?: string
           gender?: string | null
+          guardian_curp?: string | null
+          guardian_name?: string | null
           id?: string
+          internal_number?: string | null
           is_admin_master?: boolean | null
           is_archived?: boolean | null
           location_id?: string | null
           notes?: string | null
+          occupation?: string | null
           patient_code?: string | null
           phone?: string | null
+          reference_source?: string | null
           referral_code?: string | null
+          referral_discount_percent?: number | null
           tags?: string[] | null
           theme_preference?: string | null
           updated_at?: string
@@ -1644,6 +1962,42 @@ export type Database = {
         }
         Relationships: []
       }
+      smile_simulations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          original_image_url: string
+          patient_id: string
+          settings: Json | null
+          simulated_image_url: string | null
+          template_used: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          original_image_url: string
+          patient_id: string
+          settings?: Json | null
+          simulated_image_url?: string | null
+          template_used?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          original_image_url?: string
+          patient_id?: string
+          settings?: Json | null
+          simulated_image_url?: string | null
+          template_used?: string | null
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1805,6 +2159,45 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vademecum: {
+        Row: {
+          active_ingredient: string | null
+          category: string | null
+          contraindications: string | null
+          created_at: string
+          dosage: string | null
+          id: string
+          indications: string | null
+          is_active: boolean | null
+          name: string
+          presentation: string | null
+        }
+        Insert: {
+          active_ingredient?: string | null
+          category?: string | null
+          contraindications?: string | null
+          created_at?: string
+          dosage?: string | null
+          id?: string
+          indications?: string | null
+          is_active?: boolean | null
+          name: string
+          presentation?: string | null
+        }
+        Update: {
+          active_ingredient?: string | null
+          category?: string | null
+          contraindications?: string | null
+          created_at?: string
+          dosage?: string | null
+          id?: string
+          indications?: string | null
+          is_active?: boolean | null
+          name?: string
+          presentation?: string | null
         }
         Relationships: []
       }
