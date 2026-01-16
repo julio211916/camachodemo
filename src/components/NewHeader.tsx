@@ -57,20 +57,19 @@ export function NewHeader() {
   return (
     <Navbar>
       {/* Desktop Navigation */}
-      <NavBody className="bg-slate-900/95 backdrop-blur-xl rounded-full mt-4 border border-white/10">
+      <NavBody>
         <NavbarLogo src={logo} alt="NovellDent" />
         <NavItems 
           items={navItems} 
           onItemClick={handleNavItemClick}
-          className="[&_a]:text-white/70 [&_a:hover]:text-white [&_span.absolute]:bg-white/10"
         />
-        <div className="flex items-center gap-2 z-50">
+        <div className="flex items-center gap-3 z-50">
           <LanguageSelector />
           <ThemeToggle />
           <NavbarButton
             onClick={handlePortalClick}
             variant="secondary"
-            className="bg-transparent border-none text-white/80 hover:text-white hover:bg-transparent shadow-none"
+            className="border-none"
           >
             {user ? t("nav.portal") : t("nav.login")}
           </NavbarButton>
@@ -78,7 +77,7 @@ export function NewHeader() {
       </NavBody>
 
       {/* Mobile Navigation */}
-      <MobileNav className="bg-slate-900/95 backdrop-blur-xl mt-2 mx-2 rounded-2xl border border-white/10">
+      <MobileNav>
         <MobileNavHeader>
           <NavbarLogo src={logo} alt="NovellDent" />
           <div className="flex items-center gap-2">
@@ -87,7 +86,6 @@ export function NewHeader() {
             <MobileNavToggle
               isOpen={isMobileMenuOpen}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-white"
             />
           </div>
         </MobileNavHeader>
@@ -104,16 +102,16 @@ export function NewHeader() {
                 if (item.isRoute) e.preventDefault();
                 handleNavItemClick(item);
               }}
-              className="relative w-full py-3 px-4 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+              className="relative w-full py-3 px-4 rounded-xl text-foreground/80 hover:text-foreground hover:bg-muted transition-colors"
             >
               {item.name}
             </a>
           ))}
-          <div className="flex flex-col gap-2 w-full pt-4 border-t border-white/10">
+          <div className="flex flex-col gap-2 w-full pt-4 border-t border-border">
             <NavbarButton
               onClick={handlePortalClick}
               variant="secondary"
-              className="w-full bg-white/10 border-none text-white"
+              className="w-full"
             >
               {user ? t("nav.portal") : t("nav.login")}
             </NavbarButton>

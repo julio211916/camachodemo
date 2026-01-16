@@ -89,28 +89,25 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
   return (
     <motion.div
       animate={{
-        backdropFilter: visible ? "blur(20px)" : "blur(0px)",
+        backdropFilter: visible ? "blur(20px)" : "blur(10px)",
         backgroundColor: visible
-          ? "hsl(var(--background) / 0.8)"
-          : "transparent",
+          ? "hsl(var(--background) / 0.95)"
+          : "hsl(var(--background) / 0.7)",
         width: visible ? "90%" : "100%",
         y: visible ? 10 : 0,
         borderRadius: visible ? "9999px" : "0px",
         boxShadow: visible
-          ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
-          : "none",
+          ? "0 8px 32px rgba(0, 0, 0, 0.12)"
+          : "0 1px 0 rgba(0, 0, 0, 0.05)",
       }}
       transition={{
         type: "spring",
         stiffness: 200,
         damping: 50,
       }}
-      style={{
-        minWidth: "800px",
-      }}
       className={cn(
-        "relative z-[60] mx-auto hidden w-full max-w-7xl items-center justify-between self-start px-4 py-3 lg:flex",
-        visible && "border border-border/30",
+        "relative z-[60] mx-auto hidden w-full max-w-7xl items-center justify-between self-start px-6 py-3 lg:flex",
+        visible && "border border-border/20",
         className
       )}
     >
@@ -126,7 +123,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
     <motion.div
       onMouseLeave={() => setHovered(null)}
       className={cn(
-        "absolute inset-0 hidden flex-1 flex-row items-center justify-center space-x-1 text-sm font-medium lg:flex",
+        "hidden flex-1 flex-row items-center justify-center gap-1 text-sm font-medium lg:flex ml-8",
         className
       )}
     >
@@ -139,14 +136,14 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
             }
             onItemClick?.(item);
           }}
-          className="relative cursor-pointer px-4 py-2 text-foreground/70 hover:text-foreground transition-colors duration-200"
+          className="relative cursor-pointer px-4 py-2 text-foreground/80 hover:text-foreground transition-colors duration-200"
           key={`link-${idx}`}
           href={item.link}
         >
           {hovered === idx && (
             <motion.span
               layoutId="hovered-nav"
-              className="absolute inset-0 rounded-full bg-muted"
+              className="absolute inset-0 rounded-full bg-primary/10"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -163,16 +160,16 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
   return (
     <motion.div
       animate={{
-        backdropFilter: visible ? "blur(20px)" : "blur(0px)",
+        backdropFilter: visible ? "blur(20px)" : "blur(10px)",
         backgroundColor: visible
-          ? "hsl(var(--background) / 0.9)"
-          : "transparent",
+          ? "hsl(var(--background) / 0.95)"
+          : "hsl(var(--background) / 0.8)",
         width: visible ? "95%" : "100%",
         y: visible ? 10 : 0,
         borderRadius: visible ? "1rem" : "0px",
         boxShadow: visible
-          ? "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
-          : "none",
+          ? "0 8px 32px rgba(0, 0, 0, 0.12)"
+          : "0 1px 0 rgba(0, 0, 0, 0.05)",
       }}
       transition={{
         type: "spring",
@@ -181,7 +178,7 @@ export const MobileNav = ({ children, className, visible }: MobileNavProps) => {
       }}
       className={cn(
         "relative z-50 mx-auto flex w-full flex-col lg:hidden",
-        visible && "border border-border/30",
+        visible && "border border-border/20",
         className
       )}
     >
