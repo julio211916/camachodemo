@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { AdminLogin } from "@/components/admin/AdminLogin";
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { Loader2 } from "lucide-react";
 
 const Admin = () => {
@@ -34,7 +34,8 @@ const Admin = () => {
     );
   }
 
-  return <AdminDashboard />;
+  // Usa MainLayout que incluye sucursales y vista local/global
+  return <MainLayout />;
 };
 
 export default Admin;
