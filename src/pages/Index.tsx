@@ -1,21 +1,17 @@
 import { useState } from "react";
-import { NewHeader } from "@/components/NewHeader";
-import { NewHero } from "@/components/NewHero";
-import { TechnologySection } from "@/components/TechnologySection";
+import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
+import { CamachoHero } from "@/components/ecommerce/CamachoHero";
+import { CategorySection } from "@/components/ecommerce/CategorySection";
+import { FeaturedProducts } from "@/components/ecommerce/FeaturedProducts";
+import { PromoSection } from "@/components/ecommerce/PromoSection";
 import { About } from "@/components/About";
-import { Specialties } from "@/components/Specialties";
-import { Services } from "@/components/Services";
-import { Testimonials } from "@/components/Testimonials";
-import { ReviewsSection } from "@/components/ReviewsSection";
-import { AppointmentBooking } from "@/components/AppointmentBooking";
 import { Locations } from "@/components/Locations";
-import { CTA } from "@/components/CTA";
 import { Contact } from "@/components/Contact";
-import { Footer } from "@/components/Footer";
+import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ChatBot } from "@/components/ChatBot";
 import { Preloader } from "@/components/Preloader";
-import { DentalParallaxSection } from "@/components/DentalParallaxSection";
+import { CartSidebar } from "@/components/ecommerce/CartSidebar";
 
 const Index = () => {
   const [showPreloader, setShowPreloader] = useState(true);
@@ -25,24 +21,20 @@ const Index = () => {
       <Preloader onComplete={() => setShowPreloader(false)} />
       
       <div className={`min-h-screen bg-background transition-opacity duration-500 ${showPreloader ? 'opacity-0' : 'opacity-100'}`}>
-        <NewHeader />
+        <EcommerceHeader />
         <main>
-          <NewHero />
-          <TechnologySection />
-          <DentalParallaxSection />
+          <CamachoHero />
+          <PromoSection />
+          <CategorySection />
+          <FeaturedProducts />
           <About />
-          <Specialties />
-          <Services />
-          <Testimonials />
-          <ReviewsSection />
-          <AppointmentBooking />
           <Locations />
-          <CTA />
           <Contact />
         </main>
-        <Footer />
+        <EcommerceFooter />
         <WhatsAppButton />
         <ChatBot />
+        <CartSidebar />
       </div>
     </>
   );
