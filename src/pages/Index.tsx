@@ -16,6 +16,8 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ChatBot } from "@/components/ChatBot";
 import { Preloader } from "@/components/Preloader";
 import { DentalParallaxSection } from "@/components/DentalParallaxSection";
+import { ProductSliderSection } from "@/components/ecommerce/ProductSliderSection";
+import { WholesaleCallSection } from "@/components/ecommerce/WholesaleCallSection";
 
 const Index = () => {
   const [showPreloader, setShowPreloader] = useState(true);
@@ -30,6 +32,8 @@ const Index = () => {
           <NewHero />
           <TechnologySection />
           <DentalParallaxSection />
+          <ProductSliderSection />
+          <WholesaleCallSection />
           <About />
           <Specialties />
           <Services />
