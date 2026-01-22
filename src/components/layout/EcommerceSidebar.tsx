@@ -177,6 +177,21 @@ const sidebarSections: SidebarSection[] = [
       { id: 'settings', label: 'Ajustes', icon: Settings },
     ],
   },
+  // VENDOR - Physical Sales
+  {
+    id: 'vendedor',
+    title: 'Vendedor',
+    icon: Truck,
+    roles: ['vendor'],
+    items: [
+      { id: 'vendor-home', label: 'Mi Panel', icon: Home },
+      { id: 'vendor-pos', label: 'Punto de Venta', icon: CreditCard },
+      { id: 'vendor-orders', label: 'Mis Ventas', icon: ShoppingCart },
+      { id: 'vendor-clients', label: 'Mis Clientes', icon: Users },
+      { id: 'vendor-route', label: 'Mi Ruta', icon: MapPin },
+      { id: 'vendor-stock', label: 'Mi Inventario', icon: Package },
+    ],
+  },
   // DISTRIBUTOR - Main
   {
     id: 'distribuidor',
@@ -185,7 +200,11 @@ const sidebarSections: SidebarSection[] = [
     roles: ['distributor'],
     items: [
       { id: 'distributor-home', label: 'Inicio', icon: Home },
+      { id: 'distributor-catalog', label: 'Catálogo Lab', icon: Package },
       { id: 'distributor-orders', label: 'Mis Pedidos', icon: ShoppingCart },
+      { id: 'distributor-inventory', label: 'Mi Inventario', icon: Boxes },
+      { id: 'distributor-clients', label: 'Mis Clientes', icon: Users },
+      { id: 'distributor-vendors', label: 'Mis Vendedores', icon: Truck },
       { id: 'distributor-history', label: 'Historial', icon: History },
       { id: 'distributor-ai', label: 'Asistente IA', icon: Brain },
     ],
@@ -208,7 +227,7 @@ const sidebarSections: SidebarSection[] = [
     id: 'cuenta',
     title: 'Mi Cuenta',
     icon: Settings,
-    roles: ['admin', 'staff', 'distributor', 'customer'],
+    roles: ['admin', 'staff', 'distributor', 'customer', 'vendor'],
     items: [
       { id: 'profile', label: 'Mi Perfil', icon: Users },
     ],
@@ -230,7 +249,8 @@ export function EcommerceSidebar({ activeSection, onNavigate, collapsed, onColla
     if (isAdminMaster) return 'Admin Master';
     switch (userRole) {
       case 'admin': return 'Administrador';
-      case 'staff': return 'Vendedor';
+      case 'staff': return 'Staff';
+      case 'vendor': return 'Vendedor';
       case 'distributor': return 'Distribuidor';
       case 'customer': return 'Cliente';
       default: return 'Usuario';
@@ -241,7 +261,8 @@ export function EcommerceSidebar({ activeSection, onNavigate, collapsed, onColla
     if (isAdminMaster) return 'bg-gradient-to-r from-primary to-purple-500';
     switch (userRole) {
       case 'admin': return 'bg-blue-500';
-      case 'staff': return 'bg-green-500';
+      case 'staff': return 'bg-emerald-500';
+      case 'vendor': return 'bg-green-500';
       case 'distributor': return 'bg-orange-500';
       case 'customer': return 'bg-teal-500';
       default: return 'bg-gray-500';
